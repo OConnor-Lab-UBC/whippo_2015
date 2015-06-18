@@ -1,27 +1,21 @@
 library(nlme)
 
+#read in data
 
-#Read in data
+data<-read.csv("plot_data.csv")
 
-data=read.csv("./plot_data.csv")
+#remove sites with only one dataset
 
-data.cs <- data[(data$Site!='BI')&(data$Site!='CC')&(data$Site!='EI')&(data$Site!='BE'),]
-
-head(data)
-
-#basic anova:
-
-mod1 <- lm(Rarefied_Richness ~ Site*Time, data = data.cs, na.action = na.omit)
-
-summary(mod1)
+pdata<-subset(data,Site!="EI")
+pdata<-subset(pdata,Site!="CC")
+pdata<-subset(pdata,Site!="BI")
+pdata<-subset(pdata,Site!="BE")
 
 
-# or treat site as a random effect
 
-mod2 <- lme(Rarefied_Richness ~ Time, random = ~ 1 + Time | Site, data = data.cs, na.action = na.omit)
 
-mod2a <- lme(Rarefied_Richness ~ Time, random = ~ 1 | Site, data = data.cs, na.action = na.omit)
+nondir.model1<-lme(Abundance~Time,data=pdata,random=~1|Site)
+dir.model1<-lme(Abundance~Time+Fw_dist_km,data=pdata,random=~1|Site)
+dir.model2<-lme(Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~1|Site)
 
-mod2b <- lm(Rarefied_Richness ~ Time, data = data.cs, na.action = na.omit)
-
-anova(mod2, mod2a)
+new.model<-lm(Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata)
