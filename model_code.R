@@ -37,10 +37,10 @@ mem.a3.norand<-lme(Log_Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,rand
 mem.a3.all<-lme(Log_Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~Time|Site,control=ctrl,method="ML")
 
 mem.a3.lmer<-lmer(Log_Abundance~Time+Fw_dist_km+Fw_dist_km*Time+(Time|Site),data=pdata)
-mem.a3.lmer.ci<-confint(mem.a3.lmer)
+#mem.a3.lmer.ci<-confint(mem.a3.lmer)
 
 mem.a3.all.lmer<-lmer(Log_Abundance~Time+Fw_dist_km+Fw_dist_km*Time+(Time|Site),data=data)
-mem.a3.all.lmer.ci<-confint(mem.a3.lmer)
+#mem.a3.all.lmer.ci<-confint(mem.a3.lmer)
 
 abund.sel<-model.sel(mem.a1,mem.a2,mem.a3)
 
@@ -54,8 +54,8 @@ ens.sel<-model.sel(mem.b1,mem.b2,mem.b3)
 mem.b3.lmer<-lmer(log_ENS~Time+Fw_dist_km+Time*Fw_dist_km+(Time|Site),data=pdata)
 mem.b3.lmer.all<-lmer(log_ENS~Time+Fw_dist_km+Time*Fw_dist_km+(Time|Site),data=data)
 
-mem.b3.lmer.ci<-confint(mem.b3.lmer)
-mem.b3.lmer.all.ci<-confint(mem.b3.lmer.all)
+#mem.b3.lmer.ci<-confint(mem.b3.lmer)
+#mem.b3.lmer.all.ci<-confint(mem.b3.lmer.all)
 
 mem.c1<-lme(Rarefied_Richness~Time,data=pdata,random=~1|Site,control=ctrl,method="ML")
 mem.c2<-lme(Rarefied_Richness~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
@@ -67,8 +67,8 @@ rich.sel<-model.sel(mem.c1,mem.c2,mem.c3)
 mem.c2.lmer<-lmer(Rarefied_Richness~Time+Fw_dist_km+(Time|Site),data=pdata)
 mem.c2.lmer.all<-lmer(Rarefied_Richness~Time+Fw_dist_km+(Time|Site),data=data)
 
-mem.c2.lmer.ci<-confint(mem.c2.lmer)
-mem.c2.lmer.all.ci<-confint(mem.c2.lmer.all)
+#mem.c2.lmer.ci<-confint(mem.c2.lmer)
+#mem.c2.lmer.all.ci<-confint(mem.c2.lmer.all)
 #try rerunning these models with all sites included
 
 mem.a11<-lme(Log_Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~1|Site,control=ctrl)
@@ -88,11 +88,11 @@ abund_limits<-aes(ymax=Log_Abundance+Log_Abundance_std,ymin=Log_Abundance-Log_Ab
 rich_limits<-aes(ymax=Rarefied_Richness+Richness_std,ymin=Rarefied_Richness-Richness_std)
 detach(site_data)
 
-ens_a<-ggplot(site_data,aes(Fw_dist_km,ENS))
+ens_a<-ggplot(site_data,aes(Fw_dist_km,log_ENS))
 ens_b<-ens_a+geom_point(aes(colour=factor(Time)),size=5)+
-  theme_bw()+geom_abline(intercept = 1.866, slope = 0.07608,colour="pink",size=2)+
-  geom_abline(intercept=3.259,slope=-0.05315,colour="green",size=2)+
-  geom_abline(intercept=1.6676,slope=0.08664,colour="blue",size=2)+
+  theme_bw()+geom_abline(intercept = 0.309, slope = 0.009498,colour="pink",size=2)+
+  geom_abline(intercept=.44385,slope=-0.003802,colour="green",size=2)+
+  geom_abline(intercept=0.23882,slope=0.013589,colour="blue",size=2)+
   theme(axis.text=element_text(size=20),axis.title=element_text(size=20,face="bold"))
   #geom_errorbar(ens_limits)
 
@@ -119,3 +119,14 @@ sdata_A<-subset(site_data,Time=="A")
 sdata_C<-subset(site_data,Time=="C")
 sdata_E<-subset(site_data,Time=="E")
 #use command coef(lm(ENS~Fw_dist_km,data=sdata_A))
+
+#test for correlations in the environmental data with position in the estuary
+
+env.1<-lm(avg_temp~Fw_dist_km+Time+Fw_dist_km*Time,data=sdata)
+env.1b<-lm(log(avg_temp)~Fw_dist_km+Time+Fw_dist_km*Time,data=sdata)
+
+#residual plot for env.1 is strange
+
+env.2<-lm(avg_sal~Fw_dist_km+Time+Fw_dist_km*Time,data=sdata)
+env.3<-lm(avg_dens~Fw_dist_km+Time+Fw_dist_km*Time,data=sdata)
+env.4<-lm(avg_LAI~Fw_dist_km+Time+Fw_dist_km*Time,data=sdata)
