@@ -1,4 +1,5 @@
 library(nlme)
+library(lme4)
 library(ggplot2)
 library(MuMIn)
 
@@ -35,18 +36,39 @@ mem.a3<-lme(Log_Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~Tim
 mem.a3.norand<-lme(Log_Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~1|Site,control=ctrl,method="ML")
 mem.a3.all<-lme(Log_Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~Time|Site,control=ctrl,method="ML")
 
-model.sel(mem.a1,mem.a2,mem.a3)
+mem.a3.lmer<-lmer(Log_Abundance~Time+Fw_dist_km+Fw_dist_km*Time+(Time|Site),data=pdata)
+mem.a3.lmer.ci<-confint(mem.a3.lmer)
 
-mem.b1<-lme(log_ENS~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~1|Site,control=ctrl)
-mem.b2<-lme(log_ENS~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl)
-mem.b3<-lme(log_ENS~Time,data=pdata,random=~Time|Site,control=ctrl,method="ML")
+mem.a3.all.lmer<-lmer(Log_Abundance~Time+Fw_dist_km+Fw_dist_km*Time+(Time|Site),data=data)
+mem.a3.all.lmer.ci<-confint(mem.a3.lmer)
+
+abund.sel<-model.sel(mem.a1,mem.a2,mem.a3)
+
+mem.b1<-lme(log_ENS~Time,data=pdata,random=~Time|Site,control=ctrl,method="ML")
+mem.b2<-lme(log_ENS~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
+mem.b3<-lme(log_ENS~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
 mem.b4<-lme(log_ENS~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
 
-mem.c1<-lme(Rarefied_Richness~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~1|Site,control=ctrl)
-mem.c2<-lme(Rarefied_Richness~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl)
-mem.c3<-lme(Rarefied_Richness~Time,data=pdata,random=~Time|Site,control=ctrl,method="ML")
+ens.sel<-model.sel(mem.b1,mem.b2,mem.b3)
+
+mem.b3.lmer<-lmer(log_ENS~Time+Fw_dist_km+Time*Fw_dist_km+(Time|Site),data=pdata)
+mem.b3.lmer.all<-lmer(log_ENS~Time+Fw_dist_km+Time*Fw_dist_km+(Time|Site),data=data)
+
+mem.b3.lmer.ci<-confint(mem.b3.lmer)
+mem.b3.lmer.all.ci<-confint(mem.b3.lmer.all)
+
+mem.c1<-lme(Rarefied_Richness~Time,data=pdata,random=~1|Site,control=ctrl,method="ML")
+mem.c2<-lme(Rarefied_Richness~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
+mem.c3<-lme(Rarefied_Richness~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
 mem.c4<-lme(Rarefied_Richness~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
 
+rich.sel<-model.sel(mem.c1,mem.c2,mem.c3)
+
+mem.c2.lmer<-lmer(Rarefied_Richness~Time+Fw_dist_km+(Time|Site),data=pdata)
+mem.c2.lmer.all<-lmer(Rarefied_Richness~Time+Fw_dist_km+(Time|Site),data=data)
+
+mem.c2.lmer.ci<-confint(mem.c2.lmer)
+mem.c2.lmer.all.ci<-confint(mem.c2.lmer.all)
 #try rerunning these models with all sites included
 
 mem.a11<-lme(Log_Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~1|Site,control=ctrl)
@@ -58,21 +80,11 @@ mem.b21<-lme(log_ENS~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~Time|Site
 mem.c11<-lme(Rarefied_Richness~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~1|Site,control=ctrl)
 mem.c21<-lme(Rarefied_Richness~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~Time|Site,control=ctrl)
 
-
-
-#try a fixed effects model in which Time and Distance are fixed effects
-#note: this is no good, need to add in meadow as a random factor (see above)
-
-lm.1<-lm(Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata)
-lm.2<-lm(ENS~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata)
-lm.3<-lm(Rarefied_Richness~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata)
-
-#lm.2 looks weird, try replotting the data with fitted lines against distance
-#from fw (actually, do it for all models)
+#plotting the data with fitted lines against distance from fw
 
 attach(site_data)
 ens_limits<-aes(ymax =ENS+ENS_std, ymin=ENS-ENS_std)
-abund_limits<-aes(ymax=Abundance+Abund_std,ymin=Abundance-Abund_std)
+abund_limits<-aes(ymax=Log_Abundance+Log_Abundance_std,ymin=Log_Abundance-Log_Abundance_std)
 rich_limits<-aes(ymax=Rarefied_Richness+Richness_std,ymin=Rarefied_Richness-Richness_std)
 detach(site_data)
 
@@ -84,11 +96,11 @@ ens_b<-ens_a+geom_point(aes(colour=factor(Time)),size=5)+
   theme(axis.text=element_text(size=20),axis.title=element_text(size=20,face="bold"))
   #geom_errorbar(ens_limits)
 
-abund_a<-ggplot(site_data,aes(Fw_dist_km,Abundance))
+abund_a<-ggplot(site_data,aes(Fw_dist_km,Log_Abundance))
 abund_b<-abund_a+geom_point(aes(colour=factor(Time)),size=5)+
-  theme_bw()+geom_abline(intercept = 30.27, slope = 1.01,colour="pink",size=2)+
-  geom_abline(intercept=24.12,slope=14.47,colour="green",size=2)+
-  geom_abline(intercept=-261.599,slope=54.67,colour="blue",size=2)+
+  theme_bw()+geom_abline(intercept = 1.44, slope = 0.00734,colour="pink",size=2)+
+  geom_abline(intercept=1.675,slope=0.0292,colour="green",size=2)+
+  geom_abline(intercept=1.526,slope=0.0629,colour="blue",size=2)+
   theme(axis.text=element_text(size=20),axis.title=element_text(size=20,face="bold"))
 
   #geom_errorbar(abund_limits)
