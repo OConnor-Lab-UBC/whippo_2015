@@ -2,11 +2,15 @@ library(nlme)
 library(lme4)
 library(ggplot2)
 library(MuMIn)
+library(vegan)
 
 #read in data
 
 data<-read.csv("plot_data.csv")
 site_data<-read.csv("site_avgs.csv")
+commdata<-read.csv("comm_data.csv")
+siteIDs<-read.csv("site_ID.csv")
+s.pool<-read.csv("specpool_output.csv")
 
 data$Site = factor(data$Site,levels(data$Site)[c(5,9,1,8,6,2,3,7,4)])
 
@@ -36,13 +40,13 @@ mem.a3<-lme(Log_Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~Tim
 mem.a3.norand<-lme(Log_Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~1|Site,control=ctrl,method="ML")
 mem.a3.all<-lme(Log_Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~Time|Site,control=ctrl,method="ML")
 
+abund.sel<-model.sel(mem.a1,mem.a2,mem.a3)
+
 mem.a3.lmer<-lmer(Log_Abundance~Time+Fw_dist_km+Fw_dist_km*Time+(Time|Site),data=pdata)
 #mem.a3.lmer.ci<-confint(mem.a3.lmer)
 
 mem.a3.all.lmer<-lmer(Log_Abundance~Time+Fw_dist_km+Fw_dist_km*Time+(Time|Site),data=data)
-#mem.a3.all.lmer.ci<-confint(mem.a3.lmer)
-
-abund.sel<-model.sel(mem.a1,mem.a2,mem.a3)
+#mem.a3.all.lmer.ci<-confint(mem.a3.all.lmer)
 
 mem.b1<-lme(log_ENS~Time,data=pdata,random=~Time|Site,control=ctrl,method="ML")
 mem.b2<-lme(log_ENS~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
@@ -130,3 +134,29 @@ env.1b<-lm(log(avg_temp)~Fw_dist_km+Time+Fw_dist_km*Time,data=sdata)
 env.2<-lm(avg_sal~Fw_dist_km+Time+Fw_dist_km*Time,data=sdata)
 env.3<-lm(avg_dens~Fw_dist_km+Time+Fw_dist_km*Time,data=sdata)
 env.4<-lm(avg_LAI~Fw_dist_km+Time+Fw_dist_km*Time,data=sdata)
+
+#calculate gamma for each meadow
+
+gvalues<-specpool(commdata,siteIDs$Code)
+
+#plot gamma values
+
+gam.a<-subset(s.pool,Time=="A")
+gam.c<-subset(s.pool,Time=="C")
+gam.e<-subset(s.pool,Time=="E")
+
+gamma_a<-ggplot(s.pool,aes(Fw_dist_km,chao))
+gamma_b<-gamma_a+geom_point(aes(colour=factor(Time)),size=5)+
+  theme_bw()+geom_abline(intercept = 33.07, slope = -0.26486,colour="pink",size=2)+
+  geom_abline(intercept=19.011,slope=0.19367,colour="green",size=2)+
+  geom_abline(intercept=47.31,slope=-0.5565,colour="blue",size=2)+
+  theme(axis.text=element_text(size=20),axis.title=element_text(size=20,face="bold"))+
+  ylab("Gamma")+xlab("Distance from Alberni Inlet")
+
+#bust out some linear models
+
+gam1<-lm(chao~Time,data=s.pool)
+gam2<-lm(chao~Time+Fw_dist_km,data=s.pool)
+gam3<-lm(chao~Time+Fw_dist_km+Time*Fw_dist_km,data=s.pool)
+
+
