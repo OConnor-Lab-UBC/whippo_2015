@@ -93,29 +93,29 @@ rich_limits<-aes(ymax=Rarefied_Richness+Richness_std,ymin=Rarefied_Richness-Rich
 detach(site_data)
 
 ens_a<-ggplot(site_data,aes(Fw_dist_km,log_ENS))
-ens_b<-ens_a+geom_point(aes(colour=factor(Time)),size=5)+
-  theme_bw()+geom_abline(intercept = 0.309, slope = 0.009498,colour="pink",size=2)+
-  geom_abline(intercept=.44385,slope=-0.003802,colour="green",size=2)+
-  geom_abline(intercept=0.23882,slope=0.013589,colour="blue",size=2)+
-  theme(axis.text=element_text(size=20),axis.title=element_text(size=20,face="bold"))
-  #geom_errorbar(ens_limits)
+ens_b<-ens_a+geom_point(aes(shape=factor(Time)),size=5)+
+  theme_bw()+geom_abline(intercept = 0.309, slope = 0.009498,linetype=1,size=2)+
+  geom_abline(intercept=.44385,slope=-0.003802,linetype=2,size=2)+
+  geom_abline(intercept=0.23882,slope=0.013589,linetype=3,size=2)+
+  theme(axis.text=element_text(size=25),axis.title=element_text(size=25,face="bold"))+
+  xlab("Distance from Alberni Inlet")+ylab("log(ENS)")
 
 abund_a<-ggplot(site_data,aes(Fw_dist_km,Log_Abundance))
-abund_b<-abund_a+geom_point(aes(colour=factor(Time)),size=5)+
-  theme_bw()+geom_abline(intercept = 1.44, slope = 0.00734,colour="pink",size=2)+
-  geom_abline(intercept=1.675,slope=0.0292,colour="green",size=2)+
-  geom_abline(intercept=1.526,slope=0.0629,colour="blue",size=2)+
-  theme(axis.text=element_text(size=20),axis.title=element_text(size=20,face="bold"))
+abund_b<-abund_a+geom_point(aes(shape=factor(Time)),size=5)+
+  theme_bw()+geom_abline(intercept = 1.44, slope = 0.00734,linetype=1,size=2)+
+  geom_abline(intercept=1.675,slope=0.0292,linetype=2,size=2)+
+  geom_abline(intercept=1.526,slope=0.0629,linetype=3,size=2)+
+  theme(axis.text=element_text(size=25),axis.title=element_text(size=25,face="bold"))+
+  xlab("Distance from Alberni Inlet")+ylab("log(Abundance)")
 
-  #geom_errorbar(abund_limits)
 
 rich_a<-ggplot(site_data,aes(Fw_dist_km,Rarefied_Richness))
-rich_b<-rich_a+geom_point(aes(colour=factor(Time)),size=5)+
-  theme_bw()+geom_abline(intercept = 6.955, slope = 0.102,colour="pink",size=2)+
-  geom_abline(intercept=11.13,slope=-0.0363,colour="green",size=2)+
-  geom_abline(intercept=11.14,slope=0.136,colour="blue",size=2)+
-  theme(axis.text=element_text(size=20),axis.title=element_text(size=20,face="bold"))
-  #geom_errorbar(rich_limits)
+rich_b<-rich_a+geom_point(aes(colour=shape(Time)),size=5)+
+  theme_bw()+geom_abline(intercept = 6.955, slope = 0.102,linetype=1,size=2)+
+  geom_abline(intercept=11.13,slope=-0.0363,linetype=2,size=2)+
+  geom_abline(intercept=11.14,slope=0.136,linetype=3,size=2)+
+  theme(axis.text=element_text(size=25),axis.title=element_text(size=25,face="bold"))+
+  xlab("Distance from Alberni Inlet")+ylab("Rarefied species richness")
 
 #calculate best fit lines
 
@@ -146,20 +146,20 @@ gam.c<-subset(s.pool,Time=="C")
 gam.e<-subset(s.pool,Time=="E")
 
 gamma_a1<-ggplot(s.pool[1:19,],aes(Fw_dist_km,chao))
-gamma_b1<-gamma_a1+geom_point(aes(colour=factor(Time)),size=5)+
-  theme_bw()+geom_abline(intercept = 33.07, slope = -0.26486,colour="pink",size=2)+
-  geom_abline(intercept=19.011,slope=0.19367,colour="green",size=2)+
-  geom_abline(intercept=47.31,slope=-0.5565,colour="blue",size=2)+
-  theme(axis.text=element_text(size=20),axis.title=element_text(size=20,face="bold"))+
-  ylab("Gamma")+xlab("Distance from Alberni Inlet")
+gamma_b1<-gamma_a1+geom_point(aes(shape=factor(Time)),size=5)+
+  theme_bw()+geom_abline(intercept = 33.07, slope = -0.26486,linetype=1,size=2)+
+  geom_abline(intercept=19.011,slope=0.19367,linetype=2,size=2)+
+  geom_abline(intercept=47.31,slope=-0.5565,linetype=3,size=2)+
+  theme(axis.text=element_text(size=25),axis.title=element_text(size=25,face="bold"))+
+  ylab("Species richness (Chao 2)")+xlab("Distance from Alberni Inlet")
 
 gamma_a2<-ggplot(s.pool[1:19,],aes(Fw_dist_km,jack2))
-gamma_b2<-gamma_a2+geom_point(aes(colour=factor(Time)),size=5)+
-  theme_bw()+geom_abline(intercept = 33.07, slope = -0.26486,colour="pink",size=2)+
-  geom_abline(intercept=19.011,slope=0.19367,colour="green",size=2)+
-  geom_abline(intercept=47.31,slope=-0.5565,colour="blue",size=2)+
-  theme(axis.text=element_text(size=20),axis.title=element_text(size=20,face="bold"))+
-  ylab("Gamma")+xlab("Distance from Alberni Inlet")
+gamma_b2<-gamma_a2+geom_point(aes(shape=factor(Time)),size=5)+
+  theme_bw()+geom_abline(intercept = 33.07, slope = -0.26486,linetype=1,size=2)+
+  geom_abline(intercept=19.011,slope=0.19367,linetype=2,size=2)+
+  geom_abline(intercept=47.31,slope=-0.5565,linetype=3,size=2)+
+  theme(axis.text=element_text(size=25),axis.title=element_text(size=25,face="bold"))+
+  ylab("Species richness (2nd order jackknife)")+xlab("Distance from Alberni Inlet")
 
 #bust out some linear models
 
