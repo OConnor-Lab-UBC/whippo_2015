@@ -11,6 +11,7 @@ site_data<-read.csv("site_avgs.csv")
 commdata<-read.csv("comm_data.csv")
 siteIDs<-read.csv("site_ID.csv")
 s.pool<-read.csv("specpool_output.csv")
+fdata<-read.csv("fishdata.csv")
 
 data$Site = factor(data$Site,levels(data$Site)[c(5,9,1,8,6,2,3,7,4)])
 
@@ -84,6 +85,14 @@ mem.b21<-lme(log_ENS~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~Time|Site
 mem.c11<-lme(Rarefied_Richness~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~1|Site,control=ctrl)
 mem.c21<-lme(Rarefied_Richness~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~Time|Site,control=ctrl)
 
+
+mem.d1<-lme(Simpson~Time,data=pdata,random=~1|Site,control=ctrl,method="ML")
+mem.d2<-lme(Simpson~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
+mem.d3<-lme(Simpson~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
+mem.d4<-lme(Simpson~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
+
+simp.sel<-model.sel(mem.d2,mem.d3,mem.d4)
+
 #plotting the data with fitted lines against distance from fw
 
 attach(site_data)
@@ -110,7 +119,7 @@ abund_b<-abund_a+geom_point(aes(shape=factor(Time)),size=5)+
 
 
 rich_a<-ggplot(site_data,aes(Fw_dist_km,Rarefied_Richness))
-rich_b<-rich_a+geom_point(aes(colour=shape(Time)),size=5)+
+rich_b<-rich_a+geom_point(aes(shape=factor(Time)),size=5)+
   theme_bw()+geom_abline(intercept = 6.955, slope = 0.102,linetype=1,size=2)+
   geom_abline(intercept=11.13,slope=-0.0363,linetype=2,size=2)+
   geom_abline(intercept=11.14,slope=0.136,linetype=3,size=2)+
@@ -174,3 +183,5 @@ gam6<-lm(jack2~Time+Fw_dist_km+Time*Fw_dist_km,data=s.pool)
 gam7<-lm(chao~Msize_m2,data=s.pool)
 gam8<-lm(jack2~Msize_m2,data=s.pool)
 gam9<-lm(jack2~Msize_m2+Time+Time*Msize_m2,data=s.pool)
+
+fish.1<-lm(Log_Abundance~fish_abund,data=sdata)
