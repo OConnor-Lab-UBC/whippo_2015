@@ -11,7 +11,7 @@ site_data<-read.csv("site_avgs.csv")
 commdata<-read.csv("comm_data.csv")
 siteIDs<-read.csv("site_ID.csv")
 s.pool<-read.csv("specpool_output.csv")
-fdata<-read.csv("fishdata.csv")
+fdata<-read.csv("fdata.csv")
 
 data$Site = factor(data$Site,levels(data$Site)[c(5,9,1,8,6,2,3,7,4)])
 
@@ -89,10 +89,31 @@ mem.c21<-lme(Rarefied_Richness~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=
 mem.d1<-lme(Simpson~Time,data=pdata,random=~1|Site,control=ctrl,method="ML")
 mem.d2<-lme(Simpson~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
 mem.d3<-lme(Simpson~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
-mem.d4<-lme(Simpson~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
+mem.d4<-lme(Simpson~Time,data=pdata,random=~Time|Site,control=ctrl,method="ML")
 
 simp.sel<-model.sel(mem.d2,mem.d3,mem.d4)
 
+mem.d3.lmer<-lmer(Simpson~Time+Fw_dist_km+Time*Fw_dist_km+(Time|Site),data=pdata)
+mem.d3.lmer.ci<-confint(mem.d3.lmer)
+
+mem.d3.lmer.all<-lmer(Simpson~Time+Fw_dist_km+Time*Fw_dist_km+(Time|Site),data=data)
+#mem.d3.lmer.all.ci<-confint(mem.d3.all.lmer)
+
+#calculate shannon diversity to run more mems
+sdiv<-diversity(commdata,index="shannon")
+
+mem.e1<-lme(Shannon~Time,data=pdata,random=~1|Site,control=ctrl,method="ML")
+mem.e2<-lme(Shannon~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
+mem.e3<-lme(Shannon~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
+mem.e4<-lme(Shannon~Time,data=pdata,random=~Time|Site,control=ctrl,method="ML")
+
+shan.sel<-model.sel(mem.e2,mem.e3,mem.e4)
+
+mem.e3.lmer<-lmer(Shannon~Time+Fw_dist_km+Time*Fw_dist_km+(Time|Site),data=pdata)
+mem.e3.lmer.ci<-confint(mem.e3.lmer)
+
+mem.e3.lmer.all<-lmer(Shannon~Time+Fw_dist_km+Time*Fw_dist_km+(Time|Site),data=data)
+#mem.e3.lmer.all.ci<-confint(mem.e3.lmer.all)
 #plotting the data with fitted lines against distance from fw
 
 attach(site_data)
@@ -109,8 +130,24 @@ ens_b<-ens_a+geom_point(aes(shape=factor(Time)),size=5)+
   theme(axis.text=element_text(size=25),axis.title=element_text(size=25,face="bold"))+
   xlab("Distance from Alberni Inlet")+ylab("log(ENS)")
 
+simp_a<-ggplot(site_data,aes(Fw_dist_km,Simpson))
+simp_b<-simp_a+geom_point(aes(shape=factor(Time)),size=8)+
+  theme_bw()+geom_abline(intercept = 0.490, slope = 0.00610,linetype=1,size=2)+
+  geom_abline(intercept=.628,slope=-0.00835,linetype=2,size=2)+
+  geom_abline(intercept=0.71637,slope=-0.00682569,linetype=3,size=2)+
+  theme(axis.text=element_text(size=25),axis.title=element_text(size=25,face="bold"))+
+  xlab("Distance from Alberni Inlet")+ylab("Simpson Index")
+
+shan_a<-ggplot(site_data,aes(Fw_dist_km,Shannon))
+shan_b<-shan_a+geom_point(aes(shape=factor(Time)),size=8)+
+  theme_bw()+geom_abline(intercept = 0.971, slope = 0.017967,linetype=1,size=2)+
+  geom_abline(intercept=1.338776,slope=-0.01327338,linetype=2,size=2)+
+  geom_abline(intercept=0.54561232,slope=0.04486018,linetype=3,size=2)+
+  theme(axis.text=element_text(size=25),axis.title=element_text(size=25,face="bold"))+
+  xlab("Distance from Alberni Inlet")+ylab("Shannon Index")
+
 abund_a<-ggplot(site_data,aes(Fw_dist_km,Log_Abundance))
-abund_b<-abund_a+geom_point(aes(shape=factor(Time)),size=5)+
+abund_b<-abund_a+geom_point(aes(shape=factor(Time)),size=10)+
   theme_bw()+geom_abline(intercept = 1.44, slope = 0.00734,linetype=1,size=2)+
   geom_abline(intercept=1.675,slope=0.0292,linetype=2,size=2)+
   geom_abline(intercept=1.526,slope=0.0629,linetype=3,size=2)+
@@ -184,4 +221,31 @@ gam7<-lm(chao~Msize_m2,data=s.pool)
 gam8<-lm(jack2~Msize_m2,data=s.pool)
 gam9<-lm(jack2~Msize_m2+Time+Time*Msize_m2,data=s.pool)
 
-fish.1<-lm(Log_Abundance~fish_abund,data=sdata)
+
+#lets work in some fish data
+
+#calculate ENS
+
+nm.spec<-ncol(fdata)
+nm.row<-nrow(fdata)
+
+all_ens<-numeric(0)
+
+for(i in 1:nm.row)
+{
+  total<-rowSums(fdata[i,])
+  sum_p2<-0
+  
+  for(j in 1:nm.spec)
+  {
+    p2<-(fdata[i,j]/total)*(fdata[i,j]/total)
+    sum_p2<-sum_p2+p2    
+  }
+  ens<-1/sum_p2
+  all_ens<-c(all_ens,ens)
+}
+
+
+fish.1<-lm(Log_Abundance~fish_abund,data=site_data)
+fish.2<-lm(fish_abund~Fw_dist_km,data=site_data)
+fish.3<-lm(fish_ens~Fw_dist_km,data=site_data)
