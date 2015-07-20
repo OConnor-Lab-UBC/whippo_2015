@@ -59,8 +59,8 @@ ens.sel<-model.sel(mem.b1,mem.b2,mem.b3)
 mem.b3.lmer<-lmer(log_ENS~Time+Fw_dist_km+Time*Fw_dist_km+(Time|Site),data=pdata)
 mem.b3.lmer.all<-lmer(log_ENS~Time+Fw_dist_km+Time*Fw_dist_km+(Time|Site),data=data)
 
-#mem.b3.lmer.ci<-confint(mem.b3.lmer)
-#mem.b3.lmer.all.ci<-confint(mem.b3.lmer.all)
+mem.b3.lmer.ci<-confint(mem.b3.lmer)
+mem.b3.lmer.all.ci<-confint(mem.b3.lmer.all)
 
 mem.c1<-lme(Rarefied_Richness~Time,data=pdata,random=~1|Site,control=ctrl,method="ML")
 mem.c2<-lme(Rarefied_Richness~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
@@ -74,17 +74,6 @@ mem.c2.lmer.all<-lmer(Rarefied_Richness~Time+Fw_dist_km+(Time|Site),data=data)
 
 #mem.c2.lmer.ci<-confint(mem.c2.lmer)
 #mem.c2.lmer.all.ci<-confint(mem.c2.lmer.all)
-#try rerunning these models with all sites included
-
-mem.a11<-lme(Log_Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~1|Site,control=ctrl)
-mem.a21<-lme(Log_Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~Time|Site,control=ctrl)
-
-mem.b11<-lme(log_ENS~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~1|Site,control=ctrl)
-mem.b21<-lme(log_ENS~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~Time|Site,control=ctrl)
-
-mem.c11<-lme(Rarefied_Richness~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~1|Site,control=ctrl)
-mem.c21<-lme(Rarefied_Richness~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~Time|Site,control=ctrl)
-
 
 mem.d1<-lme(Simpson~Time,data=pdata,random=~1|Site,control=ctrl,method="ML")
 mem.d2<-lme(Simpson~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
@@ -94,7 +83,7 @@ mem.d4<-lme(Simpson~Time,data=pdata,random=~Time|Site,control=ctrl,method="ML")
 simp.sel<-model.sel(mem.d2,mem.d3,mem.d4)
 
 mem.d3.lmer<-lmer(Simpson~Time+Fw_dist_km+Time*Fw_dist_km+(Time|Site),data=pdata)
-mem.d3.lmer.ci<-confint(mem.d3.lmer)
+#mem.d3.lmer.ci<-confint(mem.d3.lmer)
 
 mem.d3.lmer.all<-lmer(Simpson~Time+Fw_dist_km+Time*Fw_dist_km+(Time|Site),data=data)
 #mem.d3.lmer.all.ci<-confint(mem.d3.all.lmer)
@@ -110,7 +99,7 @@ mem.e4<-lme(Shannon~Time,data=pdata,random=~Time|Site,control=ctrl,method="ML")
 shan.sel<-model.sel(mem.e2,mem.e3,mem.e4)
 
 mem.e3.lmer<-lmer(Shannon~Time+Fw_dist_km+Time*Fw_dist_km+(Time|Site),data=pdata)
-mem.e3.lmer.ci<-confint(mem.e3.lmer)
+#mem.e3.lmer.ci<-confint(mem.e3.lmer)
 
 mem.e3.lmer.all<-lmer(Shannon~Time+Fw_dist_km+Time*Fw_dist_km+(Time|Site),data=data)
 #mem.e3.lmer.all.ci<-confint(mem.e3.lmer.all)
