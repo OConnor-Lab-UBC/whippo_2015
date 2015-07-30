@@ -278,3 +278,15 @@ temp_2<-temp_1+geom_point(aes(shape=factor(Time)),size=5)+
   theme_bw()+
   theme(axis.text=element_text(size=25),axis.title=element_text(size=25,face="bold"))+
   ylab("Temp")+xlab("Distance from Alberni Inlet")
+
+pdata_main<-read.csv("site_avgs_main.csv")
+commdata_main<-read.csv("site_totals_main.csv")
+
+pdata_main<-pdata_main[1:15,]
+commdata_main<-commdata_main[1:15,]
+
+#try plotting community trajectories
+mod <- cca(commdata_main~pdata_main$Site+pdata_main$Time)
+plot(mod,type='n',xlim=c(-5,3))
+## Show time trajectories
+ordiarrows(mod, pdata_main$Site,lwd=4,display='sites',label=T,xlim=c(-5,3))
