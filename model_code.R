@@ -35,39 +35,75 @@ sdata<-subset(sdata,Site!="BE")
 
 ctrl <- lmeControl(opt='optim')
 
-mem.a1<-lme(Log_Abundance~Time,data=pdata,random=~Time|Site,control=ctrl,method="ML")
-mem.a2<-lme(Log_Abundance~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
-mem.a3<-lme(Log_Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
-mem.a3.norand<-lme(Log_Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~1|Site,control=ctrl,method="ML")
-mem.a3.all<-lme(Log_Abundance~Time+Fw_dist_km+Time*Fw_dist_km,data=data,random=~Time|Site,control=ctrl,method="ML")
+mem.a1 <- lmer(Log_Abundance ~ Time + (Time|Site), data = data, REML = FALSE)
+mem.a2 <- lmer(Log_Abundance ~ Time + Fw_dist_km + (Time|Site), data = data, REML = FALSE)
+mem.a3 <- lmer(Log_Abundance ~ Time * Fw_dist_km + (Time|Site),data = data, REML = FALSE)
+mem.a3.norand <- lmer(Log_Abundance ~ Time * Fw_dist_km + (1|Site),data = data, REML = FALSE)
 
-abund.sel<-model.sel(mem.a1,mem.a2,mem.a3)
+abund.sel <- model.sel(mem.a1,mem.a2,mem.a3)
+anova(mem.a3, mem.a3.norand)
 
+# use REML on best model to get coefficients:
+mem.a3r <- lmer(Log_Abundance ~ Time * Fw_dist_km + (Time|Site), data = data, REML = TRUE)
+summary(mem.a3r)
+confint(mem.a3r)
+
+# not clear to me that we need this part anymore...
 mem.a3.lmer<-lmer(Log_Abundance~Time+Fw_dist_km+Fw_dist_km*Time+(Time|Site),data=pdata)
 #mem.a3.lmer.ci<-confint(mem.a3.lmer)
 
 mem.a3.all.lmer<-lmer(Log_Abundance~Time+Fw_dist_km+Fw_dist_km*Time+(Time|Site),data=data)
 #mem.a3.all.lmer.ci<-confint(mem.a3.all.lmer)
 
-mem.b1<-lme(log_ENS~Time,data=pdata,random=~Time|Site,control=ctrl,method="ML")
-mem.b2<-lme(log_ENS~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
-mem.b3<-lme(log_ENS~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
-mem.b4<-lme(log_ENS~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
+########
+#### model ENS 
+########
+
+mem.b1 <- lmer(log_ENS ~ Time + (Time|Site), data = data, REML = FALSE)
+mem.b2 <- lmer(log_ENS ~ Time + Fw_dist_km + (Time|Site), data = data, REML = FALSE)
+mem.b3 <- lmer(log_ENS ~ Time * Fw_dist_km + (Time|Site), data = data, REML = FALSE)
+mem.b3.norand <- lmer(log_ENS ~ Time * Fw_dist_km + (1|Site), data = data, REML = FALSE)
 
 ens.sel<-model.sel(mem.b1,mem.b2,mem.b3)
+anova(mem.b1, mem.b2)  # not different, so we could average these two. 
+anova(mem.b1, mem.b3)  # actually, should probably average all three. 
+anova(mem.b3.norand, mem.b3) # b3 is best. 
 
+m.avg <- model.avg(mem.b1, mem.b2, mem.b3)
+summary(m.avg)
+confint(m.avg)
+
+
+## this stuff might be extra now?
 mem.b1.lmer<-lmer(log_ENS~Time+(Time|Site),data=pdata)
 mem.b1.lmer.all<-lmer(log_ENS~Time+(Time|Site),data=data)
 
 #mem.b1.lmer.ci<-confint(mem.b1.lmer)
 #mem.b1.lmer.all.ci<-confint(mem.b1.lmer.all)
 
-mem.c1<-lme(Rarefied_Richness~Time,data=pdata,random=~1|Site,control=ctrl,method="ML")
-mem.c2<-lme(Rarefied_Richness~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
-mem.c3<-lme(Rarefied_Richness~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
-mem.c4<-lme(Rarefied_Richness~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
+
+########
+#### model RARIFIED RICHNESS 
+########
+
+mem.c1 <- lmer(Rarefied_Richness ~ Time + (Time|Site), data = data, REML = FALSE)
+mem.c2 <- lmer(Rarefied_Richness ~ Time + Fw_dist_km + (Time|Site), data = data, REML = FALSE)
+mem.c3 <- lmer(Rarefied_Richness ~ Time * Fw_dist_km + (Time|Site), data = data, REML = FALSE)
+mem.c3.norand <- lmer(Rarefied_Richness ~ Time * Fw_dist_km + (1|Site), data = data, REML = FALSE)
 
 rich.sel<-model.sel(mem.c1,mem.c2,mem.c3)
+anova(mem.c1, mem.c2)
+anova(mem.c1, mem.c3)
+anova(mem.c3, mem.c3.norand)
+
+mem.c1r <- lmer(Rarefied_Richness ~ Time + (Time|Site), data = data, REML = TRUE)
+mem.c2r <- lmer(Rarefied_Richness ~ Time + Fw_dist_km + (Time|Site), data = pdata, REML = TRUE)
+mem.c3r <- lmer(Rarefied_Richness ~ Time * Fw_dist_km + (Time|Site), data = data, REML = TRUE)
+
+m.avg <- model.avg(mem.c1r, mem.c2r, mem.c3r)
+summary(m.avg)
+confint(m.avg)
+
 
 mem.c2.lmer<-lmer(Rarefied_Richness~Time+Fw_dist_km+(Time|Site),data=pdata)
 mem.c2.lmer.all<-lmer(Rarefied_Richness~Time+Fw_dist_km+(Time|Site),data=data)
@@ -76,28 +112,56 @@ mem.c2.lmer.all.ci<-confint(mem.c2.lmer.all)
 #mem.c2.lmer.ci<-confint(mem.c2.lmer)
 #mem.c2.lmer.all.ci<-confint(mem.c2.lmer.all)
 
-mem.d1<-lme(Simpson~Time,data=pdata,random=~1|Site,control=ctrl,method="ML")
-mem.d2<-lme(Simpson~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
-mem.d3<-lme(Simpson~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
-mem.d4<-lme(Simpson~Time,data=pdata,random=~Time|Site,control=ctrl,method="ML")
 
-simp.sel<-model.sel(mem.d2,mem.d3,mem.d4)
+########
+#### model SIMPSON'S INDEX 
+########
 
+mem.d1 <- lmer(Simpson ~ Time + (Time|Site), data = data, REML = FALSE)
+mem.d2 <- lmer(Simpson ~ Time + Fw_dist_km + (Time|Site), data = data, REML = FALSE)
+mem.d3 <- lmer(Simpson ~ Time * Fw_dist_km + (Time|Site), data = data, REML = FALSE)
+mem.d3.norand <- lmer(Simpson ~ Time * Fw_dist_km + (1|Site), data = data, REML = FALSE)
+
+simp.sel<-model.sel(mem.d1,mem.d2,mem.d3)
+anova(mem.d3, mem.d2)
+anova(mem.d3.norand, mem.d3)
+
+mem.d3.norandr <- lmer(Simpson ~ Time * Fw_dist_km + (1|Site), data = data, REML = TRUE)
+summary(mem.d3.norandr)
+confint(mem.d3.norandr)
+
+### not sure we need this anymore
 mem.d3.lmer<-lmer(Simpson~Time+Fw_dist_km+Time*Fw_dist_km+(Time|Site),data=pdata)
 #mem.d3.lmer.ci<-confint(mem.d3.lmer)
 
 mem.d3.lmer.all<-lmer(Simpson~Time+Fw_dist_km+Time*Fw_dist_km+(Time|Site),data=data)
 #mem.d3.lmer.all.ci<-confint(mem.d3.lmer.all)
 
+
+########
+#### model SHANNON DIVERSITY 
+########
+
 #calculate shannon diversity to run more mems
 sdiv<-diversity(commdata,index="shannon")
 
-mem.e1<-lme(Shannon~Time,data=pdata,random=~1|Site,control=ctrl,method="ML")
-mem.e2<-lme(Shannon~Time+Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
-mem.e3<-lme(Shannon~Time+Fw_dist_km+Time*Fw_dist_km,data=pdata,random=~Time|Site,control=ctrl,method="ML")
-mem.e4<-lme(Shannon~Time,data=pdata,random=~Time|Site,control=ctrl,method="ML")
+mem.e1 <- lmer(Shannon ~ Time + (Time|Site), data = data, REML = FALSE)
+mem.e2 <- lmer(Shannon ~ Time + Fw_dist_km + (Time|Site), data = data, REML = FALSE)
+mem.e3 <- lmer(Shannon ~ Time * Fw_dist_km + (Time|Site), data = data, REML = FALSE)
+mem.e3.norand <- lmer(Shannon ~ Time * Fw_dist_km + (1|Site), data = data, REML = FALSE)
 
-shan.sel<-model.sel(mem.e2,mem.e3,mem.e4)
+shan.sel<-model.sel(mem.e1,mem.e2,mem.e3)
+anova(mem.e1, mem.e2)
+anova(mem.e1, mem.e3)
+anova(mem.e3, mem.e3.norand)
+
+mem.e1r <- lmer(Shannon ~ Time + (Time|Site), data = data, REML = TRUE)
+mem.e2r <- lmer(Shannon ~ Time + Fw_dist_km + (Time|Site), data = data, REML = TRUE)
+mem.e3r <- lmer(Shannon ~ Time * Fw_dist_km + (Time|Site), data = data, REML = TRUE)
+
+m.avg <- model.avg(mem.e1r, mem.e2r, mem.e3r)
+summary(m.avg)
+confint(m.avg)
 
 mem.e2.lmer<-lmer(Shannon~Time+Fw_dist_km+(Time|Site),data=pdata)
 #mem.e2.lmer.ci<-confint(mem.e2.lmer)
