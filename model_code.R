@@ -35,6 +35,8 @@ sdata<-subset(sdata,Site!="BE")
 
 ctrl <- lmeControl(opt='optim')
 
+hist(data$Abundance)
+
 mem.a1 <- lmer(Log_Abundance ~ Time + (Time|Site), data = data, REML = FALSE)
 mem.a2 <- lmer(Log_Abundance ~ Time + Fw_dist_km + (Time|Site), data = data, REML = FALSE)
 mem.a3 <- lmer(Log_Abundance ~ Time * Fw_dist_km + (Time|Site),data = data, REML = FALSE)
