@@ -44,7 +44,7 @@ abund.sel <- model.sel(mem.a1,mem.a2,mem.a3)
 anova(mem.a3, mem.a3.norand)
 
 # use REML on best model to get coefficients:
-mem.a3r <- lmer(Log_Abundance ~ Time * Fw_dist_km + (Time|Site), data = data, REML = TRUE)
+mem.a3r <- lmer(Log_Abundance ~ Time * Fw_dist_km + (1|Site), data = data, REML = TRUE)
 summary(mem.a3r)
 confint(mem.a3r)
 
