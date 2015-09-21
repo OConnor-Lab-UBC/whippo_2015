@@ -82,3 +82,24 @@ rankabunplot(CBradc, scale = "logabun", specnames=c(1:46), xlim = c(0, 46), ylim
 
 rankabunplot(WIradc, scale = "logabun", specnames=c(1:46), xlim = c(0, 46), ylim = c(0, 12000),main = "WI - C")
 
+
+
+
+
+## get site totals for each species and size class, for all sites time A: 
+totalsA <- colSums(data[((data$site == 'DC')&(data$Time.Code2 == "A")),6:51])
+totalsA <- rbind(totalsA, colSums(data[((data$site == 'RP')&(data$Time.Code2 == "A")),6:51]))
+totalsA <- rbind(totalsA, colSums(data[((data$site == 'WI')&(data$Time.Code2 == "A")),6:51]))
+totalsA <- rbind(totalsA, colSums(data[((data$site == 'NB')&(data$Time.Code2 == "A")),6:51]))
+totalsA <- rbind(totalsA, colSums(data[((data$site == 'CC')&(data$Time.Code2 == "A")),6:51]))
+rownames(totalsA)<- c('DC', 'RP', 'WI', 'NB', 'CC')
+totalsA <- as.data.frame(totalsA, rownames = c('DC', 'RP', 'WI', 'NB', 'CC'))
+
+## get site totals for each species and size class, for all sites time E: 
+totalsE <- colSums(data[((data$site == 'DC')&(data$Time.Code2 == "E")),6:51])
+totalsE <- rbind(totalsE, colSums(data[((data$site == 'RP')&(data$Time.Code2 == "E")),6:51]))
+totalsE <- rbind(totalsE, colSums(data[((data$site == 'WI')&(data$Time.Code2 == "E")),6:51]))
+totalsE <- rbind(totalsE, colSums(data[((data$site == 'NB')&(data$Time.Code2 == "E")),6:51]))
+totalsE <- rbind(totalsE, colSums(data[((data$site == 'CC')&(data$Time.Code2 == "E")),6:51]))
+rownames(totalsE)<- c('DC', 'RP', 'WI', 'NB', 'CC')
+totalsE <- as.data.frame(totalsE, rownames = c('DC', 'RP', 'WI', 'NB', 'CC'))
