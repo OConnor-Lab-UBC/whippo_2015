@@ -294,23 +294,21 @@ tdata.sum2dfa[1:10, 1:10]
 
 
 
+### modeling 
+library(lme4)
+library(MuMIn)
 
-## exploring dplyr
+## total inverts
+class(data.sum3$order)
+mem.a1 <- lmer(log(N+0.01) ~ Time.Code2 + (Time.Code2|site), data = data.sum3, REML = FALSE)
+mem.a2 <- lmer(log(N+0.01) ~ Time.Code2 + dfw + (Time.Code2|site), data = data.sum3, REML = FALSE)
+mem.a3 <- lmer(log(N+0.01) ~ Time.Code2*dfw + (Time.Code2|site), data = data.sum3, REML = FALSE)
+mem.a3.norand <- lmer(log(N+0.01) ~ Time.Code2*dfw + (1|site), data = data.sum3, REML = FALSE)
 
+abund.sel <- model.sel(mem.a1,mem.a2,mem.a3)
+anova(mem.a3, mem.a3.norand)
+anova(mem.a3, mem.a2)
 
+summary(mem.a2)
 
-data2 <- ddply(data, .(site, date, sample, Time.Code, Time.Code2), summarise, cbind(sum(data$Idotea.resecata), sum(data$Phllaplysia.taylori)))
-
-data[(data$site == "DC" & data$Time.Code == "A"),]
-
-filter(data, site == 'DC', Time.Code2 == 'A')
-
-select(data, 6:51)
-
-mutate(data, 
-       N = sum(select(data, Idotea.resecata:Alia.carinata)))
-
-summarise_each_(data, ID = data$site + data$Time.Code2 + data$sample)
-
-
-data.g <- group_by()
+mod1 <- lm(log(N+0.01) ~ Time.Code2 + dfw, data = data.sum3)
