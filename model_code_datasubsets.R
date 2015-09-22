@@ -4,7 +4,7 @@
 
 
 library(vegan)
-#library(plyr)
+library(plyr)
 library(dplyr)
 library(ggplot2)
 
@@ -65,8 +65,44 @@ grzS <- ggplot(data.grz3, aes(factor(order), S))
 grzS_plot <- grzS + geom_boxplot(aes(fill = factor(Time.Code2))) 
 
 
+##### exclude 1 mm sizes ####
 
+## remove the 1mm rows
+data1 <- data[-(data$Sieve=='1'),]
 
+## create an id for each sample at each site, time. 
+idmaker = function(x) { return(paste(x, collapse=""))}
+data1$ID <- apply(data1[,c("site", "Time.Code2", "Sample")], 1, idmaker)
+
+## now treat each sample as a group collapse across sizes to sum taxa
+data1.s <- group_by(data1, ID)
+func <- function(x) { sum(x) }
+data1.sum <- as.data.frame(summarise_each(data1.s, funs(sum), (Idotea.resecata:Alia.carinata)))
+
+data1.sum$H <- diversity(data1.sum[,2:47], index = "shannon") # interesting; works here but didn't with grazers
+data1.sum$S <- diversity(data1.sum[,2:47], index = "simpson")
+data1.sum$N <- apply(data1.sum[,2:47], 1, function(x) sum(x))
+head(data1.sum)
+
+## add in sample information 
+data1.desc <- ddply(data1.s, .(site, Time.Code2, Sample), summarise, unique(ID))
+data1.sum2 <- merge(data1.sum, data1.desc, by.x = "ID", by.y = "..1", all.x = TRUE, all.y = FALSE)
+
+## add in site information
+data1.sum3 <- merge(data1.sum2, sites, by.x = 'site', by.y = 'site')
+
+## look at it
+plot(log(data1.sum3$N) ~ data1.sum3$order)
+plot(log(data1.sum3$N) ~ data1.sum3$Time.Code2)
+
+bigN <- ggplot(data1.sum3, aes(factor(order), log(N)))
+bigN_abund <- bigN + geom_boxplot(aes(fill = factor(Time.Code2))) ## clear signal of more big things after May at marine sites. This does not translate to a change in diversity; S and H metrics show trends decoupled from abundance, suggesting a role of changes in dominance with time as well. 
+
+bigS <- ggplot(data1.sum3, aes(factor(order), S))
+bigS_plot <- bigS + geom_boxplot(aes(fill = factor(Time.Code2))) # no clear signal of time, or space
+
+bigH <- ggplot(data1.sum3, aes(factor(order), H))
+bigH_plot <- bigH + geom_boxplot(aes(fill = factor(Time.Code2))) # no clear signal of time, or space
 
 ######################
 ## extra crap
