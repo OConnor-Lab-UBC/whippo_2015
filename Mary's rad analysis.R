@@ -1,5 +1,6 @@
 ### Mary's attempt to look at dominant species
 ### September 20, 2015
+### for Whippo et al, seagrass biodiversity paper
 
 library(vegan)
 library(BiodiversityR)

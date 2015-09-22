@@ -1,3 +1,7 @@
+##### CODE FOR WORK FLOW FROM RAW DATA DO DIVERISTY METRICS #####
+##### MARY O'CONNOR SEPTEMBER 2015
+##### For Whippo et al, seagrass biodiversity paper
+
 
 library(vegan)
 #library(plyr)
