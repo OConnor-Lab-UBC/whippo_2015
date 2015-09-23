@@ -128,10 +128,10 @@ data3.1 <- data3.1[,-(8:12)]
 data.gr <- filter(data3.1, function. == "grazer")
 data.grz <- dcast(data.gr, ID ~ species)
 
-data.grz$H <- diversity(data.grz[,2:17], index = "shannon") 
-data.grz$S <- diversity(data.grz[,2:17], index = "simpson")
-data.grz$N <- apply(data.grz[,2:17], 1, function(x) sum(x))
-data.grz$R <- apply(data.grz[,2:17], 1, function(x) count.func(x))
+data.grz$H <- diversity(data.grz[,2:18], index = "shannon") 
+data.grz$S <- diversity(data.grz[,2:18], index = "simpson")
+data.grz$N <- apply(data.grz[,2:18], 1, function(x) sum(x))
+data.grz$R <- apply(data.grz[,2:18], 1, function(x) count.func(x))
 head(data.grz)
 
 ## add in sample information 
