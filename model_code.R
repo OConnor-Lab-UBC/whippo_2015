@@ -48,7 +48,7 @@ anova(mem.a3, mem.a3.norand)
 # use REML on best model to get coefficients:
 mem.a3r <- lmer(Log_Abundance ~ Time * Fw_dist_km + (1|Site), data = data, REML = TRUE)
 summary(mem.a3r)
-confint(mem.a3r)
+#confint(mem.a3r)
 
 # not clear to me that we need this part anymore...
 mem.a3.lmer<-lmer(Log_Abundance~Time+Fw_dist_km+Fw_dist_km*Time+(Time|Site),data=pdata)
@@ -73,7 +73,7 @@ anova(mem.b3.norand, mem.b3) # b3 is best.
 
 m.avg <- model.avg(mem.b1, mem.b2, mem.b3)
 summary(m.avg)
-confint(m.avg)
+#confint(m.avg)
 
 
 ## this stuff might be extra now?
@@ -104,12 +104,12 @@ mem.c3r <- lmer(Rarefied_Richness ~ Time * Fw_dist_km + (Time|Site), data = data
 
 m.avg <- model.avg(mem.c1r, mem.c2r, mem.c3r)
 summary(m.avg)
-confint(m.avg)
+#confint(m.avg)
 
 
 mem.c2.lmer<-lmer(Rarefied_Richness~Time+Fw_dist_km+(Time|Site),data=pdata)
 mem.c2.lmer.all<-lmer(Rarefied_Richness~Time+Fw_dist_km+(Time|Site),data=data)
-mem.c2.lmer.all.ci<-confint(mem.c2.lmer.all)
+#mem.c2.lmer.all.ci<-confint(mem.c2.lmer.all)
 
 #mem.c2.lmer.ci<-confint(mem.c2.lmer)
 #mem.c2.lmer.all.ci<-confint(mem.c2.lmer.all)
@@ -130,7 +130,7 @@ anova(mem.d3.norand, mem.d3)
 
 mem.d3.norandr <- lmer(Simpson ~ Time * Fw_dist_km + (1|Site), data = data, REML = TRUE)
 summary(mem.d3.norandr)
-confint(mem.d3.norandr)
+#confint(mem.d3.norandr)
 
 ### not sure we need this anymore
 mem.d3.lmer<-lmer(Simpson~Time+Fw_dist_km+Time*Fw_dist_km+(Time|Site),data=pdata)
@@ -163,7 +163,7 @@ mem.e3r <- lmer(Shannon ~ Time * Fw_dist_km + (Time|Site), data = data, REML = T
 
 m.avg <- model.avg(mem.e1r, mem.e2r, mem.e3r)
 summary(m.avg)
-confint(m.avg)
+#confint(m.avg)
 
 mem.e2.lmer<-lmer(Shannon~Time+Fw_dist_km+(Time|Site),data=pdata)
 #mem.e2.lmer.ci<-confint(mem.e2.lmer)
@@ -237,32 +237,32 @@ temp.2<-lm(avg_temp~Time+Fw_dist_km,data=site_data)
 temp.3<-lm(avg_temp~Fw_dist_km+Time+Fw_dist_km*Time,data=site_data)
 
 temp.sel<-model.sel(temp.1,temp.2,temp.3)
-temp.3.ci<-confint(temp.3)
+#temp.3.ci<-confint(temp.3)
 
 sal.1<-lm(avg_sal~Time, data=site_data)
 sal.2<-lm(avg_sal~Time+Fw_dist_km,data=site_data)
 sal.3<-lm(avg_sal~Fw_dist_km+Time+Fw_dist_km*Time,data=site_data)
 
 sal.sel<-model.sel(sal.1,sal.2,sal.3)
-sal.2.ci<-confint(sal.2)
+#sal.2.ci<-confint(sal.2)
 
 dens.1<-lm(avg_dens~Time, data=site_data)
 dens.2<-lm(avg_dens~Time+Fw_dist_km,data=site_data)
 dens.3<-lm(avg_dens~Fw_dist_km+Time+Fw_dist_km*Time,data=site_data)
 
 dens.sel<-model.sel(dens.1,dens.2,dens.3)
-dens.2.ci<-confint(dens.2)
+#dens.2.ci<-confint(dens.2)
 
 LAI.1<-lm(avg_LAI~Time, data=site_data)
 LAI.2<-lm(avg_LAI~Time+Fw_dist_km,data=site_data)
 LAI.3<-lm(avg_LAI~Fw_dist_km+Time+Fw_dist_km*Time,data=site_data)
 
 LAI.sel<-model.sel(LAI.1,LAI.2,LAI.3)
-LAI.2.ci<-confint(LAI.2)
+#LAI.2.ci<-confint(LAI.2)
 
 fish_ens<-lm(fish_ens~Fw_dist_km,data=site_data)
 
-fish_ens.ci<-confint(fish_ens)
+#fish_ens.ci<-confint(fish_ens)
 #calculate gamma for each meadow
 
 gvalues<-specpool(commdata,siteIDs$Code)
@@ -296,7 +296,7 @@ gam2<-lm(chao~Time+Fw_dist_km,data=s.pool)
 gam3<-lm(chao~Time+Fw_dist_km+Time*Fw_dist_km,data=s.pool)
 
 chao.sel<-model.sel(gam1,gam2,gam3)
-gam1_ci<-confint(gam1)
+#gam1_ci<-confint(gam1)
 
 gam4<-lm(jack2~Time,data=s.pool)
 gam5<-lm(jack2~Time+Fw_dist_km,data=s.pool)
