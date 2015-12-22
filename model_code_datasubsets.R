@@ -86,7 +86,7 @@ data.sum <- as.data.frame(summarise_each(data.s, funs(sum), (Idotea.resecata:Ali
 
 ## add in sample information 
 data.desc <- ddply(data.s, .(site, Time.Code2, Sample), summarise, unique(ID)) ## this step could be consolidated later.
-data.sum2 <- merge(data.sum, data.desc, by.x = "ID", by.y = "..1", all.x = TRUE, all.y = FALSE)
+data.sum2 <- merge(data.sum, data.desc, by.x = "ID", by.y = "unique(ID)", all.x = TRUE, all.y = FALSE)
 
 ## add in site information
 data.sum3 <- merge(data.sum2, sites, by.x = 'site', by.y = 'site')
