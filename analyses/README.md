@@ -12,10 +12,11 @@ R. Whippo1,2, N.S. Knight1, C. Prentice3, M. Siegle1, M. I. O’Connor1
 ### Data files to use: (summary of all data files below)
 rawcomm.csv  # master data file with species abundances at each site.
 site.info.csv # meadow area, order, distance from fresh water
+grazertraits.csv # information about which species are grazers.
 
 
 ### Code files to use:
-
+Whippo diversity analysis master.R starts with rawcomm data and plots basic diversity estimates from each plot for each meadow. 
 
 
 ### data files - summary
