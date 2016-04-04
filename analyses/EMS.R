@@ -45,3 +45,4 @@ totals1
 
 test1 <- Coherence(totals1)
 
+Metacommunity(totals1)
