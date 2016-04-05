@@ -1,8 +1,10 @@
 ## Metacom for Ross's data
 
 library(metacom)
-library(dplyr)
+library(plyr)
 library(broom)
+library(reshape2)
+library(Matrix)
 
 data <- read.csv("rawcomm.csv")
 traits <- read.csv("grazertraits.csv")
@@ -56,39 +58,31 @@ timeC <- timeC[,-(2:5)]
 
 timeC2 <- select(timeC, c(site1, Idotea.resecata:Alia.carinata))
 
+melted <- melt(timeC2, id.vars = c("site1"))
+
 
 ## get site x sample totals for each species:
-### got stuck here trying to access each site x sample. maybe just number each sample and try that, losing site identity for now?
 
-site.samples <- length(unique(timeC2$site1))
-site.sam <- timeC2$site1
-totals.plots <- colSums(timeC[timeC2$site1 == site.sam[i],2:47])
-totals.plots <- 
-  for (i in length(site.sam)) {
-  rbind(totals.plots, colSums(timeC2[timeC2$site1 == site.sam[i],2:47]))
-}
+totals.plots <- ddply(melted, .(site1, variable), summarise, sum(value))
+totals.plots$site1 <- as.factor(totals.plots$site1)
+totals.plots2 <- reshape(totals.plots,  direction = "wide", timevar = "variable", idvar = "site1")
 
-totals.plots <- rbind(totals.plots, colSums(timeC2[timeC2$site1 == 'RP',2:47]))
-totals.plots <- rbind(totals.plots, colSums(timeC2[timeC2$site1 == 'WI',2:47]))
-totals.plots <- rbind(totals.plots, colSums(timeC2[timeC2$site1 == 'NB',2:47]))
-totals.plots <- rbind(totals.plots, colSums(timeC2[timeC2$site1 == 'CB',2:47]))
-totals.plots <- rbind(totals.plots, colSums(timeC2[timeC2$site1 == 'EI',2:47]))
-totals.plots <- rbind(totals.plots, colSums(timeC2[timeC2$site1 == 'CC',2:47]))
-totals.plots <- rbind(totals.plots, colSums(timeC2[timeC2$site1 == 'BI',2:47]))
-totals.plots <- rbind(totals.plots, colSums(timeC2[timeC2$site1 == 'BE',2:47]))
-totals.plots <- as.data.frame(totals.plots)
+rownames(totals.plots2) <- totals.plots2$site1
 
-totals.plots <- rbind(totals.plots, colSums(timeC2[,2:47]))
-rownames(totals.plots)<- c('DC', 'RP', 'WI', 'NB', 'CB', 'EI', 'CC', 'BI', 'BE', 'Tot')
-
-totals.pl1 <- totals.plots[,c(order(-totals.plots[10,]))]
-totals.pl1 <- totals.pl1[1:9,1:35]
+totals.plots3 <- rbind(totals.plots2, rowSums(totals.plots2[,2:47])) # no zeros, so don't need this line. 
+totals.plots3$sum <- cbind(rowSums(totals.plots3[,2:47]))
+totals.plots3 <- totals.plots3[(totals.plots3$sum != 0),]
 
 ## convert to presence absence: 
+totals.pl2 <- totals.plots3[-146, -1] 
+totals.pl2 <- totals.pl2[, -47] 
+totals.pl2[totals.pl2 > 0] <- 1
+totals.pl2
+dim(totals.pl2)
 
-totals.pl1[totals.pl1 > 0] <- 1
-totals.pl1
 
-test1 <- Coherence(totals1)
+test1 <- Coherence(totals.pl2)
 
-Metacommunity(totals1)
+Metacommunity(totals.pl2)
+
+MetaImportance(totals.pl2)
