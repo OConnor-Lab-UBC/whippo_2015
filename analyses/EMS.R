@@ -45,15 +45,16 @@ totals <- as.data.frame(totals)
 totals <- rbind(totals, colSums(timeC[,2:47]))
 rownames(totals)<- c('DC', 'RP', 'WI', 'NB', 'CB', 'EI', 'CC', 'BI', 'BE', 'Tot')
 
-totals1 <- totals[,c(order(-totals[10,]))]
-## we just need to have this code select the non-zero values of row 10. 
-
-#totals1 <- totals1[1:9,1:35]
+## we just need to have this code select the non-zero values of row 10. totals1 <- totals[,c(order(-totals[10,]))]
 
 #this will automatically trim the species with 0s. hooray!!
-totals1[length(totals1[,1]),] <- ifelse(totals1[length(totals1[,1]),]<1, 'zero', 'one')
-totals2 <- subset(totals1, select = -grep("zero", totals1[length(totals1[,1]),]))  
-totals2 <- totals2[-10,]
+totals[length(totals[,1]),] <- ifelse(totals[length(totals[,1]),]<1, 'zero', 'one')
+totals2 <- subset(totals, select = -grep("zero", totals[length(totals[,1]),]))  
+totals3 <- as.matrix(sapply(totals2, as.numeric))
+totals2 <- totals3
+
+## get rid of row of species sums
+totals2 <- (totals2[-10,])
 
 ## convert to presence absence: 
 
@@ -78,7 +79,6 @@ timeC2 <- select(timeC, c(site1, Idotea.resecata:Alia.carinata))
 
 melted <- melt(timeC2, id.vars = c("site1"))
 
-
 ## get site x sample totals for each species:
 totals.plots <- ddply(melted, .(site1, variable), summarise, sum(value))
 totals.plots$site1 <- as.factor(totals.plots$site1)
@@ -89,11 +89,14 @@ totals.plots2 <- totals.plots2[,-1] # removes column of sites now that rows are 
 # calculate sums for each species
 totals.plots2[length(totals.plots2[,1])+1,] <- colSums(totals.plots2[,c(1:46)])
 
-#if zeros, then use: 
-totals.plots3 <- totals.plots2[,c(order(-as.numeric(totals.plots2[146,])))]
+#this will automatically trim the species with 0s. hooray!!
+totals.plots2[length(totals.plots2[,1]),] <- ifelse(totals.plots2[length(totals.plots2[,1]),]<1, 'zero', 'one')
+totals.plots3 <- subset(totals.plots2, select = -grep("zero", totals.plots2[length(totals.plots2[,1]),]))  
+totals.plots3 <- totals.plots3[-length(totals.plots3[,1]),]
 
 ### count individuals in each site
-totals.plots3$sum <- cbind(rowSums(totals.plots3[,1:46]))
+b <- as.numeric(length(totals.plots3[1,]))
+totals.plots3$sum <- cbind(rowSums(totals.plots3[,1:b]))  #not working for some reason
 totals.plots3 <- totals.plots3[(totals.plots3$sum != 0),] # remove any plots with no species
 
 ## convert to presence absence: 
@@ -112,21 +115,34 @@ MetaImportance(totals.pl2)
 
 ####### TIMEC 5 SITES
 ## step 1: create a presence absence matrix for the 5 meadows (or for all plots?)
-totals5 <- totals[c(1:5),]
-totals5[6,] <- colSums(totals5[,c(1:46)])
-totals1 <- totals5[,c(order(-totals5[6,]))]
-tail(totals1)
-totals1 <- totals1[1:5,1:32]
+totals <- colSums(timeC[timeC$site == 'DC',2:47])
+totals <- rbind(totals, colSums(timeC[timeC$site == 'RP',2:47]))
+totals <- rbind(totals, colSums(timeC[timeC$site == 'WI',2:47]))
+totals <- rbind(totals, colSums(timeC[timeC$site == 'NB',2:47]))
+totals <- rbind(totals, colSums(timeC[timeC$site == 'CB',2:47]))
+totals <- as.data.frame(totals)
 
+totals <- rbind(totals, colSums(totals[,1:46]))
+rownames(totals)<- c('DC', 'RP', 'WI', 'NB', 'CB', 'Tot')
+
+totals$sum <- cbind(rowSums(totals[,1:46]))
+
+#this will automatically trim the species with 0s. hooray!!
+totals[length(totals[,1]),] <- ifelse(totals[length(totals[,1]),]<1, 'zero', 'one')
+totals2 <- subset(totals, select = -grep("zero", totals[length(totals[,1]),]))  
+
+## get rid of row of species sums
+totals2 <- (totals2[-(length(totals2[,1])),])
+## get rid of col of site sums
+totals3 <- (totals2[,-(length(totals2[1,]))])
 
 ## convert to presence absence: 
 
-totals1[totals1 > 0] <- 1
-totals1
+totals3[totals3 > 0] <- 1
 
-Metacommunity(totals1)
-
-
+meta<-Metacommunity(totals3)
+community<-as.data.frame(meta[1])
+levelplot(as.matrix(community))
 
 
 ## Analysis #2: don't collapse samples
