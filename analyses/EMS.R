@@ -1,29 +1,137 @@
 ## Metacom for Ross's data
 
 library(metacom)
+library(plyr)
 library(dplyr)
 library(broom)
 library(reshape2)
 library(Matrix)
+library(lattice)
 
 data <- read.csv("rawcomm.csv")
-#traits <- read.csv("grazertraits.csv")
+traits <- read.csv("grazertraits.csv")
+head(traits)
+head(data)
 
+
+#### CREATING DATASETS WE MIGHT USE
+
+## All 5 resurveyed sites.
 data5 <- data[(data$site == 'WI'),]
 data5 <- rbind(data5, data[(data$site == 'RP'),])
 data5 <- rbind(data5, data[(data$site == 'CB'),])
 data5 <- rbind(data5, data[(data$site == 'DC'),])
 data5 <- rbind(data5, data[(data$site == 'NB'),])
 
+# exclude the smallest individuals: not a good idea, you lose 10 species this way, not just juveniles
+#data.s <- data[(data$Sieve > '2'),]
+#data <- data.s
 
-# exclude the smallest individuals
-data.s <- data[(data$Sieve > '2'),]
-data <- data.s
+## TIME C, 9 MEADOWS, SITES  
+timeC <- data[(data$Time.Code2 == 'C'),]
+dim(timeC)
+timeC <- timeC[,-52] # get rid of columns that are not needed for this analysis
+timeC <- timeC[,-(2:5)]
 
-## step 1: create a presence absence matrix for the 9 meadows (or for all plots?)
+## collapse samples within sites: get site totals for each species and size class: 
+datafile <- timeC ## name of datafile you're using #length(datafile[1,])
+dim(datafile)
+totals <- colSums(datafile[datafile$site == 'DC',2:47])
+totals <- rbind(totals, colSums(datafile[datafile$site == 'RP',2:47]))
+totals <- rbind(totals, colSums(datafile[datafile$site == 'WI',2:47]))
+totals <- rbind(totals, colSums(datafile[datafile$site == 'NB',2:47]))
+totals <- rbind(totals, colSums(datafile[datafile$site == 'CB',2:47]))
+totals <- rbind(totals, colSums(datafile[datafile$site == 'EI',2:47]))
+totals <- rbind(totals, colSums(datafile[datafile$site == 'CC',2:47]))
+totals <- rbind(totals, colSums(datafile[datafile$site == 'BI',2:47]))
+totals <- rbind(totals, colSums(datafile[datafile$site == 'BE',2:47]))
+totals <- as.data.frame(totals)
 
+totals <- rbind(totals, colSums(timeC[,2:47]))
+rownames(totals)<- c('DC', 'RP', 'WI', 'NB', 'CB', 'EI', 'CC', 'BI', 'BE', 'Tot')
+
+#Trim the species with 0 occurrances in this dataset
+totals[length(totals[,1]),] <- ifelse(totals[length(totals[,1]),]<1, 'zero', 'one')
+totals2 <- subset(totals, select = -grep("zero", totals[length(totals[,1]),])) 
+## get rid of row of species sums
+totals2 <- (totals2[-10,])
+
+## convert to presence absence: 
+totals2[totals2 > 0] <- 1
+totals2
+
+Metacommunity(totals2) -> meta
+meta
+#MetaImportance(totals2, margin = 2)
+
+a <- as.data.frame(meta[1])
+
+pdf('9sitesCallsizes.pdf', width = 7, height = 9)
+levelplot(as.matrix(a), col.regions=c(0,1), region = TRUE, colorkey=FALSE, ylab = '', xlab = '', main="Community 9 sites C",  border="black")
+dev.off()
+
+
+## Analysis #2: don't collapse samples
+
+## create dataset of interest, here subsetting time C from the full data.
 timeC <- data[(data$Time.Code2 == 'C'),]
 dim(data)
+dim(timeC)
+
+## collapse site and sample into a single plot-level identifier
+timeC$site1 <- paste(timeC$site, timeC$Sample)
+timeC <- timeC[,-52]
+timeC <- timeC[,-(2:5)]
+
+## isolate identifier column 
+timeC2 <- select(timeC, c(site1, Idotea.resecata:Alia.carinata))
+
+melted <- melt(timeC2, id.vars = c("site1"))
+
+## get site x sample totals for each species:
+totals.plots <- ddply(melted, .(site1, variable), summarise, sum(value))
+totals.plots$site1 <- as.factor(totals.plots$site1)
+totals.plots2 <- reshape(totals.plots,  direction = "wide", timevar = "variable", idvar = "site1")
+
+rownames(totals.plots2) <- totals.plots2$site1
+totals.plots2 <- totals.plots2[,-1] # removes column of sites, now that rows are named
+
+# calculate sums for each species
+totals.plots2[length(totals.plots2[,1])+1,] <- colSums(totals.plots2[,c(1:length(totals.plots2[1,]))])
+#calculate sums for each site
+totals.plots2$sum <- cbind(rowSums(totals.plots2)) 
+
+#this will automatically trim the species with 0s. hooray!!
+# remove any plots with no species
+totals.plots2 <- totals.plots2[(totals.plots2$sum != 0),] 
+totals.plots2[length(totals.plots2[,1]),] <- ifelse(totals.plots2[length(totals.plots2[,1]),]<1, 'zero', 'one')
+totals.plots3 <- subset(totals.plots2, select = -grep("zero", totals.plots2[length(totals.plots2[,1]),]))
+
+## convert to presence absence: 
+tail(totals.plots3)
+totals.pl2 <- totals.plots3[-length(totals.plots3[,1]), -length(totals.plots3[1,])]
+tail(totals.pl2)
+totals.pl2[totals.pl2 > 0] <- 1
+dim(totals.pl2)
+
+#Metacommunity(totals.pl2)
+
+Metacommunity(totals.pl2) -> meta
+meta
+#MetaImportance(totals.pl2, margin = 2)
+
+a <- as.data.frame(meta[1])
+
+pdf('9plotsCallsizes.pdf', width = 65, height = 9)
+levelplot(as.matrix(a), col.regions=c(0,1), region = TRUE, colorkey=FALSE, ylab = '', xlab = '', main="Community 9 sites C",  border="black")
+dev.off()
+
+
+
+####### 5 SITES
+## step 1: create a presence absence matrix for the 5 meadows (or for all plots?)
+timeC <- data5[(data5$Time.Code2 == 'C'),]
+dim(data5)
 dim(timeC)
 
 timeC <- timeC[,-52]
@@ -36,132 +144,49 @@ totals <- rbind(totals, colSums(timeC[timeC$site == 'RP',2:47]))
 totals <- rbind(totals, colSums(timeC[timeC$site == 'WI',2:47]))
 totals <- rbind(totals, colSums(timeC[timeC$site == 'NB',2:47]))
 totals <- rbind(totals, colSums(timeC[timeC$site == 'CB',2:47]))
-totals <- rbind(totals, colSums(timeC[timeC$site == 'EI',2:47]))
-totals <- rbind(totals, colSums(timeC[timeC$site == 'CC',2:47]))
-totals <- rbind(totals, colSums(timeC[timeC$site == 'BI',2:47]))
-totals <- rbind(totals, colSums(timeC[timeC$site == 'BE',2:47]))
 totals <- as.data.frame(totals)
 
 totals <- rbind(totals, colSums(timeC[,2:47]))
-rownames(totals)<- c('DC', 'RP', 'WI', 'NB', 'CB', 'EI', 'CC', 'BI', 'BE', 'Tot')
-
-## we just need to have this code select the non-zero values of row 10. totals1 <- totals[,c(order(-totals[10,]))]
-
-#this will automatically trim the species with 0s. hooray!!
-totals[length(totals[,1]),] <- ifelse(totals[length(totals[,1]),]<1, 'zero', 'one')
-totals2 <- subset(totals, select = -grep("zero", totals[length(totals[,1]),]))  
-totals3 <- as.matrix(sapply(totals2, as.numeric))
-totals2 <- totals3
-
-## get rid of row of species sums
-totals2 <- (totals2[-10,])
-
-## convert to presence absence: 
-
-totals2[totals2 > 0] <- 1
-totals2
-
-Metacommunity(totals2)
-
-
-
-## Analysis #2: don't collapse samples
-
-timeC <- data[(data$Time.Code2 == 'C'),]
-dim(data)
-dim(timeC)
-
-timeC$site1 <- paste(timeC$site, timeC$Sample)
-timeC <- timeC[,-52]
-timeC <- timeC[,-(2:5)]
-
-timeC2 <- select(timeC, c(site1, Idotea.resecata:Alia.carinata))
-
-melted <- melt(timeC2, id.vars = c("site1"))
-
-## get site x sample totals for each species:
-totals.plots <- ddply(melted, .(site1, variable), summarise, sum(value))
-totals.plots$site1 <- as.factor(totals.plots$site1)
-totals.plots2 <- reshape(totals.plots,  direction = "wide", timevar = "variable", idvar = "site1")
-
-rownames(totals.plots2) <- totals.plots2$site1
-totals.plots2 <- totals.plots2[,-1] # removes column of sites now that rows are named
-# calculate sums for each species
-totals.plots2[length(totals.plots2[,1])+1,] <- colSums(totals.plots2[,c(1:46)])
-
-#this will automatically trim the species with 0s. hooray!!
-totals.plots2[length(totals.plots2[,1]),] <- ifelse(totals.plots2[length(totals.plots2[,1]),]<1, 'zero', 'one')
-totals.plots3 <- subset(totals.plots2, select = -grep("zero", totals.plots2[length(totals.plots2[,1]),]))  
-totals.plots3 <- totals.plots3[-length(totals.plots3[,1]),]
-
-### count individuals in each site
-b <- as.numeric(length(totals.plots3[1,]))
-totals.plots3$sum <- cbind(rowSums(totals.plots3[,1:b]))  #not working for some reason
-totals.plots3 <- totals.plots3[(totals.plots3$sum != 0),] # remove any plots with no species
-
-## convert to presence absence: 
-tail(totals.plots3)
-totals.pl2 <- totals.plots3[-145, -(36:47)] # for all sizes
-tail(totals.pl2)
-totals.pl2[totals.pl2 > 0] <- 1
-#totals.pl2
-dim(totals.pl2)
-
-Metacommunity(totals.pl2)
-
-MetaImportance(totals.pl2)
-
-
-
-####### TIMEC 5 SITES
-## step 1: create a presence absence matrix for the 5 meadows (or for all plots?)
-totals <- colSums(timeC[timeC$site == 'DC',2:47])
-totals <- rbind(totals, colSums(timeC[timeC$site == 'RP',2:47]))
-totals <- rbind(totals, colSums(timeC[timeC$site == 'WI',2:47]))
-totals <- rbind(totals, colSums(timeC[timeC$site == 'NB',2:47]))
-totals <- rbind(totals, colSums(timeC[timeC$site == 'CB',2:47]))
-totals <- as.data.frame(totals)
-
-totals <- rbind(totals, colSums(totals[,1:46]))
 rownames(totals)<- c('DC', 'RP', 'WI', 'NB', 'CB', 'Tot')
 
-totals$sum <- cbind(rowSums(totals[,1:46]))
+#calculate sums for each site
+totals$sum <- cbind(rowSums(totals))
 
 #this will automatically trim the species with 0s. hooray!!
 totals[length(totals[,1]),] <- ifelse(totals[length(totals[,1]),]<1, 'zero', 'one')
 totals2 <- subset(totals, select = -grep("zero", totals[length(totals[,1]),]))  
-
-## get rid of row of species sums
-totals2 <- (totals2[-(length(totals2[,1])),])
-## get rid of col of site sums
-totals3 <- (totals2[,-(length(totals2[1,]))])
+## get rid of row and col of species sums
+totals2 <- totals2[-length(totals2[,1]), -length(totals2[1,])]
 
 ## convert to presence absence: 
+totals2[totals2 > 0] <- 1
 
-totals3[totals3 > 0] <- 1
+Metacommunity(totals2) -> meta
+#MetaImportance(totals2, margin = 2)
 
-meta<-Metacommunity(totals3)
-community<-as.data.frame(meta[1])
-levelplot(as.matrix(community))
+a <- as.data.frame(meta[1])
+
+pdf('9sitesCallsizes.pdf', width = 7, height = 9)
+levelplot(as.matrix(a), col.regions=c(0,1), region = TRUE, colorkey=FALSE, ylab = '', xlab = '', main="Community 9 sites C",  border="black")
+dev.off()
 
 
-## Analysis #2: don't collapse samples
+## Analysis #2: ALL PLOTS, 5 SITES
 
 timeC5 <- data5[(data5$Time.Code2 == 'C'),]
 dim(data)
 dim(timeC5)
 
+## collapse site and sample into a single plot-level identifier
 timeC5$site1 <- paste(timeC5$site, timeC5$Sample)
 timeC5 <- timeC5[,-52]
 timeC5 <- timeC5[,-(2:5)]
 
+## isolate identifier column 
 timeC25 <- select(timeC5, c(site1, Idotea.resecata:Alia.carinata))
 
-melted <- melt(timeC25, id.vars = c("site1"))
-
-
 ## get site x sample totals for each species:
-
+melted <- melt(timeC25, id.vars = c("site1"))
 totals.plots <- ddply(melted, .(site1, variable), summarise, sum(value))
 totals.plots$site1 <- as.factor(totals.plots$site1)
 totals.plots2 <- reshape(totals.plots,  direction = "wide", timevar = "variable", idvar = "site1")
@@ -169,31 +194,32 @@ rownames(totals.plots2) <- totals.plots2$site1
 
 totals.plots2 <- totals.plots2[,-1] # remove column of site names now that rows are named
 
-### count individuals in each species
-totals.plots2[(length(totals.plots2[,1])+1),] <- colSums(totals.plots2[,c(1:46)])
+# calculate sums for each species
+totals.plots2[length(totals.plots2[,1])+1,] <- colSums(totals.plots2[,c(1:length(totals.plots2[1,]))])
+#calculate sums for each site
+totals.plots2$sum <- cbind(rowSums(totals.plots2)) 
 
-#if zeros, then use: 
-totals.plots3 <- totals.plots2[,c(order(-as.numeric(totals.plots2[length(totals.plots2[,1]),])))]
-### count individuals in each site
-totals.plots3$sum <- cbind(rowSums(totals.plots3[,1:46]))
-totals.plots3 <- totals.plots3[(totals.plots3$sum != 0),]
-
+#this will automatically trim the species with 0s. hooray!!
+# remove any plots with no species
+totals.plots2 <- totals.plots2[(totals.plots2$sum != 0),] 
+totals.plots2[length(totals.plots2[,1]),] <- ifelse(totals.plots2[length(totals.plots2[,1]),]<1, 'zero', 'one')
+totals.plots3 <- subset(totals.plots2, select = -grep("zero", totals.plots2[length(totals.plots2[,1]),]))
+totals.plots3 <- totals.plots3[-length(totals.plots3[,1]), -length(totals.plots3[1,])]
 
 ## convert to presence absence: 
-tail(totals.plots3) #identify rows to be removed b/c 
-totals.pl2 <- totals.plots3[, -(33:47)] 
-tail(totals.pl2) # check to make sure the right cols were removed
-totals.pl2 <- totals.pl2[-length(totals.pl2[,1]),] 
-totals.pl2[totals.pl2 > 0] <- 1
-totals.pl2
-dim(totals.pl2)
+totals.plots3[totals.plots3 > 0] <- 1
+Metacommunity(totals.plots3) -> meta
 
+a <- as.data.frame(meta[1])
 
-Metacommunity(totals.pl2)
+pdf('9plotsCallsizes.pdf', width = 65, height = 9)
+levelplot(as.matrix(a), col.regions=c(0,1), region = TRUE, colorkey=FALSE, ylab = '', xlab = '', main="Community 9 sites C",  border="black")
+dev.off()
 
 
 
 
+##################################
 ##### do it for time A
 ##################################
 
@@ -205,8 +231,6 @@ dim(timeA)
 
 timeA <- timeA[,-52]
 timeA <- timeA[,-(2:5)]
-
-
 
 ## Analysis #1: collapse samples within sites
 ## get site totals for each species and size class: 
@@ -220,21 +244,25 @@ totals <- as.data.frame(totals)
 totals <- rbind(totals, colSums(timeA[,2:47]))
 rownames(totals)<- c('DC', 'RP', 'WI', 'NB', 'CB', 'Tot')
 
-totals$sum <- cbind(rowSums(totals[,1:46]))
+#calculate sums for each site
+totals$sum <- cbind(rowSums(totals))
 
-totals1 <- totals[,c(order(-totals[6,]))]
-tail(totals1)
-totals1a <- totals1[1:5,1:37]
-tail(totals1a)
-
+#this will automatically trim the species with 0s. hooray!!
+totals[length(totals[,1]),] <- ifelse(totals[length(totals[,1]),]<1, 'zero', 'one')
+totals2 <- subset(totals, select = -grep("zero", totals[length(totals[,1]),]))  
+## get rid of row and col of species sums
+totals2 <- totals2[-length(totals2[,1]), -length(totals2[1,])]
 
 ## convert to presence absence: 
+totals2[totals2 > 0] <- 1
 
-totals1a[totals1a > 0] <- 1
-totals1a
+Metacommunity(totals2) -> meta
 
-Metacommunity(totals1a)
+a <- as.data.frame(meta[1])
 
+pdf('9plotsCallsizes.pdf', width = 65, height = 9)
+levelplot(as.matrix(a), col.regions=c(0,1), region = TRUE, colorkey=FALSE, ylab = '', xlab = '', main="Community 9 sites C",  border="black")
+dev.off()
 
 
 ## Analysis #1: don't collapse samples
@@ -253,35 +281,40 @@ melted <- melt(timeA25, id.vars = c("site1"))
 
 
 ## get site x sample totals for each species:
-
 totals.plots <- ddply(melted, .(site1, variable), summarise, sum(value))
 totals.plots$site1 <- as.factor(totals.plots$site1)
 totals.plots2 <- reshape(totals.plots,  direction = "wide", timevar = "variable", idvar = "site1")
+
 rownames(totals.plots2) <- totals.plots2$site1
+totals.plots2 <- totals.plots2[,-1] # removes column of sites, now that rows are named
 
-totals.plots2 <- totals.plots2[,-1] # remove column of site names now that rows are named
+# calculate sums for each species
+totals.plots2[length(totals.plots2[,1])+1,] <- colSums(totals.plots2[,c(1:length(totals.plots2[1,]))])
+#calculate sums for each site
+totals.plots2$sum <- cbind(rowSums(totals.plots2)) 
 
-### count individuals in each species
-totals.plots2[(length(totals.plots2[,1])+1),] <- colSums(totals.plots2[,c(1:46)])
-
-#if zeros, then use: 
-totals.plots3 <- totals.plots2[,c(order(-as.numeric(totals.plots2[length(totals.plots2[,1]),])))]
-### count individuals in each site
-totals.plots3$sum <- cbind(rowSums(totals.plots3[,1:46]))
-totals.plots3 <- totals.plots3[(totals.plots3$sum != 0),]
-
+#this will automatically trim the species with 0s. hooray!!
+# remove any plots with no species
+totals.plots2 <- totals.plots2[(totals.plots2$sum != 0),] 
+totals.plots2[length(totals.plots2[,1]),] <- ifelse(totals.plots2[length(totals.plots2[,1]),]<1, 'zero', 'one')
+totals.plots3 <- subset(totals.plots2, select = -grep("zero", totals.plots2[length(totals.plots2[,1]),]))
 
 ## convert to presence absence: 
-tail(totals.plots3) #identify rows to be removed b/c 
-totals.pl2 <- totals.plots3[, -(37:47)] 
-tail(totals.pl2) # check to make sure the right cols were removed
-totals.pl2 <- totals.pl2[-length(totals.pl2[,1]),] 
+tail(totals.plots3)
+totals.pl2 <- totals.plots3[-length(totals.plots3[,1]), -length(totals.plots3[1,])]
+tail(totals.pl2)
 totals.pl2[totals.pl2 > 0] <- 1
-totals.pl2
 dim(totals.pl2)
 
+Metacommunity(totals.pl2) -> meta
+meta
+#MetaImportance(totals.pl2, margin = 2)
 
-Metacommunity(totals.pl2)
+a <- as.data.frame(meta[1])
+
+pdf('5plotsAallsizes.pdf', width = 65, height = 9)
+levelplot(as.matrix(a), col.regions=c(0,1), region = TRUE, colorkey=FALSE, ylab = '', xlab = '', main="Community 9 sites C",  border="black")
+dev.off()
 
 
 
@@ -310,18 +343,25 @@ totals <- as.data.frame(totals)
 totals <- rbind(totals, colSums(timeE[,2:47]))
 rownames(totals)<- c('DC', 'RP', 'WI', 'NB', 'CB', 'Tot')
 
-totals1 <- totals[,c(order(-totals[6,]))]
-tail(totals1)
-totals1 <- totals1[1:5,1:43]
-tail(totals1)
+#calculate sums for each site
+totals$sum <- cbind(rowSums(totals))
+
+#this will automatically trim the species with 0s. hooray!!
+totals[length(totals[,1]),] <- ifelse(totals[length(totals[,1]),]<1, 'zero', 'one')
+totals2 <- subset(totals, select = -grep("zero", totals[length(totals[,1]),]))  
+## get rid of row and col of species sums
+totals2 <- totals2[-length(totals2[,1]), -length(totals2[1,])]
 
 ## convert to presence absence: 
+totals2[totals2 > 0] <- 1
 
-totals1[totals1 > 0] <- 1
-totals1
+Metacommunity(totals2) -> meta
 
-Metacommunity(totals1)
+a <- as.data.frame(meta[1])
 
+pdf('9plotsCallsizes.pdf', width = 65, height = 9)
+levelplot(as.matrix(a), col.regions=c(0,1), region = TRUE, colorkey=FALSE, ylab = '', xlab = '', main="Community 9 sites C",  border="black")
+dev.off()
 
 
 
@@ -342,32 +382,35 @@ melted <- melt(timeE25, id.vars = c("site1"))
 
 
 ## get site x sample totals for each species:
-
 totals.plots <- ddply(melted, .(site1, variable), summarise, sum(value))
 totals.plots$site1 <- as.factor(totals.plots$site1)
 totals.plots2 <- reshape(totals.plots,  direction = "wide", timevar = "variable", idvar = "site1")
+
 rownames(totals.plots2) <- totals.plots2$site1
+totals.plots2 <- totals.plots2[,-1] # removes column of sites, now that rows are named
 
-totals.plots2 <- totals.plots2[,-1] # remove column of site names now that rows are named
+# calculate sums for each species
+totals.plots2[length(totals.plots2[,1])+1,] <- colSums(totals.plots2[,c(1:length(totals.plots2[1,]))])
+#calculate sums for each site
+totals.plots2$sum <- cbind(rowSums(totals.plots2)) 
 
-### count individuals in each species
-totals.plots2[(length(totals.plots2[,1])+1),] <- colSums(totals.plots2[,c(1:46)])
-
-#if zeros, then use: 
-totals.plots3 <- totals.plots2[,c(order(-as.numeric(totals.plots2[length(totals.plots2[,1]),])))]
-### count individuals in each site
-totals.plots3$sum <- cbind(rowSums(totals.plots3[,1:46]))
-totals.plots3 <- totals.plots3[(totals.plots3$sum != 0),]
-
+#this will automatically trim the species with 0s. hooray!!
+# remove any plots with no species
+totals.plots2 <- totals.plots2[(totals.plots2$sum != 0),] 
+totals.plots2[length(totals.plots2[,1]),] <- ifelse(totals.plots2[length(totals.plots2[,1]),]<1, 'zero', 'one')
+totals.plots3 <- subset(totals.plots2, select = -grep("zero", totals.plots2[length(totals.plots2[,1]),]))
 
 ## convert to presence absence: 
-tail(totals.plots3) #identify rows to be removed b/c 
-totals.pl2 <- totals.plots3[, -(44:47)] 
-tail(totals.pl2) # check to make sure the right cols were removed
-totals.pl2 <- totals.pl2[-length(totals.pl2[,1]),] 
+tail(totals.plots3)
+totals.pl2 <- totals.plots3[-length(totals.plots3[,1]), -length(totals.plots3[1,])]
+tail(totals.pl2)
 totals.pl2[totals.pl2 > 0] <- 1
-totals.pl2
 dim(totals.pl2)
 
+Metacommunity(totals.pl2) -> meta
+meta
 
-Metacommunity(totals.pl2)
+a <- as.data.frame(meta[1])
+pdf('5plotsEallsizes.pdf', width = 65, height = 20)
+levelplot(as.matrix(a), col.regions=c(0,1), region = TRUE, colorkey=FALSE, ylab = '', xlab = '', main="Community 5 all plots E",  border="black")
+dev.off()

@@ -3,6 +3,13 @@
 ##### For Whippo et al, seagrass biodiversity paper
 
 
+### Feb 2016: notes on direction of the project 
+### We need to do something more interesting here than summarize diversity. My ideas are: a) look at trends in functional groups and functional diversity, which might require some additional classification of species, b) look at trends in body size distribution, c) look at temporal trends with and without recruitment events, and d) estimate meadow-scale diversity using PIE and PCF if possible.
+
+# PIE is the probability of intraspecific encounter (Chase and Knight Ecology Letters 2013 (or 2014?)); PCF is the function from AZAELE et al MEE 2015. I have the paper and some R code for that.
+
+
+
 library(vegan)
 library(plyr)
 library(dplyr)
