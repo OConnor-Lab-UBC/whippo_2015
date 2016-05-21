@@ -86,6 +86,9 @@ sites <- read.csv("site.info.csv", header = TRUE)
 ## create an id for each sample at each site, time. 
 data$ID <- apply(data[,c("site", "Time.Code2", "Sample")], 1, idmaker)
 
+# select only time C
+data <- data[(data$Time.Code2 == 'C'),]
+
 ## now treat each sample as a group & collapse across sizes to sum taxa
 data.s <- group_by(data, ID)
 func <- function(x) { sum(x) }
@@ -113,8 +116,13 @@ totS_plot <- totS + geom_boxplot(aes(fill = factor(Time.Code2))) # no clear sign
 totH <- ggplot(data.sum3, aes(factor(order), H))
 totH_plot <- totH + geom_boxplot(aes(fill = factor(Time.Code2))) # no clear signal of time, or space
 
-totR <- ggplot(data.sum3, aes(factor(order), R))
-totR_plot <- totR + geom_boxplot(aes(fill = factor(Time.Code2)))
+data.sum31 <- transform(data.sum3, site = reorder(site, order))
+#(order, decreasing = TRUE)
+totR <- ggplot(data.sum31, aes(x = site, y = R), cex = 2) + 
+    geom_boxplot(fill = 'blue') + 
+    labs(x = "Site", y = "Mean # Species / plot") + 
+    theme(axis.title = element_text(face="bold", size=20)) + 
+    theme(axis.text.x = element_text(colour=1,size=12,angle=0,hjust=.5,vjust=.5,face="plain"))
 
 multiplot(totN_abund, totR_plot, totS_plot, totH_plot)
 
@@ -146,6 +154,9 @@ data.grz2 <- merge(data.grz, data.desc, by.x = "ID", by.y = "..1", all.x = TRUE,
 
 ## add in site information
 data.grz3 <- merge(data.grz2, sites, by.x = 'site', by.y = 'site')
+
+## just time C
+head(data.grz3)
 
 ## look at it
 plot(log(data.grz3$N) ~ data.grz3$order*data.grz3$Time.Code2)
