@@ -1,4 +1,9 @@
-## Metacom for Ross's data
+########################
+### Whippo et al eelgrass epifaunal data for Barkley Sound
+### elements of metacommunity structure (EMS)
+### Code written by Mary O'Connor (with help from Domonik Bahlburg)
+### started March 2016
+#########################
 
 library(metacom)
 library(plyr)
@@ -8,10 +13,70 @@ library(reshape2)
 library(Matrix)
 library(lattice)
 
-data <- read.csv("rawcomm.csv")
-traits <- read.csv("grazertraits.csv")
-head(traits)
+data <- read.csv("./analyses/rawcomm.csv")
+#traits <- read.csv("grazertraits.csv")
+#head(traits)
 head(data)
+dim(data)
+### what needs to happen here is: 
+# 1a. create a dataframe of species (columns) pooled across sizes for each site. 
+# 1b. create a dataframe of species (columns) pooled across sizes for each plot. 
+# 2. in this dataframe, include potential gradients (watershed position)
+# 3. 
+
+levels(unique(data$Time.Code2))
+
+## melt and recast so the datafile goes from long to wide (species as columns)
+data.m <- melt(data, id = c(1,2,3,4,5,52))
+
+levels(data.m$Time.Code)
+data.m$Time.Code <- as.character(data.m$Time.Code)
+data.m$Time.Code[data.m$Time.Code == "C "] <- "C"
+data.m$Time.Code <- as.factor(data.m$Time.Code)
+#data.m$Sieve <- as.factor(data.m$Sieve)
+data.m$value <- as.numeric(data.m$value)
+levels(data.m$Time.Code)
+
+## sum across size classes within samples
+data.mp <- ddply(data.m, .(site, Time.Code, Sample, Time.Code2, variable), summarise, sum(value))
+data.mp$time.ID <- paste(data.mp$site, data.mp$Time.Code2, sep = '.') #could look at finer time resolution by using Time.Code here
+names(data.mp) <- c("site", "Time.Code", "Sample", "Time.Code2", "species", "abundance", "TimeID")
+
+## create site-level data by collapsing across plots
+data.ms <- ddply(data.mp, .(TimeID, species), summarise, sum(abundance))
+
+data2 <- dcast(data.ms, TimeID ~ species, mean)
+head(data2)
+dim(data2)
+
+## clean out any empty species or empty sites
+rowSums(data2[-1]) -> data2$totals
+data2 <- data2[which(data2$totals != "0"),] 
+#data3 <- data2[-which(is.na(data2$totals)),] 
+rownames(data2) <- data2[,1]
+data3 <- data2[, -c(1, ncol(data2))]
+data3[data3 > 0] <- 1
+#cols.to.delete <- which(colSums(data3) == '0')
+#data4 <- data3[, -(cols.to.delete)]
+
+
+### run metacommunity analysis 
+Metacommunity(data3, verbose = TRUE) -> meta
+meta[2:4]
+#MetaImportance(totals2, margin = 2)
+
+a <- as.data.frame(meta[1])
+
+pdf('all sites.pdf', width = 7, height = 9)
+levelplot(as.matrix(a), col.regions=c(0,1), region = TRUE, colorkey=FALSE, ylab = '', xlab = '', main="all sites all times",  border="black", scales = list(cex = c(0.4, 0.4), x = list(rot = c(90))))
+dev.off()
+
+
+
+
+
+
+### so far so good. looks ok now, can probalby get rid of the next code, and maybe even run the meta next?
 
 
 #### CREATING DATASETS WE MIGHT USE
@@ -27,6 +92,10 @@ data5 <- rbind(data5, data[(data$site == 'NB'),])
 #data.s <- data[(data$Sieve > '2'),]
 #data <- data.s
 
+## ALL SITES ALL TIMES
+all <- data[,-52] # get rid of columns that are not needed for this analysis
+all <- all[,-(2:5)] # from here, collapse across sites but preserve times...
+
 ## TIME C, 9 MEADOWS, SITES  
 timeC <- data[(data$Time.Code2 == 'C'),]
 dim(timeC)
@@ -34,7 +103,7 @@ timeC <- timeC[,-52] # get rid of columns that are not needed for this analysis
 timeC <- timeC[,-(2:5)]
 
 ## collapse samples within sites: get site totals for each species and size class: 
-datafile <- timeC ## name of datafile you're using #length(datafile[1,])
+datafile <- all ## name of datafile you're using #length(datafile[1,])
 dim(datafile)
 totals <- colSums(datafile[datafile$site == 'DC',2:47])
 totals <- rbind(totals, colSums(datafile[datafile$site == 'RP',2:47]))
@@ -47,7 +116,7 @@ totals <- rbind(totals, colSums(datafile[datafile$site == 'BI',2:47]))
 totals <- rbind(totals, colSums(datafile[datafile$site == 'BE',2:47]))
 totals <- as.data.frame(totals)
 
-totals <- rbind(totals, colSums(timeC[,2:47]))
+totals <- rbind(totals, colSums(datafile[,2:47]))
 rownames(totals)<- c('DC', 'RP', 'WI', 'NB', 'CB', 'EI', 'CC', 'BI', 'BE', 'Tot')
 
 #Trim the species with 0 occurrances in this dataset
@@ -60,14 +129,25 @@ totals2 <- (totals2[-10,])
 totals2[totals2 > 0] <- 1
 totals2
 
-Metacommunity(totals2) -> meta
-meta
+#identify and remove species with no observations, and samples with no species
+rowSums(totals) -> totals$totals
+totals1 <- totals[which(totals$totals != "0"),] 
+#idata5 <- idata5[-is.na(idata5$totals),] 
+#rownames(totals1) <- totals[,1]
+totals1 <- totals[, -c(ncol(totals))]
+totals[totals > 0] <- 1
+#cols.to.delete <- which(colSums(totals1) == '0')
+#totals2 <- totals1[, -(cols.to.delete)]
+
+
+Metacommunity(totals1, verbose = TRUE, allowEmpty = TRUE) -> meta
+meta[2:4]
 #MetaImportance(totals2, margin = 2)
 
 a <- as.data.frame(meta[1])
 
-pdf('9sitesCallsizes.pdf', width = 7, height = 9)
-levelplot(as.matrix(a), col.regions=c(0,1), region = TRUE, colorkey=FALSE, ylab = '', xlab = '', main="Community 9 sites C",  border="black")
+pdf('all sites.pdf', width = 7, height = 9)
+levelplot(as.matrix(a), col.regions=c(0,1), region = TRUE, colorkey=FALSE, ylab = '', xlab = '', main="all sites all times",  border="black", scales = list(cex = c(0.4, 0.4), x = list(rot = c(90))))
 dev.off()
 
 
