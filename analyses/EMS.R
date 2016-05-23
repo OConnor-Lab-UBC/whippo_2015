@@ -14,7 +14,7 @@ library(Matrix)
 library(lattice)
 
 data <- read.csv("./analyses/rawcomm.csv")
-#traits <- read.csv("grazertraits.csv")
+traits <- read.csv("./analyses/grazertraits2.csv")
 #head(traits)
 head(data)
 dim(data)
@@ -42,10 +42,35 @@ data.mp <- ddply(data.m, .(site, Time.Code, Sample, Time.Code2, variable), summa
 data.mp$time.ID <- paste(data.mp$site, data.mp$Time.Code2, sep = '.') #could look at finer time resolution by using Time.Code here
 names(data.mp) <- c("site", "Time.Code", "Sample", "Time.Code2", "species", "abundance", "TimeID")
 
-## create site-level data by collapsing across plots
-data.ms <- ddply(data.mp, .(TimeID, species), summarise, sum(abundance))
+## from here, create different subsets for different analyses
+## merge with traits and sort by taxa or functional groups
+data.tr <- merge(data.mp, traits[,-1], by.x = "species", by.y = "species.names", all.x = TRUE, all.y = FALSE)
 
+dataMAY <- data.mp[(data.mp$Time.Code2=="A"),]
+dataJULY <- data.mp[(data.mp$Time.Code2=="C" & data.mp$site!="BE" & data.mp$site!="EI" & data.mp$site!="CC" & data.mp$site!="BI"),]
+dataAUG <- data.mp[(data.mp$Time.Code2=="E"),]
+data3times <- data.mp[(data.mp$site!="BE" & data.mp$site!="EI" & data.mp$site!="CC" & data.mp$site!="BI"),]
+dataJULY9 <- data.mp[(data.mp$Time.Code2=="C"),]
+
+# choose a functional group
+grazers <- data.tr[(data.tr$function.=="grazer"),c(1:7)]
+crust <- data.tr[(data.tr$group == "crustacean"), c(1:7)]
+data.ft <- crust
+data3timesg <- data.ft[(data.ft$site!="BE" & data.ft$site!="EI" & data.ft$site!="CC" & data.ft$site!="BI"),]
+dataJULY9 <- data.ft[(data.ft$Time.Code2=="C"),]
+
+## 1. create site-level data by collapsing across plots
+start.data <- dataJULY9 # dataMAY, data.mp, dataAUG, dataJULY, data3times
+
+data.ms <- ddply(start.data, .(TimeID, species), summarise, sum(abundance))
+data.ms <- data.ms[-nrow(data.ms),]
 data2 <- dcast(data.ms, TimeID ~ species, mean)
+
+# or collapse across times and plots at sites
+data.ms <- ddply(start.data, .(site, species), summarise, sum(abundance))
+data2 <- dcast(data.ms, site ~ species, mean)
+data2 <- data2[-10,-ncol(data2)]
+
 head(data2)
 dim(data2)
 
@@ -56,23 +81,28 @@ data2 <- data2[which(data2$totals != "0"),]
 rownames(data2) <- data2[,1]
 data3 <- data2[, -c(1, ncol(data2))]
 data3[data3 > 0] <- 1
-#cols.to.delete <- which(colSums(data3) == '0')
-#data4 <- data3[, -(cols.to.delete)]
+cols.to.delete <- which(colSums(data3) == '0')
+data4 <- data3[, -(cols.to.delete)]
 
+#remove NaN and Nas. 
+is.nan.data.frame <- function(x)
+  do.call(cbind, lapply(x, is.nan))
+data4[is.nan.data.frame(data4)] <- 0
+data4[is.na(data4)] <- 0
+data5 <- data4[,-ncol(data4)]
 
 ### run metacommunity analysis 
-Metacommunity(data3, verbose = TRUE) -> meta
+Metacommunity(data4, verbose = TRUE, allowEmpty = TRUE) -> meta
 meta[2:4]
-#MetaImportance(totals2, margin = 2)
 
 a <- as.data.frame(meta[1])
 
-pdf('all sites.pdf', width = 7, height = 9)
-levelplot(as.matrix(a), col.regions=c(0,1), region = TRUE, colorkey=FALSE, ylab = '', xlab = '', main="all sites all times",  border="black", scales = list(cex = c(0.4, 0.4), x = list(rot = c(90))))
+pdf('crustaceans all times.pdf', width = 7, height = 9)
+levelplot(as.matrix(a), col.regions=c(0,1), region = TRUE, colorkey=FALSE, ylab = '', xlab = '', main="crustaceans all times",  border="black", scales = list(cex = c(0.4, 0.4), x = list(rot = c(90))))
 dev.off()
 
 
-
+### do it for functional traits
 
 
 
