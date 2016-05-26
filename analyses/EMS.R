@@ -15,20 +15,26 @@ library(lattice)
 
 data <- read.csv("./analyses/rawcomm.csv")
 traits <- read.csv("./analyses/grazertraits2.csv")
+sites <- read.csv("./analyses/site.info.csv")
+
+## brief visualization:
+plot(sites$area ~ sites$dfw)
+plot(sites$salinity ~ sites$dfw)
+# ok, approximated area not correlated with dfw
 #head(traits)
 head(data)
 dim(data)
+
 ### what needs to happen here is: 
 # 1a. create a dataframe of species (columns) pooled across sizes for each site. 
 # 1b. create a dataframe of species (columns) pooled across sizes for each plot. 
 # 2. in this dataframe, include potential gradients (watershed position)
-# 3. 
-
-levels(unique(data$Time.Code2))
 
 ## melt and recast so the datafile goes from long to wide (species as columns)
 data.m <- melt(data, id = c(1,2,3,4,5,52))
 
+# clean up time code issue
+levels(unique(data$Time.Code2))
 levels(data.m$Time.Code)
 data.m$Time.Code <- as.character(data.m$Time.Code)
 data.m$Time.Code[data.m$Time.Code == "C "] <- "C"
@@ -37,42 +43,46 @@ data.m$Time.Code <- as.factor(data.m$Time.Code)
 data.m$value <- as.numeric(data.m$value)
 levels(data.m$Time.Code)
 
-## sum across size classes within samples
-data.mp <- ddply(data.m, .(site, Time.Code, Sample, Time.Code2, variable), summarise, sum(value))
-data.mp$time.ID <- paste(data.mp$site, data.mp$Time.Code2, sep = '.') #could look at finer time resolution by using Time.Code here
-names(data.mp) <- c("site", "Time.Code", "Sample", "Time.Code2", "species", "abundance", "TimeID")
+## merge with site info
+data.s <- merge(data.m, sites, by = "site")
 
-## from here, create different subsets for different analyses
+## sum across size classes within plots (samples)
+data.p <- ddply(data.s, .(site, Time.Code, Sample, Time.Code2, variable, dfw,order,area,salinity, shoot.density), summarise, sum(value))
+
+data.p$time.ID <- paste(data.p$site, data.p$Time.Code2, sep = '.') #could look at finer time resolution by using Time.Code here
+names(data.p) <- c("site", "Time.Code", "Sample", "Time.Code2", "species", "dfw","order","area","salinity","shoot.density","abundance", "TimeID")
+
 ## merge with traits and sort by taxa or functional groups
-data.tr <- merge(data.mp, traits[,-1], by.x = "species", by.y = "species.names", all.x = TRUE, all.y = FALSE)
+data.tr <- merge(data.p, traits[,-1], by.x = "species", by.y = "species.names", all.x = TRUE, all.y = FALSE)
 
-dataMAY <- data.mp[(data.mp$Time.Code2=="A"),]
-dataJULY <- data.mp[(data.mp$Time.Code2=="C" & data.mp$site!="BE" & data.mp$site!="EI" & data.mp$site!="CC" & data.mp$site!="BI"),]
-dataAUG <- data.mp[(data.mp$Time.Code2=="E"),]
-data3times <- data.mp[(data.mp$site!="BE" & data.mp$site!="EI" & data.mp$site!="CC" & data.mp$site!="BI"),]
-dataJULY9 <- data.mp[(data.mp$Time.Code2=="C"),]
 
-# choose a functional group
-grazers <- data.tr[(data.tr$function.=="grazer"),c(1:7)]
-crust <- data.tr[(data.tr$group == "crustacean"), c(1:7)]
-data.ft <- crust
-data3timesg <- data.ft[(data.ft$site!="BE" & data.ft$site!="EI" & data.ft$site!="CC" & data.ft$site!="BI"),]
-dataJULY9 <- data.ft[(data.ft$Time.Code2=="C"),]
+## from here, create different subsets for different analyses; MOVE TO EMS SUBGROUP FILE IF YOU WANT TO LOOK AT SUBGROUPS. 
+
+## group by sampling times
+dataMAY <- data.tr[(data.tr$Time.Code2=="A"),]
+dataJULY <- data.tr[(data.tr$Time.Code2=="C" & data.tr$site!="BE" & data.tr$site!="EI" & data.tr$site!="CC" & data.tr$site!="BI"),]
+dataAUG <- data.tr[(data.tr$Time.Code2=="E"),]
+data3times <- data.tr[(data.tr$site!="BE" & data.tr$site!="EI" & data.tr$site!="CC" & data.tr$site!="BI"),]
+dataJULY9 <- data.tr[(data.tr$Time.Code2=="C"),]
 
 ## 1. create site-level data by collapsing across plots
 start.data <- dataJULY9 # dataMAY, data.mp, dataAUG, dataJULY, data3times
+data.ms <- ddply(start.data, .(TimeID, area, species), summarise, sum(abundance)) #order
+#data.ms <- data.ms[-nrow(data.ms),]
+data2 <- dcast(data.ms, TimeID + area ~ species, mean) #order
 
-data.ms <- ddply(start.data, .(TimeID, species), summarise, sum(abundance))
-data.ms <- data.ms[-nrow(data.ms),]
-data2 <- dcast(data.ms, TimeID ~ species, mean)
 
 # or collapse across times and plots at sites
-data.ms <- ddply(start.data, .(site, species), summarise, sum(abundance))
-data2 <- dcast(data.ms, site ~ species, mean)
-data2 <- data2[-10,-ncol(data2)]
+#data.ms <- ddply(start.data, .(site, species), summarise, sum(abundance))
+#data2 <- dcast(data.ms, site ~ species, mean)
+#data2 <- data2[-10,-ncol(data2)]
 
 head(data2)
 dim(data2)
+
+## order file to impose environmental gradient, if desired
+data2 <- data2[order(data2$area),]  #order
+data2 <- data2[,-2]
 
 ## clean out any empty species or empty sites
 rowSums(data2[-1]) -> data2$totals
@@ -84,6 +94,8 @@ data3[data3 > 0] <- 1
 cols.to.delete <- which(colSums(data3) == '0')
 data4 <- data3[, -(cols.to.delete)]
 
+
+
 #remove NaN and Nas. 
 is.nan.data.frame <- function(x)
   do.call(cbind, lapply(x, is.nan))
@@ -91,14 +103,16 @@ data4[is.nan.data.frame(data4)] <- 0
 data4[is.na(data4)] <- 0
 data5 <- data4[,-ncol(data4)]
 
+
+
 ### run metacommunity analysis 
-Metacommunity(data4, verbose = TRUE, allowEmpty = TRUE) -> meta
-meta[2:4]
+Metacommunity(data4, verbose = TRUE, order = FALSE) -> meta1
+meta1[2:4]
 
-a <- as.data.frame(meta[1])
+a <- as.data.frame(meta1[1])
 
-pdf('crustaceans all times.pdf', width = 7, height = 9)
-levelplot(as.matrix(a), col.regions=c(0,1), region = TRUE, colorkey=FALSE, ylab = '', xlab = '', main="crustaceans all times",  border="black", scales = list(cex = c(0.4, 0.4), x = list(rot = c(90))))
+pdf('July 9 sites by area.pdf', width = 7, height = 9)
+levelplot(as.matrix(a), col.regions=c(0,1), region = TRUE, colorkey=FALSE, ylab = '', xlab = '', main="July 9 sites area",  border="black", scales = list(cex = c(0.4, 0.4), x = list(rot = c(90))))
 dev.off()
 
 
