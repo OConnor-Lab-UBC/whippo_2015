@@ -21,10 +21,26 @@ data.mp <- ddply(data.m, .(site, Time.Code, Sample, Time.Code2, variable), summa
 data.mp$time.ID <- paste(data.mp$site, data.mp$Time.Code2, sep = '.') #could look at finer time resolution by using Time.Code here
 names(data.mp) <- c("site", "Time.Code", "Sample", "Time.Code2", "species", "abundance", "TimeID")
 
+## merge with traits and sort by taxa or functional groups
+data.tr <- merge(data.mp, traits[,-1], by.x = "species", by.y = "species.names", all.x = TRUE, all.y = FALSE)
+
+## remove all taxa that are not epifauna, because they were not evenly sampled across samples and meadows: 
+levels(data.tr$eelgrss.epifauna)
+data.e <- data.tr %>% filter(eelgrss.epifauna == c("yes", "sometimes"))
+data.y <- data.tr %>% filter(eelgrss.epifauna == "yes")
+data.tr <- data.e
+
 ## diverge from EMS code, and dcast to form species by plot / site / time matrix.
-comm <- data.mp
+comm <- data.tr
 data.ms <- ddply(comm, .(TimeID, Sample, species), summarise, sum(abundance))
 data2 <- dcast(data.ms[(data.ms$TimeID == 'BE.C'),], Sample ~ species, mean)
+
+#remove NaN and Nas. 
+is.nan.data.frame <- function(x)
+  do.call(cbind, lapply(x, is.nan))
+data2[is.nan.data.frame(data2)] <- 0
+data2[is.na(data2)] <- 0
+
 sp1 <- specaccum(data2[,-1], "random")
 
 

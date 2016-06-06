@@ -14,7 +14,9 @@ sites <- read.csv("./analyses/site.info.csv")
 ## brief visualization:
 plot(sites$area ~ sites$dfw)
 plot(sites$salinity ~ sites$dfw)
-plot(sites$epiphytes~ sites$dfw)
+plot(sites$epiphytes~ sites$fetch.est)
+plot(sites$shoot.density~ sites$fetch.est)
+
 # ok, approximated area not correlated with dfw
 #head(traits)
 head(data)
@@ -42,13 +44,19 @@ levels(data.m$Time.Code)
 data.s <- merge(data.m, sites, by = "site")
 
 ## sum across size classes within plots (samples)
-data.p <- ddply(data.s, .(site, Time.Code, Sample, Time.Code2, variable, dfw,order.dfw,area,salinity, shoot.density), summarise, sum(value))
+data.p <- ddply(data.s, .(site, Time.Code, Sample, Time.Code2, variable, dfw,order.dfw,area,salinity, shoot.density, fetch.est), summarise, sum(value))
 
 data.p$time.ID <- paste(data.p$site, data.p$Time.Code2, sep = '.') #could look at finer time resolution by using Time.Code here
-names(data.p) <- c("site", "Time.Code", "Sample", "Time.Code2", "species", "dfw","order","area","salinity","shoot.density","abundance", "TimeID")
+names(data.p) <- c("site", "Time.Code", "Sample", "Time.Code2", "species", "dfw","order","area","salinity","shoot.density","fetch","abundance", "TimeID")
 
 ## merge with traits and sort by taxa or functional groups
 data.tr <- merge(data.p, traits[,-1], by.x = "species", by.y = "species.names", all.x = TRUE, all.y = FALSE)
+
+## remove all taxa that are not epifauna, because they were not evenly sampled across samples and meadows: 
+levels(data.tr$eelgrss.epifauna)
+data.e <- data.tr %>% filter(eelgrss.epifauna == c("yes", "sometimes"))
+data.y <- data.tr %>% filter(eelgrss.epifauna == "yes")
+data.tr <- data.e
 
 ## group by sampling times
 dataMAY <- data.tr[(data.tr$Time.Code2=="A"),]
@@ -59,23 +67,23 @@ dataJULY9 <- data.tr[(data.tr$Time.Code2=="C"),]
 
 ## for each plot, estimate relative abundance of grazers
 ## first remove filter feeders and predators:
-data7 <- subset(dataJULY9, function. != "filter feeder", select = c(1:2,4:9, 11:12,14))
-data7 <- subset(data7, function. != "predator", select = c(1:11))
-data7 <- subset(data7, function. != "unknown", select = c(1:11))
-
-data8 <- ddply(data7[data7$species!='Caprella.spp.',], .(site, Sample, order, area, salinity, dfw, function.), summarise, sum(abundance))
-data9 <- dcast(data8, site + Sample + dfw ~ function., sum) #order
-data9$total <- data9$detritovore + data9$grazer
+data7 <- subset(dataMAY, function. != "unknown", select = c(1:2,4:9, 11:13,15))
+#data7 <- subset(data7, function. != "predator", select = c(1:11))
+#data7 <- subset(data7, function. != "unknown", select = c(1:11))
+[data7$species!='Caprella.spp.',]
+data8 <- ddply(dataAUG, .(site, Sample, order, area, salinity, fetch, function.), summarise, sum(abundance)) #
+data9 <- dcast(data8, site + Sample + fetch ~ function., sum) #order
+data9$total <- (data9$detritovore + data9$filter.feeder + data9$suspension.feeder + data9$grazer + data9$unknown + data9$predator)
 data9$pgrazer <- data9$grazer/data9$total
-data9$pdet <- data9$det/data9$total
-
-dataJULY9tots <- ddply(dataJULY9, .(site, Sample, order, area, salinity, dfw), summarise, sum(abundance))
+data9$pdet <- data9$detritovore/data9$total
 
 par(mfrow=(c(2,2)))
-plot(data9$pgrazer ~ data9$dfw, pch = 19, xlab = 'Distance from Freshwater', ylab = 'grazers / (grazers + detritovores)', main = 'abundance / 0.28m2')
-plot(log(dataJULY9tots[,7]) ~ dataJULY9tots$dfw, pch = 19, xlab = 'Distance from Freshwater', ylab = 'ln(total inverts)', main = 'abundance / 0.28m2')
-plot(log(data9$grazer+1) ~ log(data9$detritovore+1), pch = 19, xlab = 'ln(detritovores+1)', ylab = 'ln(grazers+1)', main = 'abundance / 0.28m2')
-plot(log(data9$detritovore) ~ data9$dfw, pch = 19, xlab = 'Distance from Freshwater', ylab = 'ln(detritovores)', main = 'abundance / 0.28m2')
+plot((data9$pgrazer) ~ data9$fetch, pch = 19, xlab = 'Fetch', ylab = 'grazers / total', main = 'abundance / 0.28m2') #, ylim = c(0,1)
+plot(log(data9$total) ~ data9$fetch, pch = 19, xlab = 'Fetch', ylab = 'ln(total inverts)', main = 'abundance / 0.28m2')
+plot(log(data9$grazer+1) ~ data9$fetch, pch = 19, xlab = 'Fetch', ylab = 'ln(grazers+1)', main = 'abundance / 0.28m2')
+plot(log(data9$filter.feeder + 1) ~ data9$fetch, pch = 19, xlab = 'Distance from Freshwater', ylab = 'ln(filter feeders)', main = 'abundance / 0.28m2')
+
+plot(I(log(data9$grazer/data9$filter.feeder)) ~ data9$fetch, pch = 19, xlab = 'Fetch', ylab = 'ln(grazers/filter feeders)', main = 'abundance / 0.28m2')
 
 ## some stats:
 
