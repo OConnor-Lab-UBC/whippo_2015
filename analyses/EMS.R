@@ -47,6 +47,7 @@ levels(data.m$Time.Code)
 data.s <- merge(data.m, sites, by = "site")
 
 ## sum across size classes within plots (samples)
+
 data.p <- ddply(data.s, .(site, Time.Code, Sample, Time.Code2, variable, dfw,order.dfw,area,salinity, shoot.density), summarise, sum(value))
 
 data.p$time.ID <- paste(data.p$site, data.p$Time.Code2, sep = '.') #could look at finer time resolution by using Time.Code here

@@ -14,6 +14,7 @@ sites <- read.csv("./analyses/site.info.csv")
 ## brief visualization:
 plot(sites$area ~ sites$dfw)
 plot(sites$salinity ~ sites$dfw)
+
 plot(sites$epiphytes~ sites$fetch.est)
 plot(sites$shoot.density~ sites$fetch.est)
 
@@ -44,10 +45,12 @@ levels(data.m$Time.Code)
 data.s <- merge(data.m, sites, by = "site")
 
 ## sum across size classes within plots (samples)
+
 data.p <- ddply(data.s, .(site, Time.Code, Sample, Time.Code2, variable, dfw,order.dfw,area,salinity, shoot.density, fetch.est), summarise, sum(value))
 
 data.p$time.ID <- paste(data.p$site, data.p$Time.Code2, sep = '.') #could look at finer time resolution by using Time.Code here
 names(data.p) <- c("site", "Time.Code", "Sample", "Time.Code2", "species", "dfw","order","area","salinity","shoot.density","fetch","abundance", "TimeID")
+
 
 ## merge with traits and sort by taxa or functional groups
 data.tr <- merge(data.p, traits[,-1], by.x = "species", by.y = "species.names", all.x = TRUE, all.y = FALSE)
@@ -67,6 +70,7 @@ dataJULY9 <- data.tr[(data.tr$Time.Code2=="C"),]
 
 ## for each plot, estimate relative abundance of grazers
 ## first remove filter feeders and predators:
+
 data7 <- subset(dataMAY, function. != "unknown", select = c(1:2,4:9, 11:13,15))
 #data7 <- subset(data7, function. != "predator", select = c(1:11))
 #data7 <- subset(data7, function. != "unknown", select = c(1:11))
@@ -84,6 +88,7 @@ plot(log(data9$grazer+1) ~ data9$fetch, pch = 19, xlab = 'Fetch', ylab = 'ln(gra
 plot(log(data9$filter.feeder + 1) ~ data9$fetch, pch = 19, xlab = 'Distance from Freshwater', ylab = 'ln(filter feeders)', main = 'abundance / 0.28m2')
 
 plot(I(log(data9$grazer/data9$filter.feeder)) ~ data9$fetch, pch = 19, xlab = 'Fetch', ylab = 'ln(grazers/filter feeders)', main = 'abundance / 0.28m2')
+
 
 ## some stats:
 
