@@ -14,7 +14,7 @@ library(Matrix)
 library(lattice)
 
 data <- read.csv("./analyses/rawcomm.csv")
-traits <- read.csv("./analyses/grazertraits2.csv")
+traits <- read.csv("./analyses/grazertraits3.csv")
 sites <- read.csv("./analyses/site.info.csv")
 
 ## brief visualization:
@@ -32,6 +32,12 @@ dim(data)
 
 ## melt and recast so the datafile goes from long to wide (species as columns)
 data.m <- melt(data, id = c(1,2,3,4,5,52))
+
+## some cleaning of species names
+levels(data.m$variable)[levels(data.m$variable)== "Bittium.spp."] <- "Lirobittium.spp."
+levels(data.m$variable)[levels(data.m$variable)== "Olivella.sp."] <- "Callianax.sp."
+levels(data.m$variable)[levels(data.m$variable)== "Cypricercus."] <- "Cyprideis.beaconensis"
+levels(data.m$variable)[levels(data.m$variable)== "Odontosyllis"] <- "Polychaete1"
 
 # clean up time code issue
 levels(unique(data$Time.Code2))
@@ -62,7 +68,7 @@ data.e <- data.tr %>% filter(eelgrss.epifauna == c("yes", "sometimes"))
 data.y <- data.tr %>% filter(eelgrss.epifauna == "yes")
 data.s <- data.tr %>% filter(patch == "yes")
 data.g <- data.tr %>% filter(function. == "grazer")
-data.tr <- data.s
+data.tr <- data.y
 
 
 ## from here, create different subsets for different analyses; MOVE TO EMS SUBGROUP FILE IF YOU WANT TO LOOK AT SUBGROUPS. 
@@ -76,7 +82,7 @@ dataJULY9 <- data.tr[(data.tr$Time.Code2=="C"),]
 
 
 ## 1. create site-level data by collapsing across plots
-start.data <- dataMAY # dataMAY, data.mp, dataAUG, dataJULY, data3times
+start.data <- dataJULY9 # dataMAY, data.mp, dataAUG, dataJULY, data3times
 data.ms <- ddply(start.data, .(TimeID, area, species), summarise, sum(abundance)) #order
 #data.ms <- data.ms[-nrow(data.ms),]
 data2 <- dcast(data.ms, TimeID ~ species, mean) #order
@@ -114,7 +120,7 @@ data5 <- data4[,-ncol(data4)]
 
 
 ### run metacommunity analysis 
-Metacommunity(data3, verbose = TRUE, order = FALSE) -> meta
+Metacommunity(data4, verbose = TRUE, order = FALSE) -> meta
 meta[2:4]
 
 a <- as.data.frame(meta[1])

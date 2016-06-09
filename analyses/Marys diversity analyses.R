@@ -5,11 +5,15 @@
 library(vegan)
 library(BiodiversityR)
 library(plyr)
+library(reshape2)
+library(dplyr)
 
 data <- read.csv("./analyses/rawcomm.csv")
 data_old <- read.csv("./analyses/plot_data_copy.csv")
-traits <- read.csv("./analyses/grazertraits2.csv")
+traits <- read.csv("./analyses/grazertraits3.csv")
 sites <- read.csv("./analyses/site.info.csv")
+
+traits <- traits[,-c(3,8:10)]
 
 ## brief visualization:
 plot(sites$area ~ sites$dfw)
@@ -30,6 +34,12 @@ dim(data)
 
 ## melt and recast so the datafile goes from long to wide (species as columns)
 data.m <- melt(data, id = c(1,2,3,4,5,52))
+
+## some cleaning of species names
+levels(data.m$variable)[levels(data.m$variable)== "Bittium.spp."] <- "Lirobittium.spp."
+levels(data.m$variable)[levels(data.m$variable)== "Olivella.sp."] <- "Callianax.sp."
+levels(data.m$variable)[levels(data.m$variable)== "Cypricercus."] <- "Cyprideis.beaconensis"
+levels(data.m$variable)[levels(data.m$variable)== "Odontosyllis"] <- "Polychaete1"
 
 # clean up time code issue
 levels(unique(data$Time.Code2))
@@ -59,7 +69,7 @@ data.tr <- merge(data.p, traits[,-1], by.x = "species", by.y = "species.names", 
 levels(data.tr$eelgrss.epifauna)
 data.e <- data.tr %>% filter(eelgrss.epifauna == c("yes", "sometimes"))
 data.y <- data.tr %>% filter(eelgrss.epifauna == "yes")
-data.tr <- data.e
+data.tr <- data.y
 
 ## group by sampling times
 dataMAY <- data.tr[(data.tr$Time.Code2=="A"),]
@@ -71,13 +81,13 @@ dataJULY9 <- data.tr[(data.tr$Time.Code2=="C"),]
 ## for each plot, estimate relative abundance of grazers
 ## first remove filter feeders and predators:
 
-data7 <- subset(dataMAY, function. != "unknown", select = c(1:2,4:9, 11:13,15))
+data7 <- subset(dataJULY9, function. != "unknown", select = c(1:2,4:9, 11:13,15))
 #data7 <- subset(data7, function. != "predator", select = c(1:11))
 #data7 <- subset(data7, function. != "unknown", select = c(1:11))
-[data7$species!='Caprella.spp.',]
-data8 <- ddply(dataAUG, .(site, Sample, order, area, salinity, fetch, function.), summarise, sum(abundance)) #
+#[data7$species!='Caprella.spp.',]
+data8 <- ddply(dataJULY9, .(site, Sample, order, area, salinity, fetch, function.), summarise, sum(abundance)) #
 data9 <- dcast(data8, site + Sample + fetch ~ function., sum) #order
-data9$total <- (data9$detritovore + data9$filter.feeder + data9$suspension.feeder + data9$grazer + data9$unknown + data9$predator)
+data9$total <- (data9$detritovore + data9$suspension.feeder + data9$grazer + data9$predator) #+ data9$unknown + data9$filter.feeder
 data9$pgrazer <- data9$grazer/data9$total
 data9$pdet <- data9$detritovore/data9$total
 
