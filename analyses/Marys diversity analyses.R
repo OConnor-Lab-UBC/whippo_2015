@@ -8,10 +8,10 @@ library(plyr)
 library(reshape2)
 library(dplyr)
 
-data <- read.csv("./analyses/rawcomm.csv")
-data_old <- read.csv("./analyses/plot_data_copy.csv")
-traits <- read.csv("./analyses/grazertraits3.csv")
-sites <- read.csv("./analyses/site.info.csv")
+data <- read.csv("./data/rawcomm.csv")
+data_old <- read.csv("./data/plot_data_copy.csv")
+traits <- read.csv("./data/grazertraits3.csv")
+sites <- read.csv("./data/site.info.csv")
 
 traits <- traits[,-c(3,8:10)]
 

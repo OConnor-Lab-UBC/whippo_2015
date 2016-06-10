@@ -13,9 +13,9 @@ library(reshape2)
 library(Matrix)
 library(lattice)
 
-data <- read.csv("./analyses/rawcomm.csv")
-traits <- read.csv("./analyses/grazertraits3.csv")
-sites <- read.csv("./analyses/site.info.csv")
+data <- read.csv("./data/rawcomm.csv")
+traits <- read.csv("./data/grazertraits3.csv")
+sites <- read.csv("./data/site.info.csv")
 
 ## brief visualization:
 plot(sites$area ~ sites$dfw)
