@@ -69,7 +69,7 @@ data.tr <- merge(data.p, traits[,-1], by.x = "species", by.y = "species.names", 
 levels(data.tr$eelgrss.epifauna)
 data.e <- data.tr %>% filter(eelgrss.epifauna == c("yes", "sometimes"))
 data.y <- data.tr %>% filter(eelgrss.epifauna == "yes")
-data.tr <- data.y
+data.tr <- data.e
 
 ## group by sampling times
 dataMAY <- data.tr[(data.tr$Time.Code2=="A"),]
@@ -87,7 +87,7 @@ data7 <- subset(dataJULY9, function. != "unknown", select = c(1:2,4:9, 11:13,15)
 #[data7$species!='Caprella.spp.',]
 data8 <- ddply(dataJULY9, .(site, Sample, order, area, salinity, fetch, function.), summarise, sum(abundance)) #
 data9 <- dcast(data8, site + Sample + fetch ~ function., sum) #order
-data9$total <- (data9$detritovore + data9$suspension.feeder + data9$grazer + data9$predator) #+ data9$unknown + data9$filter.feeder
+data9$total <- (data9$detritovore + data9$suspension.feeder + data9$grazer + data9$predator + data9$filter.feeder) #+ data9$unknown 
 data9$pgrazer <- data9$grazer/data9$total
 data9$pdet <- data9$detritovore/data9$total
 
