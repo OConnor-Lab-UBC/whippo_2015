@@ -7,20 +7,23 @@ library(BiodiversityR)
 library(plyr)
 library(reshape2)
 library(dplyr)
+library(MuMIn)
 
 data <- read.csv("./data/rawcomm.csv")
-data_old <- read.csv("./data/plot_data_copy.csv")
+#data_old <- read.csv("./data/plot_data_copy.csv")
 traits <- read.csv("./data/grazertraits3.csv")
 sites <- read.csv("./data/site.info.csv")
 
 traits <- traits[,-c(3,8:10)]
 
 ## brief visualization:
-plot(sites$area ~ sites$dfw)
+plot(log(sites$area) ~ sites$dfw)
 plot(sites$salinity ~ sites$dfw)
 
 plot(sites$epiphytes~ sites$fetch.est)
 plot(sites$shoot.density~ sites$fetch.est)
+plot(sites$fetch.est~ sites$dfw)
+plot(log(sites$area) ~ sites$fetch.est)
 
 # ok, approximated area not correlated with dfw
 #head(traits)
@@ -80,13 +83,14 @@ dataJULY9 <- data.tr[(data.tr$Time.Code2=="C"),]
 
 ## for each plot, estimate relative abundance of grazers
 ## first remove filter feeders and predators:
-
-data7 <- subset(dataJULY9, function. != "unknown", select = c(1:2,4:9, 11:13,15))
+data.t <- data3times # dataJULY9
+data7 <- subset(data.t, function. != "unknown", select = c(1:17))
+data7 <- subset(data.t, group != "echinoderm", select = c(1:17))
 #data7 <- subset(data7, function. != "predator", select = c(1:11))
 #data7 <- subset(data7, function. != "unknown", select = c(1:11))
 #[data7$species!='Caprella.spp.',]
-data8 <- ddply(dataJULY9, .(site, Sample, order, area, salinity, fetch, function.), summarise, sum(abundance)) #
-data9 <- dcast(data8, site + Sample + fetch ~ function., sum) #order
+data8 <- ddply(data.t, .(site, Sample, order, dfw, area, salinity, fetch, function., Time.Code2), summarise, sum(abundance)) #
+data9 <- dcast(data8, site + Sample + fetch + area + order + dfw + Time.Code2~ function., sum) #order
 data9$total <- (data9$detritovore + data9$suspension.feeder + data9$grazer + data9$predator + data9$filter.feeder) #+ data9$unknown 
 data9$pgrazer <- data9$grazer/data9$total
 data9$pdet <- data9$detritovore/data9$total
@@ -97,17 +101,90 @@ plot(log(data9$total) ~ data9$fetch, pch = 19, xlab = 'Fetch', ylab = 'ln(total 
 plot(log(data9$grazer+1) ~ data9$fetch, pch = 19, xlab = 'Fetch', ylab = 'ln(grazers+1)', main = 'abundance / 0.28m2')
 plot(log(data9$filter.feeder + 1) ~ data9$fetch, pch = 19, xlab = 'Distance from Freshwater', ylab = 'ln(filter feeders)', main = 'abundance / 0.28m2')
 
-plot(I(log(data9$grazer/data9$filter.feeder)) ~ data9$fetch, pch = 19, xlab = 'Fetch', ylab = 'ln(grazers/filter feeders)', main = 'abundance / 0.28m2')
+plot(I(log(data9$grazer/(data9$filter.feeder+data9$suspension.feeder))) ~ data9$fetch, pch = 19, xlab = 'Fetch', ylab = 'ln(grazers/filter feeders)', main = 'abundance / 0.28m2')
 
 
-## some stats:
+## some stats for july9sites
+hist(log(data9$total))
+mod1a <- lm(log(data9$total+1) ~ data9$fetch)
+mod2a <- lm(log(data9$grazer+1) ~ data9$fetch)
 
-mod1 <- lm(data9$pgrazer ~ data9$dfw)
+mod1 <- lm(log(data9$total+1) ~ log(data9$area) * data9$fetch)
+mod2 <- lm(log(data9$grazer+1) ~ log(data9$area) * data9$fetch)
 
+mod1b <- lm(log(data9$total+1) ~ data9$dfw * data9$fetch)
+mod2b <- lm(log(data9$grazer+1) ~ data9$dfw * data9$fetch)
 
+mod1c <- lm(log(data9$total+1) ~ log(data9$area) + data9$dfw * data9$fetch)
+mod2c <- lm(log(data9$grazer+1) ~ log(data9$area) + data9$dfw * data9$fetch)
 
+mod1d <- lm(log(data9$total+1) ~ log(data9$area))
+mod2d <- lm(log(data9$grazer+1) ~ log(data9$area))
+
+mod1e <- lm(log(data9$total+1) ~ log(data9$area) + data9$fetch)
+mod2e <- lm(log(data9$grazer+1) ~ log(data9$area) + data9$fetch)
+
+mod1f <- lm(log(data9$total+1) ~ data9$dfw + data9$fetch)
+mod2f <- lm(log(data9$grazer+1) ~ data9$dfw + data9$fetch)
+
+model.sel(mod1a, mod1b, mod1, mod1c, mod1e, mod1f)
+model.sel(mod2a, mod2b, mod2, mod2c, mod2e, mod2f)
+
+## some stats for resample sites
+hist(log(data9$total))
+plot(log(data9$total + 1) ~ data9$Time.Code2)
+plot(log(data9$total + 1) ~ log(data9$area))
+plot(log(data9$total + 1) ~ (data9$dfw))
+plot(log(data9$total + 1) ~ (data9$fetch))
+
+mod1a <- lm(log(data9$total+1) ~ data9$fetch)
+mod2a <- lm(log(data9$grazer+1) ~ data9$fetch)
+
+mod1 <- lm(log(data9$total+1) ~ log(data9$area) * data9$fetch)
+mod2 <- lm(log(data9$grazer+1) ~ log(data9$area) * data9$fetch)
+
+mod1b <- lm(log(data9$total+1) ~ data9$dfw * data9$fetch)
+mod2b <- lm(log(data9$grazer+1) ~ data9$dfw * data9$fetch)
+
+mod1c <- lm(log(data9$total+1) ~ log(data9$area) + data9$dfw * data9$fetch)
+mod2c <- lm(log(data9$grazer+1) ~ log(data9$area) + data9$dfw * data9$fetch)
+
+mod1d <- lm(log(data9$total+1) ~ log(data9$area))
+mod2d <- lm(log(data9$grazer+1) ~ log(data9$area))
+
+mod1e <- lm(log(data9$total+1) ~ log(data9$area) + data9$fetch)
+mod2e <- lm(log(data9$grazer+1) ~ log(data9$area) + data9$fetch)
+
+mod1f <- lm(log(data9$total+1) ~ data9$dfw + data9$fetch)
+mod2f <- lm(log(data9$grazer+1) ~ data9$dfw + data9$fetch)
+
+mod1g <- lm(log(data9$total+1) ~ log(data9$area) + data9$dfw * data9$fetch + data9$Time.Code2)
+mod2g <- lm(log(data9$grazer+1) ~ log(data9$area) + data9$dfw * data9$fetch + data9$Time.Code2)
+
+mod1h <- lm(log(data9$total+1) ~ log(data9$area) + data9$dfw * data9$fetch*data9$Time.Code2)
+mod2h <- lm(log(data9$grazer+1) ~ log(data9$area) + data9$dfw * data9$fetch*data9$Time.Code2)
+
+mod1i <- lm(log(data9$total+1) ~ log(data9$area) + data9$dfw + data9$fetch*data9$Time.Code2)
+mod2i <- lm(log(data9$grazer+1) ~ log(data9$area) + data9$dfw + data9$fetch*data9$Time.Code2)
+
+mod1j <- lm(log(data9$total+1) ~ log(data9$area) + data9$fetch + data9$dfw * data9$Time.Code2)
+mod2j <- lm(log(data9$grazer+1) ~ log(data9$area) + data9$fetch + data9$dfw * data9$Time.Code2)
+
+mod1k <- lm(log(data9$total+1) ~ log(data9$area)* data9$Time.Code2*data9$fetch + data9$dfw)
+
+model.sel(mod1a, mod1b, mod1, mod1c, mod1e, mod1f, mod1g, mod1h, mod1i, mod1j, mod1k)
+model.sel(mod2a, mod2b, mod2, mod2c, mod2e, mod2f, mod2g, mod2h, mod2i, mod2j)
+
+## by now these are grossly overfit models. we have 15 populations (5 meadows x 3 times) so if time is a factor we get one other thing. fetch? area? dfw? not sure how to do this. 
+
+# order is not contributing, but area is. try dfw, and then all sites and add time, and then I think we're done.
 
 boxplot(log(dataJULY9tots[,7]) ~ dataJULY9tots$dfw, pch = 19, xlab = 'Distance from Freshwater', ylab = 'total inverts', main = 'raw comm data')
 boxplot(log(data_old[(data_old$Time == '2.5'),3]) ~ data_old[(data_old$Time == '2.5'),10], pch = 19, xlab = 'Distance from Freshwater', ylab = 'total inverts', main = 'plot data')
 
 mod1 <- lm(log(dataJULY9tots[,7]+0.01) ~ dataJULY9tots$dfw, na.action = na.omit)
+
+
+
+#### some statistics
+mod1 < lm()
