@@ -16,6 +16,8 @@ sites <- read.csv("./data/site.info.csv")
 
 traits <- traits[,-c(3,8:10)]
 
+data$date1 <- mdy(data$date)
+
 ## brief visualization:
 plot(log(sites$area) ~ sites$dfw)
 plot(sites$salinity ~ sites$dfw)
@@ -36,7 +38,7 @@ dim(data)
 # 2. in this dataframe, include potential gradients (watershed position)
 
 ## melt and recast so the datafile goes from long to wide (species as columns)
-data.m <- melt(data, id = c(1,2,3,4,5,52))
+data.m <- melt(data, id = c(1,2,3,4,5,52, 53))
 
 ## some cleaning of species names
 levels(data.m$variable)[levels(data.m$variable)== "Bittium.spp."] <- "Lirobittium.spp."
@@ -59,10 +61,10 @@ data.s <- merge(data.m, sites, by = "site")
 
 ## sum across size classes within plots (samples)
 
-data.p <- ddply(data.s, .(site, Time.Code, Sample, Time.Code2, variable, dfw,order.dfw,area,salinity, shoot.density, fetch.est), summarise, sum(value))
+data.p <- ddply(data.s, .(site, date1, Sample, Time.Code2, variable, dfw,order.dfw,area,salinity, shoot.density, fetch.est), summarise, sum(value))
 
 data.p$time.ID <- paste(data.p$site, data.p$Time.Code2, sep = '.') #could look at finer time resolution by using Time.Code here
-names(data.p) <- c("site", "Time.Code", "Sample", "Time.Code2", "species", "dfw","order","area","salinity","shoot.density","fetch","abundance", "TimeID")
+names(data.p) <- c("site", "Date", "Sample", "Time.Code2", "species", "dfw","order","area","salinity","shoot.density","fetch","abundance", "TimeID")
 
 
 ## merge with traits and sort by taxa or functional groups
@@ -89,8 +91,8 @@ data7 <- subset(data.t, group != "echinoderm", select = c(1:17))
 #data7 <- subset(data7, function. != "predator", select = c(1:11))
 #data7 <- subset(data7, function. != "unknown", select = c(1:11))
 #[data7$species!='Caprella.spp.',]
-data8 <- ddply(data.t, .(site, Sample, order, dfw, area, salinity, fetch, function., Time.Code2), summarise, sum(abundance)) #
-data9 <- dcast(data8, site + Sample + fetch + area + order + dfw + Time.Code2~ function., sum) #order
+data8 <- ddply(data.t, .(site, Sample, order, dfw, area, salinity, fetch, function., Date, Time.Code2), summarise, sum(abundance)) #
+data9 <- dcast(data8, site + Sample + fetch + area + order + dfw + Date + Time.Code2 ~ function., sum) #order
 data9$total <- (data9$detritovore + data9$suspension.feeder + data9$grazer + data9$predator + data9$filter.feeder) #+ data9$unknown 
 data9$pgrazer <- data9$grazer/data9$total
 data9$pdet <- data9$detritovore/data9$total
@@ -132,59 +134,57 @@ model.sel(mod2a, mod2b, mod2, mod2c, mod2e, mod2f)
 
 ## some stats for resample sites
 hist(log(data9$total))
-plot(log(data9$total + 1) ~ data9$Time.Code2)
-plot(log(data9$total + 1) ~ log(data9$area))
-plot(log(data9$total + 1) ~ (data9$dfw))
+library(RColorBrewer)
+cols <- brewer.pal(n = 9, name="Set1")
+cols_dfw <- cols[round(data9$dfw)*0.5]
+plot(log(data9$total + 1) ~ data9$Date, pch = 19, col = cols_dfw)
+plot(log(data9$total + 1) ~ log(data9$area), pch = 19, col = cols_dfw)
+plot(log(data9$total + 1) ~ (data9$dfw), pch = 19, col = data9$Time.Code2)
+plot(log(data9$grazer + 1) ~ (data9$dfw), pch = 19, col = data9$Time.Code2)
 plot(log(data9$total + 1) ~ (data9$fetch))
 
-mod1a <- lm(log(data9$total+1) ~ data9$fetch)
-mod2a <- lm(log(data9$grazer+1) ~ data9$fetch)
+mod1a <- lm(log(data9$total+1) ~ data9$fetch*data9$Date)
+mod2a <- lm(log(data9$grazer+1) ~ data9$fetch*data9$Date)
 
-mod1 <- lm(log(data9$total+1) ~ log(data9$area) * data9$fetch)
-mod2 <- lm(log(data9$grazer+1) ~ log(data9$area) * data9$fetch)
+mod1 <- lm(log(data9$total+1) ~ log(data9$area) *data9$Date)
+mod2 <- lm(log(data9$grazer+1) ~ log(data9$area) *data9$Date)
 
-mod1b <- lm(log(data9$total+1) ~ data9$dfw * data9$fetch)
-mod2b <- lm(log(data9$grazer+1) ~ data9$dfw * data9$fetch)
+mod1b <- lm(log(data9$total+1) ~ data9$dfw * data9$Date)
+mod2b <- lm(log(data9$grazer+1) ~ data9$dfw * data9$Date)
 
-mod1c <- lm(log(data9$total+1) ~ log(data9$area) + data9$dfw * data9$fetch)
-mod2c <- lm(log(data9$grazer+1) ~ log(data9$area) + data9$dfw * data9$fetch)
+mod1c <- lm(log(data9$total+1) ~ data9$dfw * data9$fetch)
+mod2c <- lm(log(data9$grazer+1) ~ data9$dfw * data9$fetch)
 
-mod1d <- lm(log(data9$total+1) ~ log(data9$area))
-mod2d <- lm(log(data9$grazer+1) ~ log(data9$area))
-
-mod1e <- lm(log(data9$total+1) ~ log(data9$area) + data9$fetch)
-mod2e <- lm(log(data9$grazer+1) ~ log(data9$area) + data9$fetch)
-
-mod1f <- lm(log(data9$total+1) ~ data9$dfw + data9$fetch)
-mod2f <- lm(log(data9$grazer+1) ~ data9$dfw + data9$fetch)
-
-mod1g <- lm(log(data9$total+1) ~ log(data9$area) + data9$dfw * data9$fetch + data9$Time.Code2)
-mod2g <- lm(log(data9$grazer+1) ~ log(data9$area) + data9$dfw * data9$fetch + data9$Time.Code2)
-
-mod1h <- lm(log(data9$total+1) ~ log(data9$area) + data9$dfw * data9$fetch*data9$Time.Code2)
-mod2h <- lm(log(data9$grazer+1) ~ log(data9$area) + data9$dfw * data9$fetch*data9$Time.Code2)
-
-mod1i <- lm(log(data9$total+1) ~ log(data9$area) + data9$dfw + data9$fetch*data9$Time.Code2)
-mod2i <- lm(log(data9$grazer+1) ~ log(data9$area) + data9$dfw + data9$fetch*data9$Time.Code2)
-
-mod1j <- lm(log(data9$total+1) ~ log(data9$area) + data9$fetch + data9$dfw * data9$Time.Code2)
-mod2j <- lm(log(data9$grazer+1) ~ log(data9$area) + data9$fetch + data9$dfw * data9$Time.Code2)
-
-mod1k <- lm(log(data9$total+1) ~ log(data9$area)* data9$Time.Code2*data9$fetch + data9$dfw)
-
-model.sel(mod1a, mod1b, mod1, mod1c, mod1e, mod1f, mod1g, mod1h, mod1i, mod1j, mod1k)
-model.sel(mod2a, mod2b, mod2, mod2c, mod2e, mod2f, mod2g, mod2h, mod2i, mod2j)
+model.sel(mod1a, mod1b, mod1, mod1c)
+model.sel(mod2a, mod2b, mod2, mod2c)
 
 ## by now these are grossly overfit models. we have 15 populations (5 meadows x 3 times) so if time is a factor we get one other thing. fetch? area? dfw? not sure how to do this. 
+### diversity analyses
+div.data <- dcast(data.t[,c(1:4,12)], site + Date + Sample ~ species, sum)
 
-# order is not contributing, but area is. try dfw, and then all sites and add time, and then I think we're done.
+H <- diversity(div.data[,-(c(1:3))], index ="shannon")
+S <- diversity(div.data[,-(c(1:3))], index ="simpson")
 
-boxplot(log(dataJULY9tots[,7]) ~ dataJULY9tots$dfw, pch = 19, xlab = 'Distance from Freshwater', ylab = 'total inverts', main = 'raw comm data')
-boxplot(log(data_old[(data_old$Time == '2.5'),3]) ~ data_old[(data_old$Time == '2.5'),10], pch = 19, xlab = 'Distance from Freshwater', ylab = 'total inverts', main = 'plot data')
+div.summary <- cbind(div.data[c(1:3)], H, S)
+div.summary2 <- merge(div.summary, sites, by.x = c("site"), by.y = c("site"))
 
-mod1 <- lm(log(dataJULY9tots[,7]+0.01) ~ dataJULY9tots$dfw, na.action = na.omit)
+plot(div.summary2$H ~ div.summary2$Date, pch = 19, col = div.summary2$dfw)
+plot(div.summary2$H ~ div.summary2$area, pch = 19, col = div.summary2$dfw)
+plot(div.summary2$H ~ div.summary2$fetch.est, pch = 19, col = div.summary2$dfw)
+plot(div.summary2$H ~ div.summary2$dfw, pch = 19, col = div.summary2$Date)
+plot(div.summary2$H ~ div.summary2$area)
 
+mod1a <- lm(div.summary2$H ~ div.summary2$fetch*div.summary2$Date)
+mod2a <- lm(div.summary2$S ~ div.summary2$fetch*div.summary2$Date)
 
+mod1 <- lm(div.summary2$H ~ log(div.summary2$area) * div.summary2$Date)
+mod2 <- lm(div.summary2$S  ~ log(div.summary2$area) * div.summary2$Date)
 
-#### some statistics
-mod1 < lm()
+mod1b <- lm(div.summary2$H ~ div.summary2$dfw * div.summary2$Date)
+mod2b <- lm(div.summary2$S ~ div.summary2$dfw * div.summary2$Date)
+
+mod1c <- lm(div.summary2$H ~ div.summary2$dfw * div.summary2$fetch)
+mod2c <- lm(div.summary2$S ~ div.summary2$dfw * div.summary2$fetch)
+
+model.sel(mod1a, mod1b, mod1, mod1c)
+model.sel(mod2a, mod2b, mod2, mod2c)
