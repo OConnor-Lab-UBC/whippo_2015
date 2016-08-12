@@ -87,6 +87,13 @@ data.ms <- ddply(start.data, .(TimeID, area, species), summarise, sum(abundance)
 #data.ms <- data.ms[-nrow(data.ms),]
 data2 <- dcast(data.ms, TimeID ~ species, mean) #order
 
+## estimate number of species per site: 
+dim(data2)
+data.alpha <- data2
+data.alpha <- specnumber(data.alpha[,1:31])
+site.alpha <- as.data.frame(cbind(data2$TimeID, data.alpha))
+names(site.alpha) <- c("site.time", "alpha")
+site.alpha$site <- c("BE", "BI", "CB", "CC", "DC", "EI", "NB", "RP", "WI")
 
 # or collapse across times and plots at sites
 #data.pooled <- ddply(start.data, .(site, species), summarise, sum(abundance))

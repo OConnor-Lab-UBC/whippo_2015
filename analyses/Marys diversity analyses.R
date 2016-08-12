@@ -8,6 +8,7 @@ library(plyr)
 library(reshape2)
 library(dplyr)
 library(MuMIn)
+library(lubridate)
 
 data <- read.csv("./data/rawcomm.csv")
 #data_old <- read.csv("./data/plot_data_copy.csv")
@@ -85,7 +86,7 @@ dataJULY9 <- data.tr[(data.tr$Time.Code2=="C"),]
 
 ## for each plot, estimate relative abundance of grazers
 ## first remove filter feeders and predators:
-data.t <- data3times # dataJULY9
+data.t <- dataAUG #data3times # dataJULY9
 data7 <- subset(data.t, function. != "unknown", select = c(1:17))
 data7 <- subset(data.t, group != "echinoderm", select = c(1:17))
 #data7 <- subset(data7, function. != "predator", select = c(1:11))
@@ -164,15 +165,90 @@ div.data <- dcast(data.t[,c(1:4,12)], site + Date + Sample ~ species, sum)
 
 H <- diversity(div.data[,-(c(1:3))], index ="shannon")
 S <- diversity(div.data[,-(c(1:3))], index ="simpson")
+I <- dispindmorisita(div.data[,-(c(1:3))], unique.rm = TRUE)
+div.data$alpha.p <- specnumber(div.data[,4:33])
+div.data$N <- rowSums(div.data[,(4:33)])
 
-div.summary <- cbind(div.data[c(1:3)], H, S)
+### look at I within meadows
+I.BE <- dispindmorisita(div.data[(div.data$site=='BE'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
+I.RP <- dispindmorisita(div.data[(div.data$site=='RP'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
+I.DC <- dispindmorisita(div.data[(div.data$site=='DC'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
+I.WI <- dispindmorisita(div.data[(div.data$site=='WI'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
+I.CB <- dispindmorisita(div.data[(div.data$site=='CB'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
+I.CC <- dispindmorisita(div.data[(div.data$site=='CC'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
+I.EI <- dispindmorisita(div.data[(div.data$site=='EI'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
+I.NB <- dispindmorisita(div.data[(div.data$site=='NB'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
+I.BI <- dispindmorisita(div.data[(div.data$site=='BI'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
+
+#could merge I adn rank files, if i make the rownames a column. started this below, ran out of time. then we could see which species are aggregating, by their rank abundance. 
+#BE.sum <- merge(I.BE, as.data.frame(rankBE), by.x = rownames(), by.y = rownames())
+
+I.BE <- I.BE[(I.BE$imor != "NaN"),]
+I.RP <- I.RP[(I.RP$imor != "NaN"),]
+I.DC <- I.DC[(I.DC$imor != "NaN"),]
+I.WI <- I.WI[(I.WI$imor != "NaN"),]
+I.CB <- I.CB[(I.CB$imor != "NaN"),]
+I.CC <- I.CC[(I.CC$imor != "NaN"),]
+I.EI <- I.EI[(I.EI$imor != "NaN"),]
+I.NB <- I.NB[(I.NB$imor != "NaN"),]
+I.BI <- I.BI[(I.BI$imor != "NaN"),]
+
+## not sure which standardized morisita's index is given by vegan; figure it out.
+means <- c(mean(I.DC[,4], na.rm = TRUE), mean(I.WI[,4], na.rm = TRUE), mean(I.BE[,4], na.rm = TRUE), mean(I.EI[,4], na.rm = TRUE), mean(I.RP[,4], na.rm = TRUE), mean(I.NB[,4], na.rm = TRUE), mean(I.CB[,4], na.rm = TRUE), mean(I.BI[,4], na.rm = TRUE), mean(I.CC[,4], na.rm = TRUE))
+
+ci.upper <- function(x) mean(x) + 1.96*sd(x)/sqrt(length(x))
+ci.lower <- function(x) mean(x) - 1.96*sd(x)/sqrt(length(x))
+
+ci.lowers <- c(ci.lower(I.DC[,4]), ci.lower(I.WI[,4]), ci.lower(I.BE[,4]), ci.lower(I.EI[,4]), ci.lower(I.RP[,4]), ci.lower(I.NB[,4]), ci.lower(I.CB[,4]), ci.lower(I.BI[,4]), ci.lower(I.CC[,4]))
+
+ci.uppers <- c(ci.upper(I.DC[,4]), ci.upper(I.WI[,4]), ci.upper(I.BE[,4]), ci.upper(I.EI[,4]), ci.upper(I.RP[,4]), ci.upper(I.NB[,4]), ci.upper(I.CB[,4]), ci.upper(I.BI[,4]), ci.upper(I.CC[,4]))
+
+I.means <- cbind(means, ci.lowers, ci.uppers, c('DC', 'WI', 'BE', 'EI', 'RP', 'NB', 'CB', 'BI', 'CC'))
+I.means <- as.data.frame(I.means)
+names(I.means) <- c("I", "lower", "upper","site")
+
+div.summary <- cbind(div.data[c(1:3, 34:35)], H, S)
 div.summary2 <- merge(div.summary, sites, by.x = c("site"), by.y = c("site"))
+div.summaryI <- merge(div.summary2, I.means, by.x = c("site"), by.y = c("site"))
+div.summaryT <- merge(div.summaryI, site.alpha, by.x = c("site"), by.y = c("site")) # get site alpha from EMS code (this can be changed to reference code above in this file)
+head(div.summaryT)
+div.summaryT$apB <- as.numeric(as.character(div.summaryT$alpha)) - div.summaryT$alpha.p
 
-plot(div.summary2$H ~ div.summary2$Date, pch = 19, col = div.summary2$dfw)
+site.H <- ddply(div.summaryI, .(site), summarise, mean(H))
+site.S <- ddply(div.summaryI, .(site), summarise, mean(S))
+site.N <- ddply(div.data, .(site), summarise, mean(N))
+site.Beta <- ddply(div.summaryT, .(site), summarise, mean(apB))
+
+plot(div.summaryT$H ~ div.summaryT$Date, pch = 19, col = div.summaryT$dfw)
 plot(div.summary2$H ~ div.summary2$area, pch = 19, col = div.summary2$dfw)
 plot(div.summary2$H ~ div.summary2$fetch.est, pch = 19, col = div.summary2$dfw)
 plot(div.summary2$H ~ div.summary2$dfw, pch = 19, col = div.summary2$Date)
 plot(div.summary2$H ~ div.summary2$area)
+
+plot(as.numeric(div.summaryT$alpha.p) ~ as.numeric(as.character(div.summaryT$I)), xlim = c(0,1), xlab = 'aggregation', ylab = 'alpha')
+abline(v= 0.5)
+
+plot(as.numeric(div.summaryT$apB) ~ as.numeric(as.character(div.summaryT$alpha)), xlab = 'site alpha', ylab = 'within site beta')
+plot(as.numeric(div.summaryT$alpha.p) ~ as.numeric(as.character(div.summaryT$alpha)), xlab = 'site alpha', ylab = 'plot alpha')
+plot(as.numeric(div.summaryT$alpha.p) ~ as.numeric(as.character(div.summaryT$N)), xlab = 'plot N', ylab = 'plot alpha')
+
+plot(div.summaryT$apB ~ div.summaryT$fetch.est, pch = 19, col = div.summaryT$dfw)
+plot(div.summaryT$alpha.p ~ div.summaryT$fetch.est, pch = 19, col = div.summaryT$dfw)
+plot(as.numeric(as.character(div.summaryT$alpha)) ~ div.summaryT$fetch.est, pch = 19, col = div.summaryT$dfw)
+plot(div.summaryT$apB ~ div.summaryT$dfw, pch = 19, col = div.summaryT$fetch.est)
+plot(div.summaryT$apB ~ as.numeric(as.character(div.summaryT$I)), pch = 19)
+plot(div.summaryT$alpha.p ~ as.numeric(as.character(div.summaryT$I)), pch = 19)
+
+
+mod.aa <- lm(as.numeric(div.summaryT$alpha.p) ~ as.numeric(as.character(div.summaryT$alpha)))
+mod.ba <- lm(as.numeric(div.summaryT$apB) ~ as.numeric(as.character(div.summaryT$alpha)))
+
+
+mods1 <- lm(div.summary2$H ~ div.summary2$site)
+mods2 <- lm(div.summary2$S ~ div.summary2$site)
+mods3 <- lm(div.summary2$N ~ div.summary2$site)
+mods4 <- lm(div.summary2$alpha.p ~ div.summary2$site)
+#mods5 <- lm(as.numeric(as.character(div.summaryT$I)) ~ div.summary2$site) would need to do this on the species-level values
 
 mod1a <- lm(div.summary2$H ~ div.summary2$fetch*div.summary2$Date)
 mod2a <- lm(div.summary2$S ~ div.summary2$fetch*div.summary2$Date)
@@ -188,3 +264,40 @@ mod2c <- lm(div.summary2$S ~ div.summary2$dfw * div.summary2$fetch)
 
 model.sel(mod1a, mod1b, mod1, mod1c)
 model.sel(mod2a, mod2b, mod2, mod2c)
+
+
+## rank abundance curves
+rankBE <- as.data.frame(rankabundance(div.data[(div.data$site=='BE'),-(c(1:3,34:35))]))
+rankRP <- as.data.frame(rankabundance(div.data[(div.data$site=='RP'),-(c(1:3,34:35))]))
+rankDC <- as.data.frame(rankabundance(div.data[(div.data$site=='DC'),-(c(1:3,34:35))]))
+rankWI <- as.data.frame(rankabundance(div.data[(div.data$site=='WI'),-(c(1:3,34:35))]))
+rankCB <- as.data.frame(rankabundance(div.data[(div.data$site=='CB'),-(c(1:3,34:35))]))
+rankCC <- as.data.frame(rankabundance(div.data[(div.data$site=='CC'),-(c(1:3,34:35))]))
+rankNB <- as.data.frame(rankabundance(div.data[(div.data$site=='NB'),-(c(1:3,34:35))]))
+rankEI <- as.data.frame(rankabundance(div.data[(div.data$site=='EI'),-(c(1:3,34:35))]))
+rankBI <- as.data.frame(rankabundance(div.data[(div.data$site=='BI'),-(c(1:3,34:35))]))
+
+I.BE[order(I.BE$imor, decreasing = TRUE),]
+I.RP[order(I.RP$imor, decreasing = TRUE),]
+I.DC[order(I.DC$imor, decreasing = TRUE),]
+I.WI[order(I.WI$imor, decreasing = TRUE),]
+I.CB[order(I.CB$imor, decreasing = TRUE),]
+I.CC[order(I.CC$imor, decreasing = TRUE),]
+I.NB[order(I.NB$imor, decreasing = TRUE),]
+I.EI[order(I.EI$imor, decreasing = TRUE),]
+I.BI[order(I.BI$imor, decreasing = TRUE),]
+
+## now rank by Pchisq
+I.BE[order(I.BE$pchisq),]
+I.RP[order(I.RP$pchisq),]
+I.DC[order(I.DC$pchisq),]
+I.WI[order(I.WI$pchisq),]
+I.CB[order(I.CB$pchisq),]
+I.CC[order(I.CC$pchisq),]
+I.NB[order(I.NB$pchisq),]
+I.EI[order(I.EI$pchisq),]
+I.BI[order(I.BI$pchisq),]
+
+## for the whole dataset: 
+div.data <- dcast(data.tr[,c(1:4,12)], site + Date + Sample ~ species, sum)
+rank.all <- as.data.frame(rankabundance(div.data[,-(c(1:3,34:35))]))
