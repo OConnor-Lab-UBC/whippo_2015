@@ -86,7 +86,7 @@ dataJULY9 <- data.tr[(data.tr$Time.Code2=="C"),]
 
 ## for each plot, estimate relative abundance of grazers
 ## first remove filter feeders and predators:
-data.t <- dataAUG #data3times # dataJULY9
+data.t <- dataJULY9 #data3times # dataJULY9
 data7 <- subset(data.t, function. != "unknown", select = c(1:17))
 data7 <- subset(data.t, group != "echinoderm", select = c(1:17))
 #data7 <- subset(data7, function. != "predator", select = c(1:11))
@@ -169,8 +169,21 @@ I <- dispindmorisita(div.data[,-(c(1:3))], unique.rm = TRUE)
 div.data$alpha.p <- specnumber(div.data[,4:33])
 div.data$N <- rowSums(div.data[,(4:33)])
 
+library(dplyr)
+library(purrr)
+
+div.data %>%
+group_by(site) %>% 
+  select(5:10) %>% 
+  as.matrix(.) %>% 
+  map_df(., dispindmorisita, unique.rm = TRUE, na.rm = TRUE)
+
+
+?dispindmorisita
+
 ### look at I within meadows
 I.BE <- dispindmorisita(div.data[(div.data$site=='BE'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
+str(I.BE)
 I.RP <- dispindmorisita(div.data[(div.data$site=='RP'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
 I.DC <- dispindmorisita(div.data[(div.data$site=='DC'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
 I.WI <- dispindmorisita(div.data[(div.data$site=='WI'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
