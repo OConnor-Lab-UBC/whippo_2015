@@ -154,3 +154,6 @@ axis(1, at = c(1,2,3,4,5,6,7,8,9,10), lab = c(unique(levels(div.summary$site))),
 axis(2, c(0,0.5,1), pos = c(0,0), cex.lab = 0.8, las = 2)
 
 dev.off()
+
+
+
