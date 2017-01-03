@@ -1,0 +1,47 @@
+## Whippo et al results summary
+
+# does plot level alpha diversity differ among meadows?
+> summary(mods4)
+
+Call:
+lm(formula = div.summary2$alpha.p ~ div.summary2$site)
+
+Residuals:
+   Min     1Q Median     3Q    Max 
+-3.938 -1.250  0.125  1.125  4.750 
+
+Coefficients:
+                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)           3.0625     0.4078   7.509 7.08e-12 ***
+div.summary2$siteBI   1.1875     0.5768   2.059   0.0414 *  
+div.summary2$siteCB   0.8125     0.5768   1.409   0.1612    
+div.summary2$siteCC  -0.2500     0.5768  -0.433   0.6654    
+div.summary2$siteDC   0.6250     0.5768   1.084   0.2804    
+div.summary2$siteEI   0.5625     0.5768   0.975   0.3312    
+div.summary2$siteNB   0.2500     0.5768   0.433   0.6654    
+div.summary2$siteRP   3.8750     0.5768   6.719 4.60e-10 ***
+div.summary2$siteWI   0.4669     0.5682   0.822   0.4127    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 1.631 on 136 degrees of freedom
+Multiple R-squared:  0.3437,	Adjusted R-squared:  0.3051 
+F-statistic: 8.902 on 8 and 136 DF,  p-value: 9.239e-10
+
+> mods0 <-  lm(div.summary2$alpha.p ~ 1)
+> anova(mods4, mods0)
+Analysis of Variance Table
+
+Model 1: div.summary2$alpha.p ~ div.summary2$site
+Model 2: div.summary2$alpha.p ~ 1
+  Res.Df    RSS Df Sum of Sq      F    Pr(>F)    
+1    136 361.92                                  
+2    144 551.45 -8   -189.53 8.9023 9.239e-10 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> model.sel(mods4, mods0)
+Model selection table 
+      (Int) div.sm2$sit df   logLik  AICc delta weight
+mods4 3.063           + 10 -272.062 565.8   0.0      1
+mods0 3.897              2 -302.593 609.3  43.5      0
+Models ranked by AICc(x) 

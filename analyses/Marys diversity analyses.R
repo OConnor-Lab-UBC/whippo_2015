@@ -293,9 +293,19 @@ plot(div.summaryT$alpha.p ~ as.numeric(as.character(div.summaryT$I)), pch = 19)
 
 # diversity analyses ------------------------------------------------------
 
+# get and plot observed site means
+
+# does plot level alpha diversity differ among meadows?
+mods4 <- lm(div.summary2$alpha.p ~ div.summary2$site)
+mods0 <-  lm(div.summary2$alpha.p ~ 1)
+anova(mods4, mods0)
+model.sel(mods4, mods0)
+summary(mods4)
+
+plot(div.summaryT$alpha.p ~ div.summaryT$dfw, pch = 19, col = div.summaryT$Date)
+
 mod.aa <- lm(as.numeric(div.summaryT$alpha.p) ~ as.numeric(as.character(div.summaryT$alpha)))
 mod.ba <- lm(as.numeric(div.summaryT$apB) ~ as.numeric(as.character(div.summaryT$alpha)))
-
 
 mods1 <- lm(div.summary2$H ~ div.summary2$site)
 mods2 <- lm(div.summary2$S ~ div.summary2$site)
@@ -303,21 +313,38 @@ mods3 <- lm(div.summary2$N ~ div.summary2$site)
 mods4 <- lm(div.summary2$alpha.p ~ div.summary2$site)
 #mods5 <- lm(as.numeric(as.character(div.summaryT$I)) ~ div.summary2$site) would need to do this on the species-level values
 
-mod1a <- lm(div.summary2$H ~ div.summary2$fetch*div.summary2$Date)
-mod2a <- lm(div.summary2$S ~ div.summary2$fetch*div.summary2$Date)
+# i had date as a predictor, but it seems to be confounded with meadow ID, so I'm not going to include it as a predictor, within the June sampling time.
+mod1a <- lm(div.summary2$H ~ div.summary2$fetch.jc)
+mod2a <- lm(div.summary2$S ~ div.summary2$fetch.jc)
+mod3a <- lm(div.summary2$alpha.p ~ div.summary2$fetch.jc)
 
-mod1 <- lm(div.summary2$H ~ log(div.summary2$area) * div.summary2$Date)
-mod2 <- lm(div.summary2$S  ~ log(div.summary2$area) * div.summary2$Date)
+mod1 <- lm(div.summary2$H ~ log(div.summary2$area))
+mod2 <- lm(div.summary2$S  ~ log(div.summary2$area))
+mod3 <- lm(div.summary2$alpha.p  ~ log(div.summary2$area))
 
-mod1b <- lm(div.summary2$H ~ div.summary2$dfw * div.summary2$Date)
-mod2b <- lm(div.summary2$S ~ div.summary2$dfw * div.summary2$Date)
+mod1b <- lm(div.summary2$H ~ div.summary2$dfw)
+mod2b <- lm(div.summary2$S ~ div.summary2$dfw)
+mod3b <- lm(div.summary2$alpha.p ~ div.summary2$dfw)
 
-mod1c <- lm(div.summary2$H ~ div.summary2$dfw * div.summary2$fetch)
-mod2c <- lm(div.summary2$S ~ div.summary2$dfw * div.summary2$fetch)
+mod1c <- lm(div.summary2$H ~ div.summary2$dfw * div.summary2$fetch.jc)
+mod2c <- lm(div.summary2$S ~ div.summary2$dfw * div.summary2$fetch.jc)
+mod3c <- lm(div.summary2$alpha.p ~ div.summary2$dfw * div.summary2$fetch.jc)
 
-model.sel(mod1a, mod1b, mod1, mod1c)
-model.sel(mod2a, mod2b, mod2, mod2c)
+mod1f <- lm(div.summary2$H ~ div.summary2$area * div.summary2$fetch.jc)
+mod2f <- lm(div.summary2$S ~ div.summary2$area * div.summary2$fetch.jc)
+mod3f <- lm(div.summary2$alpha.p ~ div.summary2$area * div.summary2$fetch.jc)
 
+mod1d <- lm(div.summary2$H ~ 1)
+mod2d <- lm(div.summary2$S ~ 1)
+mod3d <- lm(div.summary2$alpha.p ~ 1)
+
+mod1g <- lm(div.summary2$H ~ div.summary2$site)
+mod2g <- lm(div.summary2$S ~ div.summary2$site)
+mod3g <- lm(div.summary2$alpha.p ~ div.summary2$site)
+
+model.sel(mod1a, mod1b, mod1, mod1c, mod1d, mod1f, mod1g)
+model.sel(mod2a, mod2b, mod2, mod2c, mod2d, mod2f, mod2g)
+model.sel(mod3a, mod3b, mod3, mod3c, mod3d, mod3f, mod3g)
 
 ## rank abundance curves
 rankBE <- as.data.frame(rankabundance(div.data[(div.data$site=='BE'),-(c(1:3,34:35))]))
