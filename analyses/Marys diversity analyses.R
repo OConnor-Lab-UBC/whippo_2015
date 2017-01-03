@@ -302,7 +302,8 @@ anova(mods4, mods0)
 model.sel(mods4, mods0)
 summary(mods4)
 
-plot(div.summaryT$alpha.p ~ div.summaryT$dfw, pch = 19, col = div.summaryT$Date)
+par(mfrow = c(1,1))
+plot(div.summaryT$alpha.p ~ div.summaryT$site)
 
 mod.aa <- lm(as.numeric(div.summaryT$alpha.p) ~ as.numeric(as.character(div.summaryT$alpha)))
 mod.ba <- lm(as.numeric(div.summaryT$apB) ~ as.numeric(as.character(div.summaryT$alpha)))
