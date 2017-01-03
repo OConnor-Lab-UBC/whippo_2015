@@ -70,7 +70,7 @@ data.s <- merge(data.m, sites, by = "site")
 
 ## sum across size classes within plots (samples)
 
-data.p <- ddply(data.s, .(site, date1, Sample, Time.Code2, variable, dfw,order.dfw,area,salinity, shoot.density, fetch.est), summarise, sum(value))
+data.p <- ddply(data.s, .(site, date1, Sample, Time.Code2, variable, dfw,order.dfw,area,salinity, shoot.density, fetch.jc), summarise, sum(value))
 
 data.p$time.ID <- paste(data.p$site, data.p$Time.Code2, sep = '.') #could look at finer time resolution by using Time.Code here
 names(data.p) <- c("site", "Date", "Sample", "Time.Code2", "species", "dfw","order","area","salinity","shoot.density","fetch","abundance", "TimeID")
@@ -94,6 +94,20 @@ dataJULY <- data.tr[(data.tr$Time.Code2=="C" & data.tr$site!="BE" & data.tr$site
 dataAUG <- data.tr[(data.tr$Time.Code2=="E"),]
 data3times <- data.tr[(data.tr$site!="BE" & data.tr$site!="EI" & data.tr$site!="CC" & data.tr$site!="BI"),]
 dataJULY9 <- data.tr[(data.tr$Time.Code2=="C"),]
+
+## create site-level data by collapsing across plots
+start.data <- dataJULY9 # dataMAY, data.mp, dataAUG, dataJULY, data3times
+data.ms <- ddply(start.data, .(TimeID, area, species), summarise, sum(abundance)) #order
+#data.ms <- data.ms[-nrow(data.ms),]
+data2 <- dcast(data.ms, TimeID ~ species, mean) #order
+
+# estimate number of species per site: 
+dim(data2)
+data.alpha <- data2
+data.alpha <- specnumber(data.alpha[,1:31])
+site.alpha <- as.data.frame(cbind(data2$TimeID, data.alpha))
+names(site.alpha) <- c("site.time", "alpha")
+site.alpha$site <- c("BE", "BI", "CB", "CC", "DC", "EI", "NB", "RP", "WI")
 
 ## for each plot, estimate relative abundance of grazers
 ## first remove filter feeders and predators:
@@ -122,9 +136,14 @@ plot(log(data9$filter.feeder + 1) ~ data9$fetch, pch = 19, xlab = 'Distance from
 plot(I(log(data9$grazer/(data9$filter.feeder+data9$suspension.feeder))) ~ data9$fetch, pch = 19, xlab = 'Fetch', ylab = 'ln(grazers/filter feeders)', main = 'abundance / 0.28m2')
 
 
-# July9sites stats --------------------------------------------------------
+# July9sites abundance stats --------------------------------------------------------
+
+# for paper, anova results on within vs among meadow differences in abundance.
 
 hist(log(data9$total))
+mod10 <- lm(log(data9$total+1) ~ data9$site)
+mod20 <- lm(log(data9$grazer+1) ~ data9$site) 
+
 mod1a <- lm(log(data9$total+1) ~ data9$fetch)
 mod2a <- lm(log(data9$grazer+1) ~ data9$fetch)
 
@@ -146,8 +165,9 @@ mod2e <- lm(log(data9$grazer+1) ~ log(data9$area) + data9$fetch)
 mod1f <- lm(log(data9$total+1) ~ data9$dfw + data9$fetch)
 mod2f <- lm(log(data9$grazer+1) ~ data9$dfw + data9$fetch)
 
-model.sel(mod1a, mod1b, mod1, mod1c, mod1e, mod1f)
-model.sel(mod2a, mod2b, mod2, mod2c, mod2e, mod2f)
+model.sel(mod1a, mod1b, mod1, mod1c, mod1e, mod1f, mod10)
+model.sel(mod2a, mod2b, mod2, mod2c, mod2e, mod2f, mod20)
+
 
 ## some stats for resample sites
 hist(log(data9$total))
@@ -175,8 +195,13 @@ mod2c <- lm(log(data9$grazer+1) ~ data9$dfw * data9$fetch)
 model.sel(mod1a, mod1b, mod1, mod1c)
 model.sel(mod2a, mod2b, mod2, mod2c)
 
+
+
+# diversity analyses ------------------------------------------------------
+
+
 ## by now these are grossly overfit models. we have 15 populations (5 meadows x 3 times) so if time is a factor we get one other thing. fetch? area? dfw? not sure how to do this. 
-### diversity analyses
+
 div.data <- dcast(data.t[,c(1:4,12)], site + Date + Sample ~ species, sum)
 
 H <- diversity(div.data[,-(c(1:3))], index ="shannon")
@@ -194,9 +219,6 @@ group_by(site) %>%
   as.matrix(.) %>% 
   map_df(., dispindmorisita, unique.rm = TRUE, na.rm = TRUE)
 
-
-?dispindmorisita
-
 ### look at I within meadows
 I.BE <- dispindmorisita(div.data[(div.data$site=='BE'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
 str(I.BE)
@@ -209,7 +231,7 @@ I.EI <- dispindmorisita(div.data[(div.data$site=='EI'),-(c(1:3,34:35))], unique.
 I.NB <- dispindmorisita(div.data[(div.data$site=='NB'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
 I.BI <- dispindmorisita(div.data[(div.data$site=='BI'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
 
-#could merge I adn rank files, if i make the rownames a column. started this below, ran out of time. then we could see which species are aggregating, by their rank abundance. 
+#could merge and rank files, if i make the rownames a column. started this below, ran out of time. then we could see which species are aggregating, by their rank abundance. 
 #BE.sum <- merge(I.BE, as.data.frame(rankBE), by.x = rownames(), by.y = rownames())
 
 I.BE <- I.BE[(I.BE$imor != "NaN"),]
@@ -268,6 +290,8 @@ plot(div.summaryT$apB ~ div.summaryT$dfw, pch = 19, col = div.summaryT$fetch.est
 plot(div.summaryT$apB ~ as.numeric(as.character(div.summaryT$I)), pch = 19)
 plot(div.summaryT$alpha.p ~ as.numeric(as.character(div.summaryT$I)), pch = 19)
 
+
+# diversity analyses ------------------------------------------------------
 
 mod.aa <- lm(as.numeric(div.summaryT$alpha.p) ~ as.numeric(as.character(div.summaryT$alpha)))
 mod.ba <- lm(as.numeric(div.summaryT$apB) ~ as.numeric(as.character(div.summaryT$alpha)))
