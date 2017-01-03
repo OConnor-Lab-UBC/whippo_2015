@@ -303,7 +303,9 @@ model.sel(mods4, mods0)
 summary(mods4)
 
 par(mfrow = c(1,1))
-plot(div.summaryT$alpha.p ~ div.summaryT$site)
+plot(div.summaryT$alpha.p ~ div.summaryT$site, xlab = "Site", ylab = "plot alpha")
+plot(div.summaryT$H ~ div.summaryT$site, xlab = "Site", ylab = "plot H")
+plot(div.summaryT$S ~ div.summaryT$site, xlab = "Site", ylab = "plot S")
 
 mod.aa <- lm(as.numeric(div.summaryT$alpha.p) ~ as.numeric(as.character(div.summaryT$alpha)))
 mod.ba <- lm(as.numeric(div.summaryT$apB) ~ as.numeric(as.character(div.summaryT$alpha)))
@@ -342,6 +344,10 @@ mod3d <- lm(div.summary2$alpha.p ~ 1)
 mod1g <- lm(div.summary2$H ~ div.summary2$site)
 mod2g <- lm(div.summary2$S ~ div.summary2$site)
 mod3g <- lm(div.summary2$alpha.p ~ div.summary2$site)
+
+mod1h <- lm(div.summary2$H ~ div.summary2$N)
+mod2h <- lm(div.summary2$S ~ div.summary2$N)
+mod3h <- lm(div.summary2$alpha.p ~ div.summary2$N*div.summary2$site)
 
 model.sel(mod1a, mod1b, mod1, mod1c, mod1d, mod1f, mod1g)
 model.sel(mod2a, mod2b, mod2, mod2c, mod2d, mod2f, mod2g)

@@ -45,3 +45,98 @@ Model selection table
 mods4 3.063           + 10 -272.062 565.8   0.0      1
 mods0 3.897              2 -302.593 609.3  43.5      0
 Models ranked by AICc(x) 
+
+
+
+
+Call:
+lm(formula = div.summary2$alpha.p ~ div.summary2$N * div.summary2$site)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-3.4965 -1.0044 -0.1228  0.9503  4.7827 
+
+Coefficients:
+                                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                         2.508324   0.455530   5.506 1.95e-07 ***
+div.summary2$N                      0.014371   0.006892   2.085   0.0391 *  
+div.summary2$siteBI                 0.248914   0.719568   0.346   0.7300    
+div.summary2$siteCB                 0.082611   0.726963   0.114   0.9097    
+div.summary2$siteCC                -0.008517   0.674181  -0.013   0.9899    
+div.summary2$siteDC                 1.082294   0.708367   1.528   0.1290    
+div.summary2$siteEI                 0.330755   0.759525   0.435   0.6640    
+div.summary2$siteNB                 0.300472   0.686359   0.438   0.6623    
+div.summary2$siteRP                 3.963850   0.672595   5.893 3.20e-08 ***
+div.summary2$siteWI                 0.442838   0.640659   0.691   0.4907    
+div.summary2$N:div.summary2$siteBI  0.018302   0.011427   1.602   0.1117    
+div.summary2$N:div.summary2$siteCB  0.002144   0.008830   0.243   0.8085    
+div.summary2$N:div.summary2$siteCC -0.001476   0.015324  -0.096   0.9234    
+div.summary2$N:div.summary2$siteDC -0.014025   0.007036  -1.993   0.0484 *  
+div.summary2$N:div.summary2$siteEI -0.011385   0.007132  -1.596   0.1129    
+div.summary2$N:div.summary2$siteNB -0.007488   0.008436  -0.888   0.3764    
+div.summary2$N:div.summary2$siteRP -0.012342   0.007040  -1.753   0.0820 .  
+div.summary2$N:div.summary2$siteWI  0.003373   0.010831   0.311   0.7560    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 1.48 on 127 degrees of freedom
+Multiple R-squared:  0.4957,	Adjusted R-squared:  0.4282 
+F-statistic: 7.343 on 17 and 127 DF,  p-value: 2.968e-12
+
+
+
+
+
+Call:
+lm(formula = div.summary2$H ~ div.summary2$site)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.77610 -0.25268 -0.03632  0.24023  0.93144 
+
+Coefficients:
+                     Estimate Std. Error t value Pr(>|t|)    
+(Intercept)          0.626912   0.098548   6.362 2.83e-09 ***
+div.summary2$siteBI  0.248758   0.139367   1.785 0.076505 .  
+div.summary2$siteCB  0.006257   0.139367   0.045 0.964258    
+div.summary2$siteCC  0.038606   0.139367   0.277 0.782193    
+div.summary2$siteDC -0.212870   0.139367  -1.527 0.128983    
+div.summary2$siteEI  0.072842   0.139367   0.523 0.602060    
+div.summary2$siteNB  0.026793   0.139367   0.192 0.847833    
+div.summary2$siteRP  0.552572   0.139367   3.965 0.000118 ***
+div.summary2$siteWI  0.149191   0.137302   1.087 0.279141    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.3942 on 136 degrees of freedom
+Multiple R-squared:  0.2123,	Adjusted R-squared:  0.166 
+F-statistic: 4.583 on 8 and 136 DF,  p-value: 5.769e-05
+
+
+
+
+
+Call:
+lm(formula = div.summary2$S ~ div.summary2$site)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.47550 -0.15805  0.00919  0.14576  0.59622 
+
+Coefficients:
+                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)          0.40378    0.05503   7.338 1.78e-11 ***
+div.summary2$siteBI  0.07866    0.07782   1.011  0.31392    
+div.summary2$siteCB -0.07018    0.07782  -0.902  0.36875    
+div.summary2$siteCC -0.01829    0.07782  -0.235  0.81456    
+div.summary2$siteDC -0.20472    0.07782  -2.631  0.00951 ** 
+div.summary2$siteEI  0.00840    0.07782   0.108  0.91420    
+div.summary2$siteNB -0.03784    0.07782  -0.486  0.62754    
+div.summary2$siteRP  0.17558    0.07782   2.256  0.02566 *  
+div.summary2$siteWI  0.07172    0.07667   0.935  0.35123    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.2201 on 136 degrees of freedom
+Multiple R-squared:  0.1812,	Adjusted R-squared:  0.1331 
+F-statistic: 3.762 on 8 and 136 DF,  p-value: 0.0005185
