@@ -12,6 +12,7 @@ library(reshape2)
 library(dplyr)
 library(MuMIn)
 library(lubridate)
+library(ggplot2)
 
 data <- read.csv("./data/rawcomm.csv")
 #data_old <- read.csv("./data/plot_data_copy.csv")
@@ -352,6 +353,41 @@ mod3h <- lm(div.summary2$alpha.p ~ div.summary2$N*div.summary2$site)
 model.sel(mod1a, mod1b, mod1, mod1c, mod1d, mod1f, mod1g)
 model.sel(mod2a, mod2b, mod2, mod2c, mod2d, mod2f, mod2g)
 model.sel(mod3a, mod3b, mod3, mod3c, mod3d, mod3f, mod3g)
+
+
+# FIGURE 2 ----------------------------------------------------------------
+
+div.plot <- ggplot(data = div.summary2, aes(x = site, y = alpha.p)) + 
+  theme_bw() +
+  geom_boxplot() +
+  geom_point(x = 8, y = 10.3, pch = '*', size = 8, colour = "gray50") +
+  geom_point(x = 2, y = 10.3, pch = '*', size = 8, colour = "gray50") +
+  xlab("Site") +
+  ylab("Species Richness")
+
+div.plot
+ggsave("Jan2017alphaplot.png", device = "png", width = 4, height = 2.5)
+
+H.plot <- ggplot(data = div.summary2, aes(x = site, y = H)) + 
+  theme_bw() +
+  geom_boxplot() +
+  geom_point(x = 8, y = 1.75, pch = '*', size = 8, colour = "gray50") +
+  xlab("Site") +
+  ylab("Shannon Diversity")
+
+H.plot
+ggsave("Jan2017Hplot.png", device = "png", width = 4, height = 2.5)
+
+S.plot <- ggplot(data = div.summary2, aes(x = site, y = S)) + 
+  theme_bw() +
+  geom_boxplot() +
+  geom_point(x = 8, y = 1, pch = '*', size = 8, colour = "gray50") +
+  geom_point(x = 5, y = 1, pch = '*', size = 8, colour = "gray50") +
+  xlab("Site") +
+  ylab("Simpson Evenness")
+
+S.plot
+ggsave("Jan2017Splot.png", device = "png", width = 4, height = 2.5)
 
 ## rank abundance curves
 rankBE <- as.data.frame(rankabundance(div.data[(div.data$site=='BE'),-(c(1:3,34:35))]))
