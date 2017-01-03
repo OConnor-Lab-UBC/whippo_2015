@@ -220,6 +220,13 @@ group_by(site) %>%
   as.matrix(.) %>% 
   map_df(., dispindmorisita, unique.rm = TRUE, na.rm = TRUE)
 
+## calculate ENS for samples with more than 5 individuals
+ENS.data <- div.data %>%
+  filter(N > 4) 
+  
+ENS.data$ENS = rarefy(ENS.data[,-(c(1:3))], 5)
+
+
 ### look at I within meadows
 I.BE <- dispindmorisita(div.data[(div.data$site=='BE'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
 str(I.BE)
@@ -259,8 +266,10 @@ I.means <- cbind(means, ci.lowers, ci.uppers, c('DC', 'WI', 'BE', 'EI', 'RP', 'N
 I.means <- as.data.frame(I.means)
 names(I.means) <- c("I", "lower", "upper","site")
 
+#compile indices into one dataframe
 div.summary <- cbind(div.data[c(1:3, 34:35)], H, S)
-div.summary2 <- merge(div.summary, sites, by.x = c("site"), by.y = c("site"))
+div.summaryE <- merge(div.summary, ENS.data, by.x = c("site", "Date","alpha.p", "N", "Sample"), by.y = c("site", "Date","alpha.p","N", "Sample"))
+div.summary2 <- merge(div.summaryE, sites, by.x = c("site"), by.y = c("site"))
 div.summaryI <- merge(div.summary2, I.means, by.x = c("site"), by.y = c("site"))
 div.summaryT <- merge(div.summaryI, site.alpha, by.x = c("site"), by.y = c("site")) # get site alpha from EMS code (this can be changed to reference code above in this file)
 head(div.summaryT)
@@ -270,6 +279,7 @@ site.H <- ddply(div.summaryI, .(site), summarise, mean(H))
 site.S <- ddply(div.summaryI, .(site), summarise, mean(S))
 site.N <- ddply(div.data, .(site), summarise, mean(N))
 site.Beta <- ddply(div.summaryT, .(site), summarise, mean(apB))
+site.ENS <- ddply(div.summaryT, .(site), summarise, mean(ENS))
 
 plot(div.summaryT$H ~ div.summaryT$Date, pch = 19, col = div.summaryT$dfw)
 plot(div.summary2$H ~ div.summary2$area, pch = 19, col = div.summary2$dfw)
@@ -321,38 +331,47 @@ mods4 <- lm(div.summary2$alpha.p ~ div.summary2$site)
 mod1a <- lm(div.summary2$H ~ div.summary2$fetch.jc)
 mod2a <- lm(div.summary2$S ~ div.summary2$fetch.jc)
 mod3a <- lm(div.summary2$alpha.p ~ div.summary2$fetch.jc)
+mod4a <- lm(div.summary2$ENS ~ div.summary2$fetch.jc)
 
 mod1 <- lm(div.summary2$H ~ log(div.summary2$area))
 mod2 <- lm(div.summary2$S  ~ log(div.summary2$area))
 mod3 <- lm(div.summary2$alpha.p  ~ log(div.summary2$area))
+mod4 <- lm(div.summary2$ENS  ~ log(div.summary2$area))
 
 mod1b <- lm(div.summary2$H ~ div.summary2$dfw)
 mod2b <- lm(div.summary2$S ~ div.summary2$dfw)
 mod3b <- lm(div.summary2$alpha.p ~ div.summary2$dfw)
+mod4b <- lm(div.summary2$ENS ~ div.summary2$dfw)
 
 mod1c <- lm(div.summary2$H ~ div.summary2$dfw * div.summary2$fetch.jc)
 mod2c <- lm(div.summary2$S ~ div.summary2$dfw * div.summary2$fetch.jc)
 mod3c <- lm(div.summary2$alpha.p ~ div.summary2$dfw * div.summary2$fetch.jc)
+mod4c <- lm(div.summary2$ENS ~ div.summary2$dfw * div.summary2$fetch.jc)
 
 mod1f <- lm(div.summary2$H ~ div.summary2$area * div.summary2$fetch.jc)
 mod2f <- lm(div.summary2$S ~ div.summary2$area * div.summary2$fetch.jc)
 mod3f <- lm(div.summary2$alpha.p ~ div.summary2$area * div.summary2$fetch.jc)
+mod4f <- lm(div.summary2$ENS ~ div.summary2$area * div.summary2$fetch.jc)
 
 mod1d <- lm(div.summary2$H ~ 1)
 mod2d <- lm(div.summary2$S ~ 1)
 mod3d <- lm(div.summary2$alpha.p ~ 1)
+mod4d <- lm(div.summary2$ENS ~ 1)
 
 mod1g <- lm(div.summary2$H ~ div.summary2$site)
 mod2g <- lm(div.summary2$S ~ div.summary2$site)
 mod3g <- lm(div.summary2$alpha.p ~ div.summary2$site)
+mod4g <- lm(div.summary2$ENS ~ div.summary2$site)
 
 mod1h <- lm(div.summary2$H ~ div.summary2$N)
 mod2h <- lm(div.summary2$S ~ div.summary2$N)
 mod3h <- lm(div.summary2$alpha.p ~ div.summary2$N*div.summary2$site)
+mod4h <- lm(div.summary2$ENS ~ div.summary2$N*div.summary2$site)
 
 model.sel(mod1a, mod1b, mod1, mod1c, mod1d, mod1f, mod1g)
 model.sel(mod2a, mod2b, mod2, mod2c, mod2d, mod2f, mod2g)
 model.sel(mod3a, mod3b, mod3, mod3c, mod3d, mod3f, mod3g)
+model.sel(mod4a, mod4b, mod4, mod4c, mod4d, mod4f, mod4g)
 
 
 # FIGURE 2 ----------------------------------------------------------------
@@ -388,6 +407,21 @@ S.plot <- ggplot(data = div.summary2, aes(x = site, y = S)) +
 
 S.plot
 ggsave("Jan2017Splot.png", device = "png", width = 4, height = 2.5)
+
+
+ENS.plot <- ggplot(data = div.summary2, aes(x = site, y = ENS)) + 
+  theme_bw() +
+  geom_boxplot() +
+  geom_point(x = 6, y = 3.5, pch = '*', size = 8, colour = "gray50") +
+  geom_point(x = 5, y = 3.5, pch = '*', size = 8, colour = "gray50") +
+  geom_point(x = 3, y = 3.5, pch = '*', size = 8, colour = "gray50") +
+  xlab("Site") +
+  ylab("ENS") + 
+
+ENS.plot
+ggsave("Jan2017ENSplot.png", device = "png", width = 4, height = 2.5)
+
+
 
 ## rank abundance curves
 rankBE <- as.data.frame(rankabundance(div.data[(div.data$site=='BE'),-(c(1:3,34:35))]))
