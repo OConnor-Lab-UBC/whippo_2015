@@ -2,6 +2,9 @@
 ### April 12 2016
 ### for Whippo et al, seagrass biodiversity paper
 
+
+# load libraries and data -------------------------------------------------
+
 library(vegan)
 library(BiodiversityR)
 library(plyr)
@@ -15,6 +18,8 @@ data <- read.csv("./data/rawcomm.csv")
 traits <- read.csv("./data/grazertraits3.csv")
 sites <- read.csv("./data/site.info.csv")
 
+
+# delete, add and redefine columns ----------------------------------------
 traits <- traits[,-c(3,8:10)]
 
 data$date1 <- mdy(data$date)
@@ -23,10 +28,11 @@ data$date1 <- mdy(data$date)
 plot(log(sites$area) ~ sites$dfw)
 plot(sites$salinity ~ sites$dfw)
 
-plot(sites$epiphytes~ sites$fetch.est)
-plot(sites$shoot.density~ sites$fetch.est)
-plot(sites$fetch.est~ sites$dfw)
-plot(log(sites$area) ~ sites$fetch.est)
+plot(sites$epiphytes~ sites$fetch.jc)
+plot(sites$fetch.est ~ sites$fetch.jc)
+plot(sites$shoot.density~ sites$fetch.jc)
+plot(sites$fetch.jc~ sites$dfw)
+plot(log(sites$area) ~ sites$fetch.jc)
 
 # ok, approximated area not correlated with dfw
 #head(traits)
@@ -38,6 +44,8 @@ dim(data)
 # 1b. create a dataframe of species (columns) pooled across sizes for each plot. 
 # 2. in this dataframe, include potential gradients (watershed position)
 
+
+# data prep (melt, etc) ---------------------------------------------------
 ## melt and recast so the datafile goes from long to wide (species as columns)
 data.m <- melt(data, id = c(1,2,3,4,5,52, 53))
 
@@ -71,6 +79,9 @@ names(data.p) <- c("site", "Date", "Sample", "Time.Code2", "species", "dfw","ord
 ## merge with traits and sort by taxa or functional groups
 data.tr <- merge(data.p, traits[,-1], by.x = "species", by.y = "species.names", all.x = TRUE, all.y = FALSE)
 
+
+# create datafiles for taxa and times -------------------------------------
+
 ## remove all taxa that are not epifauna, because they were not evenly sampled across samples and meadows: 
 levels(data.tr$eelgrss.epifauna)
 data.e <- data.tr %>% filter(eelgrss.epifauna == c("yes", "sometimes"))
@@ -98,6 +109,10 @@ data9$total <- (data9$detritovore + data9$suspension.feeder + data9$grazer + dat
 data9$pgrazer <- data9$grazer/data9$total
 data9$pdet <- data9$detritovore/data9$total
 
+
+# plots -------------------------------------------------------------------
+
+
 par(mfrow=(c(2,2)))
 plot((data9$pgrazer) ~ data9$fetch, pch = 19, xlab = 'Fetch', ylab = 'grazers / total', main = 'abundance / 0.28m2') #, ylim = c(0,1)
 plot(log(data9$total) ~ data9$fetch, pch = 19, xlab = 'Fetch', ylab = 'ln(total inverts)', main = 'abundance / 0.28m2')
@@ -107,7 +122,8 @@ plot(log(data9$filter.feeder + 1) ~ data9$fetch, pch = 19, xlab = 'Distance from
 plot(I(log(data9$grazer/(data9$filter.feeder+data9$suspension.feeder))) ~ data9$fetch, pch = 19, xlab = 'Fetch', ylab = 'ln(grazers/filter feeders)', main = 'abundance / 0.28m2')
 
 
-## some stats for july9sites
+# July9sites stats --------------------------------------------------------
+
 hist(log(data9$total))
 mod1a <- lm(log(data9$total+1) ~ data9$fetch)
 mod2a <- lm(log(data9$grazer+1) ~ data9$fetch)
