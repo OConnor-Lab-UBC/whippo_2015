@@ -44,7 +44,7 @@ data5 <- data4[,-ncol(data4)]
 
 
 ### run metacommunity analysis 
-Metacommunity(data4, verbose = TRUE, order = FALSE) -> meta
+Metacommunity(data4, verbose = TRUE, order = FALSE, method = "r1") -> meta
 meta[2:4]
 
 a <- as.data.frame(meta[1])
@@ -53,3 +53,6 @@ pdf('July 9 sites epifauna.pdf', width = 7, height = 9)
 levelplot(as.matrix(a), col.regions=c(0,1), region = TRUE, colorkey=FALSE, ylab = '', xlab = '', main="July 9 epifauna YES",  border="black", scales = list(cex = c(0.4, 0.4), x = list(rot = c(90))))
 dev.off()
 
+IdentifyStructure(meta)
+Imagine(data4, sitenames = rownames(data4), speciesnames = colnames(data4), xline = 2)
+axis(1, las = 2, cex = 1)
