@@ -87,6 +87,8 @@ data.tr <- merge(data.p, traits[,-1], by.x = "species", by.y = "species.names", 
 levels(data.tr$eelgrss.epifauna)
 data.e <- data.tr %>% filter(eelgrss.epifauna == c("yes", "sometimes"))
 data.y <- data.tr %>% filter(eelgrss.epifauna == "yes")
+data.s <- data.tr %>% filter(patch == "yes")
+data.g <- data.tr %>% filter(function. == "grazer")
 data.tr <- data.e
 
 ## group by sampling times
