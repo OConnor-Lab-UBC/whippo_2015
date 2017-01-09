@@ -54,8 +54,10 @@ test$iNextEst$RBI[103,4:6] -> BI
 q1 <- rbind(BE, RP, DC, WI, CC, CB, NB, EI, BI)
 rownames(q1) <- c("BE", "RP", "DC", "WI", "CC", "CB", "NB", "EI", "BI")
 
-plot(q1[,1], pch = 19, ylim = c(0, 35), xlim = c(0,10), axes = FALSE, ylab = 'Species Richness', xlab = "Site")
+plot(q1[,1], pch = 19, ylim = c(0, 40), xlim = c(0,10), axes = FALSE, ylab = 'Species Richness', xlab = "Site")
 arrows(c(1:9), q1[,1], c(1:9), q1[,3], angle = 90, length = 0.05)
 arrows(c(1:9), q1[,1], c(1:9), q1[,2], angle = 90, length = 0.05)
 axis(1, at = c(1:9), labels = rownames(q1), pos = 0)
 axis(2, las = 2, pos = 0)
+
+q1
