@@ -89,7 +89,9 @@ data.e <- data.tr %>% filter(eelgrss.epifauna == c("yes", "sometimes"))
 data.y <- data.tr %>% filter(eelgrss.epifauna == "yes")
 data.s <- data.tr %>% filter(patch == "yes")
 data.g <- data.tr %>% filter(function. == "grazer")
-data.tr <- data.e
+data.c <- data.tr %>% filter(group == "crustacean")
+data.ga <- data.tr %>% filter(group == "gastropod")
+data.tr <- data.e #reset to data.e
 
 ## group by sampling times
 dataMAY <- data.tr[(data.tr$Time.Code2=="A"),]

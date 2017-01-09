@@ -13,17 +13,14 @@
 library(metacom)
 library(broom)
 
-#not these if working with Marys diversity analyses.R
-library(plyr)
-library(dplyr)
-library(Matrix)
-library(lattice)
-library(reshape2)
-
-
 # Data preparation --------------------------------------------------------
 
 ## start with data2 file:
+## create site-level data by collapsing across plots
+start.data <- dataAUG # dataMAY, data.mp, dataAUG, dataJULY, data3times, dataJULY9
+data.ms <- ddply(start.data, .(TimeID, area, species), summarise, sum(abundance)) #order
+#data.ms <- data.ms[-nrow(data.ms),]
+data2 <- dcast(data.ms, TimeID ~ species, mean) #order
 
 ## clean out any empty species or empty sites
 rowSums(data2[-1]) -> data2$totals
