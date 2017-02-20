@@ -380,32 +380,33 @@ model.sel(mod4a, mod4b, mod4, mod4c, mod4d, mod4f, mod4g)
 
 # FIGURE 2 ----------------------------------------------------------------
 
-div.plot <- ggplot(data = div.summary2, aes(x = site, y = alpha.p)) + 
+div.plot <- ggplot(data = div.summary2, aes(reorder(site, -order.dfw), y = alpha.p, ymin = 0, ymax = 12)) + 
   theme_bw() +
   geom_boxplot() +
-  geom_point(x = 8, y = 10.3, pch = '*', size = 8, colour = "gray50") +
-  geom_point(x = 2, y = 10.3, pch = '*', size = 8, colour = "gray50") +
+  geom_point(x = 5, y = 10.5, pch = '*', size = 8, colour = "gray50") +
+  geom_point(x = 7, y = 10.5, pch = '*', size = 8, colour = "gray50") +
+  #scale_x_discrete(limits = order.dfw) +
   xlab("Site") +
   ylab("Species Richness")
 
 div.plot
 ggsave("Jan2017alphaplot.png", device = "png", width = 4, height = 2.5)
 
-H.plot <- ggplot(data = div.summary2, aes(x = site, y = H)) + 
+H.plot <- ggplot(data = div.summary2, aes(reorder(site, -order.dfw), y = H, ymin = 0, ymax = 2)) + 
   theme_bw() +
   geom_boxplot() +
-  geom_point(x = 8, y = 1.75, pch = '*', size = 8, colour = "gray50") +
+  geom_point(x = 5, y = 1.9, pch = '*', size = 8, colour = "gray50") +
   xlab("Site") +
   ylab("Shannon Diversity")
 
 H.plot
 ggsave("Jan2017Hplot.png", device = "png", width = 4, height = 2.5)
 
-S.plot <- ggplot(data = div.summary2, aes(x = site, y = S)) + 
+S.plot <- ggplot(data = div.summary2, aes(reorder(site, -order.dfw), y = S, ymin = 0, ymax = 1)) + 
   theme_bw() +
   geom_boxplot() +
-  geom_point(x = 8, y = 1, pch = '*', size = 8, colour = "gray50") +
   geom_point(x = 5, y = 1, pch = '*', size = 8, colour = "gray50") +
+  geom_point(x = 1, y = 1, pch = '*', size = 8, colour = "gray50") +
   xlab("Site") +
   ylab("Simpson Evenness")
 
@@ -413,14 +414,14 @@ S.plot
 ggsave("Jan2017Splot.png", device = "png", width = 4, height = 2.5)
 
 
-ENS.plot <- ggplot(data = div.summary2, aes(x = site, y = ENS)) + 
+ENS.plot <- ggplot(data = div.summary2, aes(reorder(site, -order.dfw), y = ENS, ymin = 0, ymax = 4)) + 
   theme_bw() +
   geom_boxplot() +
   geom_point(x = 6, y = 3.5, pch = '*', size = 8, colour = "gray50") +
-  geom_point(x = 5, y = 3.5, pch = '*', size = 8, colour = "gray50") +
-  geom_point(x = 3, y = 3.5, pch = '*', size = 8, colour = "gray50") +
+  geom_point(x = 4, y = 3.5, pch = '*', size = 8, colour = "gray50") +
+  geom_point(x = 1, y = 3.5, pch = '*', size = 8, colour = "gray50") +
   xlab("Site") +
-  ylab("ENS") + 
+  ylab("ENS") 
 
 ENS.plot
 ggsave("Jan2017ENSplot.png", device = "png", width = 4, height = 2.5)
