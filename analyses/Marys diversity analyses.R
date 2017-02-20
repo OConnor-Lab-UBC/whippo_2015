@@ -204,9 +204,6 @@ model.sel(mod2a, mod2b, mod2, mod2c)
 
 # diversity analyses ------------------------------------------------------
 
-
-## by now these are grossly overfit models. we have 15 populations (5 meadows x 3 times) so if time is a factor we get one other thing. fetch? area? dfw? not sure how to do this. 
-
 div.data <- dcast(data.t[,c(1:4,12)], site + Date + Sample ~ species, sum)
 
 H <- diversity(div.data[,-(c(1:3))], index ="shannon")
@@ -463,3 +460,178 @@ I.BI[order(I.BI$pchisq),]
 ## for the whole dataset: 
 div.data <- dcast(data.tr[,c(1:4,12)], site + Date + Sample ~ species, sum)
 rank.all <- as.data.frame(rankabundance(div.data[,-(c(1:3,34:35))]))
+
+
+
+
+
+# univariate over time ----------------------------------------------------
+## create site-level data by collapsing across plots
+start.data <- data3times
+data.ms <- ddply(start.data, .(TimeID, area, species), summarise, sum(abundance)) #order
+data2 <- dcast(data.ms, TimeID ~ species, mean) #order
+
+# estimate number of species per site: 
+dim(data2)
+data.alpha <- data2
+data.alpha <- specnumber(data.alpha[,1:31])
+site.alpha <- as.data.frame(cbind(data2$TimeID, data.alpha))
+names(site.alpha) <- c("site.time", "alpha")
+site.alpha <- tidyr::separate(site.alpha, site.time, c("site", "time"))
+
+
+## for each plot, estimate relative abundance of grazers
+## first remove filter feeders and predators:
+data.t <- data3times 
+data7 <- subset(data.t, function. != "unknown", select = c(1:17))
+data7 <- subset(data.t, group != "echinoderm", select = c(1:17))
+#data7 <- subset(data7, function. != "predator", select = c(1:11))
+#data7 <- subset(data7, function. != "unknown", select = c(1:11))
+#[data7$species!='Caprella.spp.',]
+data8 <- ddply(data.t, .(site, Sample, order, dfw, area, salinity, fetch, function., Date, Time.Code2), summarise, sum(abundance)) #
+data9 <- dcast(data8, site + Sample + fetch + area + order + dfw + Date + Time.Code2 ~ function., sum) #order
+data9$total <- (data9$detritovore + data9$suspension.feeder + data9$grazer + data9$predator + data9$filter.feeder) #+ data9$unknown 
+data9$pgrazer <- data9$grazer/data9$total
+data9$pdet <- data9$detritovore/data9$total
+
+
+
+## 3 times abundance stats 
+hist(log(data9$total))
+mod10 <- lm(log(data9$total+1) ~ data9$site)
+mod20 <- lm(log(data9$grazer+1) ~ data9$site) 
+
+mod1a <- lm(log(data9$total+1) ~ data9$fetch)
+mod2a <- lm(log(data9$grazer+1) ~ data9$fetch)
+
+mod1 <- lm(log(data9$total+1) ~ log(data9$area) * data9$fetch)
+mod2 <- lm(log(data9$grazer+1) ~ log(data9$area) * data9$fetch)
+
+mod1b <- lm(log(data9$total+1) ~ data9$Time.Code2 * data9$fetch)
+mod2b <- lm(log(data9$grazer+1) ~ data9$Time.Code2 * data9$fetch)
+
+mod1c <- lm(log(data9$total+1) ~ log(data9$area) + data9$Time.Code2 * data9$fetch)
+mod2c <- lm(log(data9$grazer+1) ~ log(data9$area) + data9$Time.Code2 * data9$fetch)
+
+mod1d <- lm(log(data9$total+1) ~ log(data9$area))
+mod2d <- lm(log(data9$grazer+1) ~ log(data9$area))
+
+mod1e <- lm(log(data9$total+1) ~ log(data9$area) + data9$fetch)
+mod2e <- lm(log(data9$grazer+1) ~ log(data9$area) + data9$fetch)
+
+mod1f <- lm(log(data9$total+1) ~ data9$Time.Code2 + data9$fetch)
+mod2f <- lm(log(data9$grazer+1) ~ data9$Time.Code2 + data9$fetch)
+
+mod1g <- lm(log(data9$total+1) ~ data9$Time.Code2 + data9$site)
+mod2g <- lm(log(data9$grazer+1) ~ data9$Time.Code2 + data9$site)
+
+model.sel(mod1a, mod1b, mod1, mod1c, mod1e, mod1f, mod10, mod1g)
+model.sel(mod2a, mod2b, mod2, mod2c, mod2e, mod2f, mod20, mod2g)
+
+summary(mod1g)
+
+
+
+# diversity analyses ------------------------------------------------------
+
+div.data <- dcast(data.t[,c(1:5,12)], site + Time.Code2 + Sample ~ species, sum)
+
+H <- diversity(div.data[,-(c(1:3))], index ="shannon")
+S <- diversity(div.data[,-(c(1:3))], index ="simpson")
+div.data$alpha.p <- specnumber(div.data[,4:33])
+div.data$N <- rowSums(div.data[,(4:33)])
+
+
+ENS.data <- div.data %>%
+  filter(N > 4) 
+
+ENS.data$ENS = rarefy(ENS.data[,-(c(1:3))], 5)
+
+#compile indices into one dataframe
+div.summary <- cbind(div.data[c(1:3, 34:35)], H, S)
+div.summaryE <- merge(div.summary, ENS.data, by.x = c("site", "Time.Code2","alpha.p","N", "Sample"), by.y = c("site", "Time.Code2","alpha.p","N","Sample"))
+div.summary2 <- merge(div.summaryE, sites, by.x = c("site"), by.y = c("site"))
+#div.summaryI <- merge(div.summary2, I.means, by.x = c("site"), by.y = c("site"))
+div.summaryT <- merge(div.summaryE, site.alpha, by.x = c("site"), by.y = c("site")) # get site alpha from EMS code (this can be changed to reference code above in this file)
+head(div.summaryT)
+div.summaryT$apB <- as.numeric(as.character(div.summaryT$alpha)) - div.summaryT$alpha.p
+
+site.H <- ddply(div.summaryI, .(site), summarise, mean(H))
+site.S <- ddply(div.summaryI, .(site), summarise, mean(S))
+site.N <- ddply(div.data, .(site), summarise, mean(N))
+site.Beta <- ddply(div.summaryT, .(site), summarise, mean(apB))
+site.ENS <- ddply(div.summaryT, .(site), summarise, mean(ENS))
+
+## analysis of diversity over time. For the 9-site dataset, site was the best predictor. so let's just go ahead here and look at a time interaction.
+div.summary$Time.Code2 <- as.character(div.summary$Time.Code2)
+mods1 <- lm(div.summary2$H ~ div.summary2$site*div.summary2$Time.Code2)
+mods2 <- lm(div.summary2$S ~ div.summary2$site*div.summary2$Time.Code2)
+mods3 <- lm(div.summary2$alpha.p ~ div.summary2$site*div.summary2$Time.Code2)
+mods4 <- lm(div.summary2$ENS ~ div.summary2$site*div.summary2$Time.Code2)
+
+mod1g <- lm(div.summary2$H ~ div.summary2$site)
+mod2g <- lm(div.summary2$S ~ div.summary2$site)
+mod3g <- lm(div.summary2$alpha.p ~ div.summary2$site)
+mod4g <- lm(div.summary2$ENS ~ div.summary2$site)
+
+mod1i <- lm(div.summary2$H ~ div.summary2$Time.Code2)
+mod2i <- lm(div.summary2$S ~ div.summary2$Time.Code2)
+mod3i <- lm(div.summary2$alpha.p ~ div.summary2$Time.Code2)
+mod4i <- lm(div.summary2$ENS ~ div.summary2$Time.Code2)
+
+model.sel(mods1, mod1g, mod1i)
+model.sel( mods2, mod2g,mod2i)
+model.sel(mods3,mod3g, mod3i)
+model.sel(mods4, mod4g, mod4i)
+
+
+### time plots
+div.plot <- ggplot(data = div.summary2, aes(x=Time.Code2, y = alpha.p, ymin = 0, ymax = 12)) + 
+  theme_bw() +
+  geom_boxplot(aes(fill = factor(reorder(site, -order.dfw)))) +
+  #geom_point(x = 5, y = 10.5, pch = '*', size = 8, colour = "gray50") +
+  #geom_point(x = 7, y = 10.5, pch = '*', size = 8, colour = "gray50") +
+  #scale_x_discrete(limits = order.dfw) +
+  xlab("Sample time") +
+  ylab("Species Richness") +
+  labs(fill = "")
+
+div.plot
+ggsave("Jan2017alphatime.png", device = "png", width = 4, height = 2.5)
+
+H.plot <- ggplot(data = div.summary2, aes(x=Time.Code2, y = H, ymin = 0, ymax = 2)) + 
+  theme_bw() +
+  geom_boxplot(aes(fill = factor(reorder(site, -order.dfw)))) +
+  #geom_point(x = 5, y = 1.9, pch = '*', size = 8, colour = "gray50") +
+  xlab("Sample time") +
+  ylab("Shannon Diversity") +
+  labs(fill = "")
+
+H.plot
+ggsave("Jan2017Hplottime.png", device = "png", width = 4, height = 2.5)
+
+S.plot <- ggplot(data = div.summary2, aes(x=Time.Code2, y = S, ymin = 0, ymax = 1)) + 
+  theme_bw() +
+  geom_boxplot(aes(fill = factor(reorder(site, -order.dfw)))) +
+  #geom_point(x = 5, y = 1, pch = '*', size = 8, colour = "gray50") +
+  #geom_point(x = 1, y = 1, pch = '*', size = 8, colour = "gray50") +
+  xlab("Sample time") +
+  ylab("Simpson Evenness") +
+  labs(fill = "")
+
+S.plot
+ggsave("Jan2017Splottime.png", device = "png", width = 4, height = 2.5)
+
+
+ENS.plot <- ggplot(data = div.summary2, aes(x=Time.Code2, y = ENS, ymin = 0, ymax = 4)) + 
+  theme_bw() +
+  geom_boxplot(aes(fill = factor(reorder(site, -order.dfw)))) +
+  #geom_point(x = 6, y = 3.5, pch = '*', size = 8, colour = "gray50") +
+  #geom_point(x = 4, y = 3.5, pch = '*', size = 8, colour = "gray50") +
+  #geom_point(x = 1, y = 3.5, pch = '*', size = 8, colour = "gray50") +
+  xlab("Sample time") +
+  ylab("ENS") +
+  labs(fill = "")
+
+ENS.plot
+ggsave("Jan2017ENSplottime.png", device = "png", width = 4, height = 2.5)

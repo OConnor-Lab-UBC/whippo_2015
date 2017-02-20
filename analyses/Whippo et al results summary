@@ -140,3 +140,29 @@ Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’
 Residual standard error: 0.2201 on 136 degrees of freedom
 Multiple R-squared:  0.1812,	Adjusted R-squared:  0.1331 
 F-statistic: 3.762 on 8 and 136 DF,  p-value: 0.0005185
+
+### abundance results over time
+
+Call:
+lm(formula = log(data9$total + 1) ~ data9$Time.Code2 + data9$site)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-3.7086 -0.8746  0.1950  1.0628  2.7422 
+
+Coefficients:
+                  Estimate Std. Error t value Pr(>|t|)    
+(Intercept)         1.7509     0.2354   7.437 1.98e-12 ***
+data9$Time.Code2C   1.2929     0.2167   5.965 9.04e-09 ***
+data9$Time.Code2E   1.9577     0.2181   8.976  < 2e-16 ***
+data9$siteDC        1.7023     0.2813   6.052 5.69e-09 ***
+data9$siteNB       -0.2446     0.2813  -0.870    0.385    
+data9$siteRP        1.4610     0.2828   5.167 5.12e-07 ***
+data9$siteWI        0.4070     0.2798   1.455    0.147    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 1.371 on 232 degrees of freedom
+Multiple R-squared:  0.4114,	Adjusted R-squared:  0.3962 
+F-statistic: 27.03 on 6 and 232 DF,  p-value: < 2.2e-16
+
