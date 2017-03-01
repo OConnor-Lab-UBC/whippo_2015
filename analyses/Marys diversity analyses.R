@@ -580,8 +580,8 @@ mod3i <- lm(div.summary2$alpha.p ~ div.summary2$Time.Code2)
 mod4i <- lm(div.summary2$ENS ~ div.summary2$Time.Code2)
 
 model.sel(mods1, mod1g, mod1i)
-model.sel( mods2, mod2g,mod2i)
-model.sel(mods3,mod3g, mod3i)
+model.sel(mods2, mod2g, mod2i)
+model.sel(mods3, mod3g, mod3i)
 model.sel(mods4, mod4g, mod4i)
 
 
