@@ -494,7 +494,9 @@ data9$total <- (data9$detritovore + data9$suspension.feeder + data9$grazer + dat
 data9$pgrazer <- data9$grazer/data9$total
 data9$pdet <- data9$detritovore/data9$total
 
-
+data9$Time.Code2[data9$Time.Code2 == "C"] <- "B"
+data9$Time.Code2[data9$Time.Code2 == "E"] <- "C"
+#### leaving off here not sure why I'm getting the error at line 497
 
 ## 3 times abundance stats 
 hist(log(data9$total))
