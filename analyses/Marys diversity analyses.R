@@ -536,6 +536,9 @@ summary(mod1g)
 
 div.data <- dcast(data.t[,c(1:5,12)], site + Time.Code2 + Sample ~ species, sum)
 
+levels(div.data$Time.Code2)[levels(div.data$Time.Code2)== "C"] <- "B"
+levels(div.data$Time.Code2)[levels(div.data$Time.Code2)== "E"] <- "C"
+
 H <- diversity(div.data[,-(c(1:3))], index ="shannon")
 S <- diversity(div.data[,-(c(1:3))], index ="simpson")
 div.data$alpha.p <- specnumber(div.data[,4:33])
