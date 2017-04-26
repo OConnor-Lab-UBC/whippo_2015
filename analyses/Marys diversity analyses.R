@@ -538,6 +538,9 @@ summary(mod1g)
 
 div.data <- dcast(data.t[,c(1:5,12)], site + Time.Code2 + Sample ~ species, sum)
 
+levels(div.data$Time.Code2)[levels(div.data$Time.Code2)== "C"] <- "B"
+levels(div.data$Time.Code2)[levels(div.data$Time.Code2)== "E"] <- "C"
+
 H <- diversity(div.data[,-(c(1:3))], index ="shannon")
 S <- diversity(div.data[,-(c(1:3))], index ="simpson")
 div.data$alpha.p <- specnumber(div.data[,4:33])
@@ -582,8 +585,8 @@ mod3i <- lm(div.summary2$alpha.p ~ div.summary2$Time.Code2)
 mod4i <- lm(div.summary2$ENS ~ div.summary2$Time.Code2)
 
 model.sel(mods1, mod1g, mod1i)
-model.sel( mods2, mod2g,mod2i)
-model.sel(mods3,mod3g, mod3i)
+model.sel(mods2, mod2g, mod2i)
+model.sel(mods3, mod3g, mod3i)
 model.sel(mods4, mod4g, mod4i)
 
 
