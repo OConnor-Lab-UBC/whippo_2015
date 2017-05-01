@@ -67,7 +67,7 @@ summary(mod4)
 confint(mod4)
 
 ## how correlated are temp and salinity?
-mod0 <- lme(log(Temp.a) ~ I(Sal.a - mean(Sal.a)), random = ~ Sal.a | Site, data = sites2, method = "REML")
+mod0 <- lme(log(Temp.a) ~ I(Sal.a - mean(Sal.a)), random = ~ I(Sal.a - mean(Sal.a)) | Site, data = sites2, method = "REML")
 mod1 <- lme(log(Temp.a) ~ I(Sal.a - mean(Sal.a)), random = ~ 1 | Site, data = sites2, method = "REML")
 model.sel(mod1, mod0)
 
@@ -77,7 +77,7 @@ model.sel(mod1, mod2)
 
 summary(mod1) #summary tells us these are correlated, but the relationship is quite weak: -0.007 C / 1 PPT change in salinity.
 
-## to use temp and salinity as predictors of 
+## to use temp and salinity as predictors of biotic variables: actually, let's not, let's just use dfw. so skip this part.
 
 temps <- abiotic %>%
   select(Site, Time.Code, Temp.a, Sal.a) %>%
@@ -92,3 +92,16 @@ sals <- abiotic %>%
 sites3 <- merge.data.frame(sites,
                            temps %>% 
                            filter(Time.Code == "B"), by.x = "site", by.y = "Site") 
+
+
+### use dfw, fetch and area to predict epiphytes, density, etc.
+
+head(sites)
+plot(sites$shoot.density ~ sites$dfw)
+plot(sites$shoot.density ~ sites$fetch.jc)
+plot(sites$epiphytes ~ sites$dfw)
+plot(sites$epiphytes ~ sites$fetch.jc)
+
+## shoot density
+plot(sites$shoot.density ~ sites$dfw)
+mod1 <- lme(shoot.desity ~ dfw, random = ~ 1 | Site, data = sites2, na.action = na.omit)
