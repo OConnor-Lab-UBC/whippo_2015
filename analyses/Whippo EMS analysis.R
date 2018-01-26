@@ -1,9 +1,10 @@
 ########################
-### Whippo et al eelgrass epifaunal data for Barkley Sound
-### elements of metacommunity structure (EMS)
+### Epifaunal diversity patterns among eelgrass meadows suggest metacommunity structure
+### R. Whippo, N. Knight, C. Prentice, J. Cristiani, M. Siegle, M. I. O'Connor
+### Analysis: elements of metacommunity structure (EMS)
 ### Code written by Mary O'Connor (with help from Domonik Bahlburg)
 ### started March 2016
-### modified file in Jan 2017 to streamline wiht 'Marys diversity analyses.R' file
+### modified file in Jan 2017 to streamline with 'Whippo diversity analysis.R' file
 #########################
 
 
@@ -16,16 +17,14 @@ library(broom)
 # Data preparation --------------------------------------------------------
 
 ## start with data2 file:
-## create site-level data by collapsing across plots
+## create site-level data by collapsing across plots; these names refer to datafiles created in the 'Whippo diversity analysis.R' file.
 start.data <- dataAUG # dataMAY, data.mp, dataAUG, dataJULY, data3times, dataJULY9
-data.ms <- ddply(start.data, .(TimeID, area, species), summarise, sum(abundance)) #order
-#data.ms <- data.ms[-nrow(data.ms),]
+data.ms <- ddply(start.data, .(TimeID, area, species), summarise, sum(abundance))
 data2 <- dcast(data.ms, TimeID ~ species, mean) #order
 
 ## clean out any empty species or empty sites
 rowSums(data2[-1]) -> data2$totals
 data2 <- data2[which(data2$totals != "0"),] 
-#data3 <- data2[-which(is.na(data2$totals)),] 
 rownames(data2) <- data2[,1]
 data3 <- data2[, -c(1, ncol(data2))]
 data3[data3 > 0] <- 1
