@@ -87,11 +87,11 @@ epicomm_site <- epicomm_site %>%
   select(-Odontosyllis, -Nebalia.sp., -Olivella.sp., -Margarites.helicinus)
 
 # full environmental data
-environ <- read.csv("site.info_201801.csv")
+environ_full <- read.csv("site.info_201801.csv")
 
 
 ###################################################################################
-# TRANSFORM COMMUNITY                                                             #
+# TRANSFORM COMMUNITY & ENVIRONMENTAL VARIABLES                                   #
 ###################################################################################
 
 # convert community to matrix for hellinger transformation as suggested by 
@@ -99,35 +99,87 @@ environ <- read.csv("site.info_201801.csv")
 comm_mat <- as.matrix(epicomm_site[,2:32])
 # hellinger transform community data for use in RDA
 comm_hell <- decostand(comm_mat, method = "hellinger")
+comm_hell <- as.data.frame(comm_hell)
+row.names(comm_hell) <- epicomm_site$sitetime
+
+# reduce variable list to ecologically relevant factors
+environ <- environ_full %>%
+  select(-site, -dfAI, -area, -dfw)
+# center and scale environmental variables
+environ_scaled <- transform(environ, area.ha = scale(area.ha), salinity = scale(salinity), shoot.density = scale(shoot.density), epiphytes = scale(epiphytes), fetch.meters = scale(fetch.meters))
+row.names(environ_scaled) <- epicomm_site$sitetime
+
+
 
 ###################################################################################
 # RDA                                                                             #
 ###################################################################################
 
-spe.rda <- rda(comm_hell ~., environ)
+spe_rda <- rda(comm_hell ~., environ_scaled)
 # '.' calls all variables from env2, default scale = FALSE, scaling = 2
-summary(spe.rda)
+summary(spe_rda)
 
 # how to obtain canonical coefficients from an rda() object
-coef(spe.rda)
+coef(spe_rda)
 
 # retrieval of unadjusted R^2
-R2 <- RsquareAdj(spe.rda)$r.squared
+R2 <- RsquareAdj(spe_rda)$r.squared
 
 # retrieval of adjusted R^2
-R2adj <- RsquareAdj(spe.rda)$adj.r.squared
+R2adj <- RsquareAdj(spe_rda)$adj.r.squared
 
 
 
 
-
+###################################################################################
+# TRIPLOT VISUALIZATION                                                           #
+###################################################################################
 
 
 # scaling 2 (default): correlation triplot
-plot(spe.rda, main = "Triplot RDA comm_hell ~ environ - scaling 2 - wa scores")
-spe2.sc <- scores(spe.rda, choices = 1:2, display = "sp")
-arrows(0, 0, spe2.sc[, 1], spe2.sc[, 2], length = 0, lty = 1, col = "red")
+plot(spe_rda, main = "Triplot RDA comm_hell ~ environ_scaled - scaling 2 - wa scores")
+spe2_sc <- scores(spe_rda, choices = 1:2, display = "sp")
+arrows(0, 0, spe2_sc[, 1], spe2_sc[, 2], length = 0, lty = 1, col = "red")
 
+###################################################################################
+# PERMUTATION TESTS OF RDA                                                        #
+###################################################################################
+
+# global test of the RDA result
+anova.cca(spe_rda, step = 1000)
+
+# tests of all canonical axes
+anova.cca(spe_rda, by = "axis", step = 1000)
+
+# apply Kaiser-Guttman criterion to residual axes
+spe_rda$CA$eig[spe_rda$CA$eig > mean(spe_rda$CA$eig)]
+
+###################################################################################
+# VARIATION INFLATION FACTORS (VIF)                                               #
+###################################################################################
+
+# test collinearity of variables
+vif.cca(spe_rda)
+# values over 10 should be examined, values over 20 are strongly collinear
+
+###################################################################################
+# FORWARD SELECTION                                                               #
+###################################################################################
+
+# to reduce or eliminate variables with high collinearity, forward selection can be
+# used to select an appropriate model.
+
+# using a double stopping criterion (Blanchet et al. 2008)
+# RDA with all explanatory variables
+spe_rda_all <- rda(comm_hell ~., environ_scaled)
+
+# global adjusted R^2
+(R2a_all <- RsquareAdj(spe_rda_all)$adj.r.squared)
+
+# forward selection using adespatial's forward.sel()
+library(adespatial)
+forward.sel(comm_hell, environ_scaled, adjR2thresh = R2a_all)
+# analysis stops with variable that exceeds R2 threshold
 
 
 ############### SUBSECTION HERE
