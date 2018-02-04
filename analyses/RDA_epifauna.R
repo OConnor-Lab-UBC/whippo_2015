@@ -137,7 +137,9 @@ R2adj <- RsquareAdj(spe_rda)$adj.r.squared
 
 
 # scaling 2 (default): correlation triplot
-plot(spe_rda, main = "Triplot RDA comm_hell ~ environ_scaled - scaling 2 - wa scores")
+plot(spe_rda, main = "Triplot RDA Epifaunal Community ~ Environmental Variables")
+#  scaling 2 - wa scores
+# 700 x 650
 spe2_sc <- scores(spe_rda, choices = 1:2, display = "sp")
 arrows(0, 0, spe2_sc[, 1], spe2_sc[, 2], length = 0, lty = 1, col = "red")
 
