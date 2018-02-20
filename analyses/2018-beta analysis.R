@@ -161,7 +161,7 @@ ggplot(t1, aes(time, distance)) +
 # Single sites through time (5 core sites)
 
 # DCA - shared absences (makes little difference)
-DCA_rc  <- new.comm[96:111,-1]
+DCA_rc  <- epicomm_summ[96:111,-1]
 DCA_rc <- data.frame(DCA_rc)
 DCA_rc_matrix <- raup_crick(DCA_rc, plot_names_in_col1 = TRUE)
 #beanplot(DCA_rc_matrix)
@@ -172,7 +172,7 @@ d2$time <- rep("A")
 d2$pair <- seq(from = 1, to=120, by =1)
 
 # DCC 
-DCC_rc <- new.comm[112:127, -1]
+DCC_rc <- epicomm_summ[112:127, -1]
 DCC_rc <- data.frame(DCC_rc)
 DCC_rc_matrix <- raup_crick(DCC_rc, plot_names_in_col1 = TRUE)
 #beanplot(DCC_rc_matrix)
@@ -183,7 +183,7 @@ d3$time <- rep("B")
 d3$pair <- seq(from = 1, to=120, by =1)
 
 # DCE
-DCE_rc <- new.comm[128:143,-1]
+DCE_rc <- epicomm_summ[128:143,-1]
 DCE_rc <- data.frame(DCE_rc)
 DCE_rc_matrix <- raup_crick(DCE_rc, plot_names_in_col1 = TRUE)
 #beanplot(DCE_rc_matrix)
@@ -196,7 +196,7 @@ d4$pair <- seq(from = 1, to=120, by =1)
 d5 <- bind_rows(d2, d3)
 d5 <- bind_rows(d5, d4)
 
-ggplot(d5, aes(time, distance)) + 
+#ggplot(d5, aes(time, distance)) + 
   geom_violin(trim = TRUE) +
   geom_boxplot(width = 0.1) 
 
@@ -207,7 +207,7 @@ ggplot(d5, aes(time, distance)) +
 #
 
 # WIA - shared absences (makes little difference)
-WIA_rc  <- new.comm[255:270,-1]
+WIA_rc  <- epicomm_summ[255:270,-1]
 WIA_rc <- data.frame(WIA_rc)
 WIA_rc_matrix <- raup_crick(WIA_rc, plot_names_in_col1 = TRUE)
 #beanplot(WIA_rc_matrix)
@@ -218,7 +218,7 @@ w2$time <- rep("A")
 w2$pair <- seq(from = 1, to=120, by =1)
 
 # WIC 
-WIC_rc <- new.comm[271:287, -1]
+WIC_rc <- epicomm_summ[271:287, -1]
 WIC_rc <- data.frame(WIC_rc)
 WIC_rc_matrix <- raup_crick(WIC_rc, plot_names_in_col1 = TRUE)
 #beanplot(WIC_rc_matrix)
@@ -229,7 +229,7 @@ w3$time <- rep("B")
 w3$pair <- seq(from = 1, to=136, by =1)
 
 # WIE
-WIE_rc <- new.comm[288:303,-1]
+WIE_rc <- epicomm_summ[288:303,-1]
 WIE_rc <- data.frame(WIE_rc)
 WIE_rc_matrix <- raup_crick(WIE_rc, plot_names_in_col1 = TRUE)
 #beanplot(WIE_rc_matrix)
@@ -242,7 +242,7 @@ w4$pair <- seq(from = 1, to=120, by =1)
 w5 <- bind_rows(w2, w3)
 w5 <- bind_rows(w5, w4)
 
-ggplot(w5, aes(time, distance)) + 
+#ggplot(w5, aes(time, distance)) + 
   geom_violin(trim = TRUE) +
   geom_boxplot(width = 0.1) 
 
@@ -253,7 +253,7 @@ ggplot(w5, aes(time, distance)) +
 #
 
 # RPA - shared absences (makes little difference)
-RPA_rc  <- new.comm[208:222,-1]
+RPA_rc  <- epicomm_summ[208:222,-1]
 RPA_rc <- data.frame(RPA_rc)
 RPA_rc_matrix <- raup_crick(RPA_rc, plot_names_in_col1 = TRUE)
 #beanplot(RPA_rc_matrix)
@@ -264,7 +264,7 @@ r2$time <- rep("A")
 r2$pair <- seq(from = 1, to=105, by =1)
 
 # RPC 
-RPC_rc <- new.comm[223:238, -1]
+RPC_rc <- epicomm_summ[223:238, -1]
 RPC_rc <- data.frame(RPC_rc)
 RPC_rc_matrix <- raup_crick(RPC_rc, plot_names_in_col1 = TRUE)
 #beanplot(RPC_rc_matrix)
@@ -275,7 +275,7 @@ r3$time <- rep("B")
 r3$pair <- seq(from = 1, to=120, by =1)
 
 # RPE
-RPE_rc <- new.comm[239:254,-1]
+RPE_rc <- epicomm_summ[239:254,-1]
 RPE_rc <- data.frame(RPE_rc)
 RPE_rc_matrix <- raup_crick(RPE_rc, plot_names_in_col1 = TRUE)
 #beanplot(RPE_rc_matrix)
@@ -288,7 +288,7 @@ r4$pair <- seq(from = 1, to=120, by =1)
 r5 <- bind_rows(r2, r3)
 r5 <- bind_rows(r5, r4)
 
-ggplot(r5, aes(time, distance)) + 
+#ggplot(r5, aes(time, distance)) + 
   geom_violin(trim = TRUE) +
   geom_boxplot(width = 0.1) 
 
@@ -299,7 +299,7 @@ ggplot(r5, aes(time, distance)) +
 #
 
 # NBA - shared absences (makes little difference)
-NBA_rc  <- new.comm[160:175,-1]
+NBA_rc  <- epicomm_summ[160:175,-1]
 NBA_rc <- data.frame(NBA_rc)
 NBA_rc_matrix <- raup_crick(NBA_rc, plot_names_in_col1 = TRUE)
 #beanplot(NBA_rc_matrix)
@@ -310,7 +310,7 @@ n2$time <- rep("A")
 n2$pair <- seq(from = 1, to=120, by =1)
 
 # NBC 
-NBC_rc <- new.comm[176:191, -1]
+NBC_rc <- epicomm_summ[176:191, -1]
 NBC_rc <- data.frame(NBC_rc)
 NBC_rc_matrix <- raup_crick(NBC_rc, plot_names_in_col1 = TRUE)
 #beanplot(NBC_rc_matrix)
@@ -321,7 +321,7 @@ n3$time <- rep("B")
 n3$pair <- seq(from = 1, to=120, by =1)
 
 # NBE
-NBE_rc <- new.comm[192:207,-1]
+NBE_rc <- epicomm_summ[192:207,-1]
 NBE_rc <- data.frame(NBE_rc)
 NBE_rc_matrix <- raup_crick(NBE_rc, plot_names_in_col1 = TRUE)
 #beanplot(NBE_rc_matrix)
@@ -334,7 +334,7 @@ n4$pair <- seq(from = 1, to=120, by =1)
 n5 <- bind_rows(n2, n3)
 n5 <- bind_rows(n5, n4)
 
-ggplot(n5, aes(time, distance)) + 
+#ggplot(n5, aes(time, distance)) + 
   geom_violin(trim = TRUE) +
   geom_boxplot(width = 0.1) 
 
@@ -345,7 +345,7 @@ ggplot(n5, aes(time, distance)) +
 #
 
 # CBA - shared absences (makes little difference)
-CBA_rc  <- new.comm[33:48,-1]
+CBA_rc  <- epicomm_summ[33:48,-1]
 CBA_rc <- data.frame(CBA_rc)
 CBA_rc_matrix <- raup_crick(CBA_rc, plot_names_in_col1 = TRUE)
 #beanplot(CBA_rc_matrix)
@@ -356,7 +356,7 @@ c2$time <- rep("A")
 c2$pair <- seq(from = 1, to=120, by =1)
 
 # CBC 
-CBC_rc <- new.comm[49:64, -1]
+CBC_rc <- epicomm_summ[49:64, -1]
 CBC_rc <- data.frame(CBC_rc)
 CBC_rc_matrix <- raup_crick(CBC_rc, plot_names_in_col1 = TRUE)
 #beanplot(CBC_rc_matrix)
@@ -367,7 +367,7 @@ c3$time <- rep("B")
 c3$pair <- seq(from = 1, to=120, by =1)
 
 # CBE
-CBE_rc <- new.comm[65:79,-1]
+CBE_rc <- epicomm_summ[65:79,-1]
 CBE_rc <- data.frame(CBE_rc)
 CBE_rc_matrix <- raup_crick(CBE_rc, plot_names_in_col1 = TRUE)
 #beanplot(CBE_rc_matrix)
@@ -380,7 +380,7 @@ c4$pair <- seq(from = 1, to=105, by =1)
 c5 <- bind_rows(c2, c3)
 c5 <- bind_rows(c5, c4)
 
-ggplot(c5, aes(time, distance)) + 
+#ggplot(c5, aes(time, distance)) + 
   geom_violin(trim = TRUE) +
   geom_boxplot(width = 0.1) 
 
@@ -419,7 +419,7 @@ m1$site <- factor(m1$site, levels = c("DC", "WI", "RP", "NB", "CB"))
 # Secondary Sites
 
 # BEB - shared absences (makes little difference)
-BEB_rc  <- new.comm[1:16,-1]
+BEB_rc  <- epicomm_summ[1:16,-1]
 BEB_rc <- data.frame(BEB_rc)
 BEB_rc_matrix <- raup_crick(BEB_rc, plot_names_in_col1 = TRUE)
 B_mat <- as.matrix(BEB_rc_matrix)
@@ -431,7 +431,7 @@ b2$pair <- seq(from = 1, to=120, by =1)
 #BEB_summary <- as.table(summary(BEB_rc_matrix))
 
 # BIB - shared absences (makes little difference)
-BIB_rc  <- new.comm[17:32,-1]
+BIB_rc  <- epicomm_summ[17:32,-1]
 BIB_rc <- data.frame(BIB_rc)
 BIB_rc_matrix <- raup_crick(BIB_rc, plot_names_in_col1 = TRUE)
 B_mat <- as.matrix(BIB_rc_matrix)
@@ -443,7 +443,7 @@ b3$pair <- seq(from = 1, to=120, by =1)
 #BIB_summary <- as.table(summary(BIB_rc_matrix))
 
 # CCD - shared absences (makes little difference)
-CCD_rc  <- new.comm[80:95,-1]
+CCD_rc  <- epicomm_summ[80:95,-1]
 CCD_rc <- data.frame(CCD_rc)
 CCD_rc_matrix <- raup_crick(CCD_rc, plot_names_in_col1 = TRUE)
 B_mat <- as.matrix(CCD_rc_matrix)
@@ -455,7 +455,7 @@ b4$pair <- seq(from = 1, to=120, by =1)
 #CCD_summary <- as.table(summary(CCD_rc_matrix))
 
 # EID - shared absences (makes little difference)
-EID_rc  <- new.comm[144:159,-1]
+EID_rc  <- epicomm_summ[144:159,-1]
 EID_rc <- data.frame(EID_rc)
 EID_rc_matrix <- raup_crick(EID_rc, plot_names_in_col1 = TRUE)
 B_mat <- as.matrix(EID_rc_matrix)
@@ -549,13 +549,13 @@ y1$loc <- as.factor(y1$loc)
 
 # summary of raup-crick within/between
 
-raup_crick_summary <- y1 %>%
-  group_by(time, loc) %>%
-  summarise(mean(distance))
+#raup_crick_summary <- y1 %>%
+#  group_by(time, loc) %>%
+#  summarise(mean(distance))
 
 # anova of within/between raup crick data
-raup_crick.aov <- aov(distance ~ loc * time, data = y1)
-summary(raup_crick.aov)
+#raup_crick.aov <- aov(distance ~ loc * time, data = y1)
+#summary(raup_crick.aov)
 
 #Df Sum Sq Mean Sq F value Pr(>F)    
 #loc            1    0.0   0.034   0.144  0.704    
@@ -565,11 +565,11 @@ summary(raup_crick.aov)
 #---
 #  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-library(car)
+#library(car)
 
 # levene test of variance
-raup_crick.var <- leveneTest(distance ~ loc * time, data = y1)
-raup_crick.var
+#raup_crick.var <- leveneTest(distance ~ loc * time, data = y1)
+#raup_crick.var
 
 #Levene's Test for Homogeneity of Variance (center = median)
 #Df F value    Pr(>F)    
@@ -594,7 +594,12 @@ ggplot(y1, aes(loc, distance)) +
   theme_classic() +
   theme(axis.text=element_text(size=14), axis.title=element_text(size=14))
 
-# 
+# 500 x 600
+
+
+
+
+
 
 
 x_med <- y1 %>%
