@@ -1,10 +1,10 @@
 ###################################################################################
 #                                                                                ##
 # RDA of epifauna in Barkley Sound Seagrass for Ecosphere re-submission          ##
-# Data are current as of 2018-01-21                                              ##
+# Data are current as of 2018-02-20                                              ##
 # Data source: Whippo Thesis Data                                                ##
 # R code prepared by Ross Whippo                                                 ##
-# Last updated 2018-02-02                                                        ##
+# Last updated 2018-02-20                                                        ##
 #                                                                                ##
 ###################################################################################
 
@@ -35,7 +35,8 @@
 # RECENT CHANGES TO SCRIPT                                                        #
 ###################################################################################
 
-# 2018-02-02 Updata data source to 'rawcomm.csv'. Started analysis derived from
+# 2018-02-20 Added epicomm_201802.csv to replace rawcomm.csv for all community analysis and altered specifics of scripts as needed.
+# 2018-02-02 Updated data source to 'rawcomm.csv'. Started analysis derived from
 # Numerical Ecology with R (Legendre)
 # 2018-01-21  Script created.
 
@@ -46,7 +47,6 @@
 # Load packages here
 library(ade4)
 library(vegan) # distance matrices, model selection
-library(MASS)
 library(ellipse)
 library(FactoMineR)
 library(adespatial) # forward selection
@@ -57,15 +57,11 @@ library(tidyverse)
 ###################################################################################
 
 # full community data
-epicomm <- read.csv("rawcomm.csv")
-
-# remonve non-epifaunal organisms
-epicomm <- epicomm %>%
-  select(-Amphipholis.pugetana, -Cockle, -Dinophilus.sp., -Lyonsia.californica, -Nephtys.sp., -Nereis.sp., -Pisaster.ochraceus, -Solaster.sp., -Strongylocentrotus.sp., -Telmessus.cheiragonus, -Nemertea)
+epicomm <- read.csv("epicomm_201802.csv")
 
 # remove redundant columns and summarise species occurrences for middle time period
 epicomm_summ <- epicomm %>%
-  select(-date, -Sieve, -Time.Code2) %>%
+  select(-date, -Sieve) %>%
   filter(Time.Code %in% c("B", "C", "C2", "D")) %>%
   unite(sitetime, site, Time.Code, sep = "", remove = TRUE)
 # finish summarization for every sample by summing
@@ -79,12 +75,11 @@ epicomm_site <- epicomm_summ %>%
   summarise_all(funs(sum))
 # remove time code from site name to map to environ data
 epicomm_site$sitetime <- substr(epicomm_site$sitetime, 1, nchar(epicomm_site$sitetime)-1)
-# fix WIC
-epicomm_site["9", "sitetime"] <- "WI"
+
 
 #remove missing species
 epicomm_site <- epicomm_site %>%
-  select(-Odontosyllis, -Nebalia.sp., -Olivella.sp., -Margarites.helicinus)
+  select(-Nebalia.sp., -Margarites.helicinus)
 
 # full environmental data
 environ_full <- read.csv("site.info_201801.csv")
@@ -96,7 +91,7 @@ environ_full <- read.csv("site.info_201801.csv")
 
 # convert community to matrix for hellinger transformation as suggested by 
 # Legendre & Gallagher 2001
-comm_mat <- as.matrix(epicomm_site[,2:32])
+comm_mat <- as.matrix(epicomm_site[,2:29])
 # hellinger transform community data for use in RDA
 comm_hell <- decostand(comm_mat, method = "hellinger")
 comm_hell <- as.data.frame(comm_hell)
