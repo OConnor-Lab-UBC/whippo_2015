@@ -358,13 +358,73 @@ even_prim$site <- factor(even_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"
 
 
 DCA_rare <- DCA[,2:31] %>%
-  rarefy()
-S <- specnumber(DCA[,2:31]) # observed number of species
-(raremax <- min(rowSums(DCA[,2:31])))
-Srare <- rarefy(DCA[,2:31], raremax)
-plot(S, Srare, xlab = "Observed No. of Species", ylab = "Rarefied No. of Species")
-abline(0, 1)
-rarecurve(DCA[,2:31], step = 20, sample = raremax, col = "blue", cex = 0.6)
+  rarefy(5)
+
+DCA_rare <- DCA[,2:31] %>%
+  rarefy(5)
+DCC_rare <- DCC[,2:31] %>%
+  rarefy(5)
+DCE_rare <- DCE[,2:31] %>%
+  rarefy(5)
+
+WIA_rare <- WIA[,2:31] %>%
+  rarefy(5)
+WIC_rare <- WIC[,2:31] %>%
+  rarefy(5)
+WIE_rare <- WIE[,2:31] %>%
+  rarefy(5)
+
+RPA_rare <- RPA[,2:31] %>%
+  rarefy(5)
+RPC_rare <- RPC[,2:31] %>%
+  rarefy(5)
+RPE_rare <- RPE[,2:31] %>%
+  rarefy(5)
+
+NBA_rare <- NBA[,2:31] %>%
+  rarefy(5)
+NBC_rare <- NBC[,2:31] %>%
+  rarefy(5)
+NBE_rare <- NBE[,2:31] %>%
+  rarefy(5)
+
+CBA_rare <- CBA[,2:31] %>%
+  rarefy(5)
+CBC_rare <- CBC[,2:31] %>%
+  rarefy(5)
+CBE_rare <- CBE[,2:31] %>%
+  rarefy(5)
+
+# combine into single data frame
+# make all same length
+length(DCA_rare) <- 17                      
+length(DCC_rare) <- 17  
+length(DCE_rare) <- 17 
+length(WIA_rare) <- 17 
+length(WIC_rare) <- 17  
+length(WIE_rare) <- 17  
+length(RPA_rare) <- 17  
+length(RPC_rare) <- 17  
+length(RPE_rare) <- 17  
+length(NBA_rare) <- 17  
+length(NBC_rare) <- 17  
+length(NBE_rare) <- 17  
+length(CBA_rare) <- 17  
+length(CBC_rare) <- 17  
+length(CBE_rare) <- 17 
+# combine
+rare_prim <- melt(data.frame(DCA_rare, DCC_rare, DCE_rare, WIA_rare, WIC_rare, WIE_rare, RPA_rare, RPC_rare, RPE_rare, NBA_rare, NBC_rare, NBE_rare, CBA_rare, CBC_rare, CBE_rare))
+# rename columns, reduce sitetime values, and split into site and time
+colnames(rare_prim) <- c('sitetime', 'value') 
+rare_prim$sitetime <- as.character(rare_prim$sitetime)
+rare_prim$sitetime <- substr(rare_prim$sitetime,1,3)
+rare_prim <- transform(rare_prim, site = substr(sitetime, 1, 2), time = substr(sitetime, 3, 3))
+rare_prim <- rare_prim %>%
+  select(-sitetime)
+# reorder factors
+rare_prim$site <- factor(rare_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"))
+
+
 
 
 
@@ -439,3 +499,15 @@ Figure3 <- ggarrange(rich_plot, ens_plot, shannon_plot, even_plot,
 
 
 separate(shannon_prim, sitetime, 1, c("site", "time"), 2)
+
+
+S <- specnumber(DCA[,2:31]) # observed number of species
+(raremax <- min(rowSums(DCA[,2:31])))
+Srare <- rarefy(DCA[,2:31], raremax)
+plot(S, Srare, xlab = "Observed No. of Species", ylab = "Rarefied No. of Species")
+abline(0, 1)
+rarecurve(DCA[,2:31], step = 20, sample = raremax, col = "blue", cex = 0.6)
+
+
+
+
