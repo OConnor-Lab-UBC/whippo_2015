@@ -19,7 +19,7 @@
 # epicomm_201802.csv
 
 # Associated Scripts:
-# NONE
+# 2018-beta analysis.R 
 
 # TO DO
 
@@ -37,6 +37,7 @@
 # RECENT CHANGES TO SCRIPT                                                        #
 ###################################################################################
 
+# 2018-02-23 Added evenness code, and began Figure 3 panel.
 # 2018-02-21 Created script. 
 
 ###################################################################################
@@ -110,6 +111,61 @@ CBC <- epicomm_prim_full %>%
 CBE <- epicomm_prim_full %>%
   subset(sitetime == "CBE")
 
+# group all secondary sites 
+secondary <- c("BIB", "BEB", "CCD", "EID")
+epicomm_sec_full <- epicomm_summ %>%
+  select(-Sample) %>%
+  subset(sitetime %in% secondary) 
+
+# separate each sitetime for analysis and rename time period
+
+BIC <- epicomm_sec_full %>%
+  subset(sitetime == "BIB")
+BEC <- epicomm_sec_full %>%
+  subset(sitetime == "BEB")
+CCC <- epicomm_sec_full %>%
+  subset(sitetime == "CCD")
+CCC <- epicomm_sec_full %>%
+  subset(sitetime == "CCD")
+
+###################################################################################
+# COMMUNITY DESCRIPTION                                                           #
+###################################################################################
+
+# this code primarily corrects abundance values in Table 2.
+
+# Overall rank abundance of taxa across all sites
+total_abundance <- colSums(epicomm_summ[,3:32], na.rm = TRUE) 
+total_abundance <- sort(total_abundance, decreasing = TRUE)
+
+# DCA rank abundance
+DCA_abundance <- colSums(DCA[,2:31])
+DCA_abundance <- sort(DCA_abundance, decreasing = TRUE)
+# DCC rank abundance
+DCC_abundance <- colSums(DCC[,2:31])
+DCC_abundance <- sort(DCC_abundance, decreasing = TRUE)
+# DCE rank abundance
+DCE_abundance <- colSums(DCE[,2:31])
+DCE_abundance <- sort(DCE_abundance, decreasing = TRUE)
+# WIA rank abundance
+WIA_abundance <- colSums(WIA[,2:31])
+WIA_abundance <- sort(WIA_abundance, decreasing = TRUE)
+# WIC rank abundance
+WIC_abundance <- colSums(WIC[,2:31])
+WIC_abundance <- sort(WIC_abundance, decreasing = TRUE)
+# WIE rank abundance
+WIE_abundance <- colSums(WIE[,2:31])
+WIE_abundance <- sort(WIE_abundance, decreasing = TRUE)
+# RPA rank abundance
+RPA_abundance <- colSums(RPA[,2:31])
+RPA_abundance <- sort(RPA_abundance, decreasing = TRUE)
+# RPC rank abundance
+RPC_abundance <- colSums(RPC[,2:31])
+RPC_abundance <- sort(RPC_abundance, decreasing = TRUE)
+# RPE rank abundance
+RPE_abundance <- colSums(RPE[,2:31])
+RPE_abundance <- sort(RPE_abundance, decreasing = TRUE)
+RPE_abundance
 ###################################################################################
 # DIVERSITY MEASURES                                                              #
 ###################################################################################
@@ -440,7 +496,12 @@ rare_prim$site <- factor(rare_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"
 # FIGURES                                                                         #
 ###################################################################################
 
-########### OBSERVED RICHNESS
+########### FIGURE 3
+
+# This is code for 3A-3D, 3E&F are generated in '2018-beta analysis.R'. They can
+# then be joined from the common environment into a full panel. 
+
+# OBSERVED RICHNESS
 
 #rich_plot <- ggplot(rich_prim, aes(x = time, y = value, fill = site)) + 
 #  geom_boxplot() + 
@@ -449,7 +510,7 @@ rare_prim$site <- factor(rare_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"
 #  theme(axis.text.x=element_blank()) +
 #  labs(x="", y="Richness")
 
-########### RAREFIED RICHNESS
+# RAREFIED RICHNESS
 
 rare_plot <- ggplot(rare_prim, aes(x = time, y = value, fill = site)) + 
   geom_boxplot() + 
@@ -458,7 +519,7 @@ rare_plot <- ggplot(rare_prim, aes(x = time, y = value, fill = site)) +
   theme(axis.text.x=element_blank()) +
   labs(x="", y="Rarefied Richness")
 
-########### ENS
+# ENS
 
 ens_plot <- ggplot(ens_prim, aes(x = time, y = value, fill = site)) + 
   geom_boxplot() + 
@@ -467,7 +528,7 @@ ens_plot <- ggplot(ens_prim, aes(x = time, y = value, fill = site)) +
   theme(axis.text.x=element_blank()) +
   labs(x="", y="ENS")
 
-########### SHANNON DIVERSITY
+# SHANNON DIVERSITY
 
 shannon_plot <- ggplot(shannon_prim, aes(x = time, y = value, fill = site)) + 
   geom_boxplot() + 
@@ -476,7 +537,7 @@ shannon_plot <- ggplot(shannon_prim, aes(x = time, y = value, fill = site)) +
   theme(axis.text.x=element_blank()) +
   labs(x=" May                  June/July                 August", y="Shannon Diversity")
 
-########### EVENNESS
+# EVENNESS
 
 even_plot <- ggplot(even_prim, aes(x = time, y = value, fill = site)) + 
   geom_boxplot() + 
@@ -485,7 +546,7 @@ even_plot <- ggplot(even_prim, aes(x = time, y = value, fill = site)) +
   theme(axis.text.x=element_blank()) +
   labs(x=" May                 June/July                 August", y="Evenness")
 
-########### FULL FIGURE
+# FULL FIGURE
 
 Figure3 <- ggarrange(rare_plot, ens_plot, shannon_plot, even_plot,
                      labels = c("A", "B", "C", "D"),

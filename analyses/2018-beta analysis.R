@@ -286,6 +286,92 @@ all_jaccard <- all_jaccard %>%
 # reorder factors
 all_jaccard$site <- factor(all_jaccard$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
 
+############### BRAY DIVERSITY
+
+DCA_bray <- DCA[,2:31] %>%
+  vegdist(method = "bray")
+DCC_bray <- DCC[,2:31] %>%
+  vegdist(method = "bray")
+DCE_bray <- DCE[,2:31] %>%
+  vegdist(method = "bray")
+
+WIA_bray <- WIA[,2:31] %>%
+  vegdist(method = "bray")
+WIC_bray <- WIC[,2:31] %>%
+  vegdist(method = "bray")
+WIE_bray <- WIE[,2:31] %>%
+  vegdist(method = "bray")
+
+RPA_bray <- RPA[,2:31] %>%
+  vegdist(method = "bray")
+RPC_bray <- RPC[,2:31] %>%
+  vegdist(method = "bray")
+RPE_bray <- RPE[,2:31] %>%
+  vegdist(method = "bray")
+
+NBA_bray <- NBA[,2:31] %>%
+  vegdist(method = "bray")
+NBC_bray <- NBC[,2:31] %>%
+  vegdist(method = "bray")
+NBE_bray <- NBE[,2:31] %>%
+  vegdist(method = "bray")
+
+CBA_bray <- CBA[,2:31] %>%
+  vegdist(method = "bray")
+CBC_bray <- CBC[,2:31] %>%
+  vegdist(method = "bray")
+CBE_bray <- CBE[,2:31] %>%
+  vegdist(method = "bray")
+
+BEB_bray <- BEB[,2:31] %>%
+  vegdist(method = "bray")
+BIB_bray <- BIB[,2:31] %>%
+  vegdist(method = "bray")
+CCD_bray <- CCD[,2:31] %>%
+  vegdist(method = "bray")
+EID_bray <- EID[,2:31] %>%
+  vegdist(method = "bray")
+
+
+# take mean of bray distance
+
+DCA_bmean <- mean(DCA_bray)
+DCC_bmean <- mean(DCC_bray)
+DCE_bmean <- mean(DCE_bray)
+
+WIA_bmean <- mean(WIA_bray)
+WIC_bmean <- mean(WIC_bray)
+WIE_bmean <- mean(WIE_bray)
+
+RPA_bmean <- mean(RPA_bray)
+RPC_bmean <- mean(RPC_bray)
+RPE_bmean <- mean(RPE_bray)
+
+NBA_bmean <- mean(NBA_bray)
+NBC_bmean <- mean(NBC_bray)
+NBE_bmean <- mean(NBE_bray)
+
+CBA_bmean <- mean(CBA_bray)
+CBC_bmean <- mean(CBC_bray)
+CBE_bmean <- mean(CBE_bray)
+
+# renamed time code for secondaries
+BIC_bmean <- mean(BIB_bray)
+BEC_bmean <- mean(BEB_bray)
+CCC_bmean <- mean(CCD_bray)
+EIC_bmean <- mean(EID_bray)
+
+all_bray <- melt(data.frame(DCA_bmean, DCC_bmean, DCE_bmean, WIA_bmean, WIC_bmean, WIE_bmean, RPA_bmean, RPC_bmean, RPE_bmean, NBA_bmean, NBC_bmean, NBE_bmean, CBA_bmean, CBC_bmean, CBE_bmean, BIC_bmean, BEC_bmean, CCC_bmean, EIC_bmean))
+# rename columns, reduce sitetime values, and split into site and time
+colnames(all_bray) <- c('sitetime', 'value') 
+all_bray$sitetime <- as.character(all_bray$sitetime)
+all_bray$sitetime <- substr(all_bray$sitetime,1,3)
+all_bray <- transform(all_bray, site = substr(sitetime, 1, 2), time = substr(sitetime, 3, 3))
+all_bray <- all_bray %>%
+  select(-sitetime)
+# reorder factors
+all_bray$site <- factor(all_bray$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
+
 ###################################################################################
 # FIGURES                                                                         #
 ###################################################################################
@@ -299,6 +385,18 @@ jacc_plot <- ggplot(all_jaccard, aes(x = time, y = value, group = site)) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
   labs(x="", y="Mean Jaccard Distance")
+
+# best size: ~600x400
+
+########### BRAY DISTANCE THROUGH TIME (fig 3+)
+
+bray_plot <- ggplot(all_bray, aes(x = time, y = value, group = site)) + 
+  geom_point(size=4, aes(colour = site)) +
+  geom_line(aes(color = site)) +
+  scale_color_viridis(discrete=TRUE) +
+  theme_minimal() +
+  theme(axis.text.x=element_blank()) +
+  labs(x="", y="Mean Bray-Curtis Distance")
 
 # best size: ~600x400
 
