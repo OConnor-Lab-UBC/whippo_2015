@@ -24,8 +24,10 @@
 #                                                                                 #
 # RECENT CHANGES TO SCRIPT                                                        #
 # LOAD PACKAGES                                                                   #
-# READ IN AND PREPARE DATA                                                        #
-# MANIPULATE DATA                                                                 #
+# READ IN DATA                                                                    #
+# PREPARE DATA FOR ANALYSES                                                       #
+# RAUP-CRICK METRICS                                                              #
+# TIME SERIES BETA FIGURES                                                        #
 #                                                                                 #
 ###################################################################################
 
@@ -47,11 +49,11 @@ library(vegan)
 # YOU MUST RUN RAUP_CRICK.R FOR FUNCTIONALITY 
 
 ###################################################################################
-# READ IN AND PREPARE DATA                                                        #
+# READ IN DATA                                                                    #
 ###################################################################################
 
 # full community data
-epicomm <- read.csv("epicomm_201802.csv")
+epicomm <- read.csv("./data/epicomm_201802.csv")
 
 # remove redundant columns and summarise species occurrences
 epicomm_summ <- epicomm %>%
@@ -147,11 +149,164 @@ ggplot(t1, aes(time, distance)) +
 
 ############### SUBSECTION HERE
 
+
+###################################################################################
+# TIME SERIES BETA FIGURES                                                        #
+###################################################################################
+
+# separate each sitetime for analysis
+
+DCA <- epicomm_summ %>%
+  subset(sitetime == "DCA")
+DCC <- epicomm_summ %>%
+  subset(sitetime == "DCC")
+DCE <- epicomm_summ %>%
+  subset(sitetime == "DCE")
+
+WIA <- epicomm_summ %>%
+  subset(sitetime == "WIA")
+WIC <- epicomm_summ %>%
+  subset(sitetime == "WIC")
+WIE <- epicomm_summ %>%
+  subset(sitetime == "WIE")
+
+RPA <- epicomm_summ %>%
+  subset(sitetime == "RPA")
+RPC <- epicomm_summ %>%
+  subset(sitetime == "RPC")
+RPE <- epicomm_summ %>%
+  subset(sitetime == "RPE")
+
+NBA <- epicomm_summ %>%
+  subset(sitetime == "NBA")
+NBC <- epicomm_summ %>%
+  subset(sitetime == "NBC")
+NBE <- epicomm_summ %>%
+  subset(sitetime == "NBE")
+
+CBA <- epicomm_summ %>%
+  subset(sitetime == "CBA")
+CBC <- epicomm_summ %>%
+  subset(sitetime == "CBC")
+CBE <- epicomm_summ %>%
+  subset(sitetime == "CBE")
+
+BEB <- epicomm_summ %>%
+  subset(sitetime == "BEB")
+BIB <- epicomm_summ %>%
+  subset(sitetime == "BIB")
+CCD <- epicomm_summ %>%
+  subset(sitetime == "CCD")
+EID <- epicomm_summ %>%
+  subset(sitetime == "EID")
+
+############### JACCARD DIVERSITY
+
+DCA_jaccard <- DCA[,2:31] %>%
+  vegdist(method = "jaccard")
+DCC_jaccard <- DCC[,2:31] %>%
+  vegdist(method = "jaccard")
+DCE_jaccard <- DCE[,2:31] %>%
+  vegdist(method = "jaccard")
+
+WIA_jaccard <- WIA[,2:31] %>%
+  vegdist(method = "jaccard")
+WIC_jaccard <- WIC[,2:31] %>%
+  vegdist(method = "jaccard")
+WIE_jaccard <- WIE[,2:31] %>%
+  vegdist(method = "jaccard")
+
+RPA_jaccard <- RPA[,2:31] %>%
+  vegdist(method = "jaccard")
+RPC_jaccard <- RPC[,2:31] %>%
+  vegdist(method = "jaccard")
+RPE_jaccard <- RPE[,2:31] %>%
+  vegdist(method = "jaccard")
+
+NBA_jaccard <- NBA[,2:31] %>%
+  vegdist(method = "jaccard")
+NBC_jaccard <- NBC[,2:31] %>%
+  vegdist(method = "jaccard")
+NBE_jaccard <- NBE[,2:31] %>%
+  vegdist(method = "jaccard")
+
+CBA_jaccard <- CBA[,2:31] %>%
+  vegdist(method = "jaccard")
+CBC_jaccard <- CBC[,2:31] %>%
+  vegdist(method = "jaccard")
+CBE_jaccard <- CBE[,2:31] %>%
+  vegdist(method = "jaccard")
+
+BEB_jaccard <- BEB[,2:31] %>%
+  vegdist(method = "jaccard")
+BIB_jaccard <- BIB[,2:31] %>%
+  vegdist(method = "jaccard")
+CCD_jaccard <- CCD[,2:31] %>%
+  vegdist(method = "jaccard")
+EID_jaccard <- EID[,2:31] %>%
+  vegdist(method = "jaccard")
+
+
+# take mean of jaccard distance
+
+DCA_jmean <- mean(DCA_jaccard)
+DCC_jmean <- mean(DCC_jaccard)
+DCE_jmean <- mean(DCE_jaccard)
+
+WIA_jmean <- mean(WIA_jaccard)
+WIC_jmean <- mean(WIC_jaccard)
+WIE_jmean <- mean(WIE_jaccard)
+
+RPA_jmean <- mean(RPA_jaccard)
+RPC_jmean <- mean(RPC_jaccard)
+RPE_jmean <- mean(RPE_jaccard)
+
+NBA_jmean <- mean(NBA_jaccard)
+NBC_jmean <- mean(NBC_jaccard)
+NBE_jmean <- mean(NBE_jaccard)
+
+CBA_jmean <- mean(CBA_jaccard)
+CBC_jmean <- mean(CBC_jaccard)
+CBE_jmean <- mean(CBE_jaccard)
+
+# renamed time code for secondaries
+BIC_jmean <- mean(BIB_jaccard)
+BEC_jmean <- mean(BEB_jaccard)
+CCC_jmean <- mean(CCD_jaccard)
+EIC_jmean <- mean(EID_jaccard)
+
+all_jaccard <- melt(data.frame(DCA_jmean, DCC_jmean, DCE_jmean, WIA_jmean, WIC_jmean, WIE_jmean, RPA_jmean, RPC_jmean, RPE_jmean, NBA_jmean, NBC_jmean, NBE_jmean, CBA_jmean, CBC_jmean, CBE_jmean, BIC_jmean, BEC_jmean, CCC_jmean, EIC_jmean))
+# rename columns, reduce sitetime values, and split into site and time
+colnames(all_jaccard) <- c('sitetime', 'value') 
+all_jaccard$sitetime <- as.character(all_jaccard$sitetime)
+all_jaccard$sitetime <- substr(all_jaccard$sitetime,1,3)
+all_jaccard <- transform(all_jaccard, site = substr(sitetime, 1, 2), time = substr(sitetime, 3, 3))
+all_jaccard <- all_jaccard %>%
+  select(-sitetime)
+# reorder factors
+all_jaccard$site <- factor(all_jaccard$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
+
+###################################################################################
+# FIGURES                                                                         #
+###################################################################################
+
+########### JACCARD DISTANCE THROUGH TIME (fig 3+)
+
+jacc_plot <- ggplot(all_jaccard, aes(x = time, y = value, group = site)) + 
+  geom_point(size=4, aes(colour = site)) +
+  geom_line(aes(color = site)) +
+  scale_color_viridis(discrete=TRUE) +
+  theme_minimal() +
+  theme(axis.text.x=element_blank()) +
+  labs(x="", y="Mean Jaccard Distance")
+
+# best size: ~600x400
+
 #####
 #<<<<<<<<<<<<<<<<<<<<<<<<<<END OF SCRIPT>>>>>>>>>>>>>>>>>>>>>>>>#
 
 
-
+#######
 
 
 
@@ -1753,5 +1908,6 @@ text(0.35, 0.35, "NB")
 \caption{Beta diversity as Bray-Curtis distance for each site in May (A) and August (B). 
          Red points represent a multidimensional centroid for each site, blue vectors are distance of 
          sampled 0.28 m\squared plots within site to the centroid. Axes are dimensionless.}
+
 
 
