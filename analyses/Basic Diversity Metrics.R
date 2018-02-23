@@ -442,12 +442,21 @@ rare_prim$site <- factor(rare_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"
 
 ########### OBSERVED RICHNESS
 
-rich_plot <- ggplot(rich_prim, aes(x = time, y = value, fill = site)) + 
+#rich_plot <- ggplot(rich_prim, aes(x = time, y = value, fill = site)) + 
+#  geom_boxplot() + 
+#  fill_palette(viridis(5, begin = 0.3)) +
+#  theme_minimal() +
+#  theme(axis.text.x=element_blank()) +
+#  labs(x="", y="Richness")
+
+########### RAREFIED RICHNESS
+
+rare_plot <- ggplot(rare_prim, aes(x = time, y = value, fill = site)) + 
   geom_boxplot() + 
   fill_palette(viridis(5, begin = 0.3)) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="Richness")
+  labs(x="", y="Rarefied Richness")
 
 ########### ENS
 
@@ -478,7 +487,7 @@ even_plot <- ggplot(even_prim, aes(x = time, y = value, fill = site)) +
 
 ########### FULL FIGURE
 
-Figure3 <- ggarrange(rich_plot, ens_plot, shannon_plot, even_plot,
+Figure3 <- ggarrange(rare_plot, ens_plot, shannon_plot, even_plot,
                      labels = c("A", "B", "C", "D"),
                      ncol = 2, nrow = 2,
                      common.legend = TRUE, legend = "right")
