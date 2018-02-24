@@ -2,7 +2,7 @@
 ### Epifaunal diversity patterns among eelgrass meadows suggest metacommunity structure
 ### R. Whippo, N. Knight, C. Prentice, J. Cristiani, M. Siegle, M. I. O'Connor
 ### Analysis: elements of metacommunity structure (EMS)
-### Code written by Mary O'Connor
+### Code written by Mary O'Connor and Ross Whippo
 ### 2016-2017
 ### Provides figures 2 and univariate diversity statistics for Tables 1-3, S5
 #########################
