@@ -123,8 +123,8 @@ BIC <- epicomm_sec_full %>%
   subset(sitetime == "BIB")
 BEC <- epicomm_sec_full %>%
   subset(sitetime == "BEB")
-CCC <- epicomm_sec_full %>%
-  subset(sitetime == "CCD")
+EIC <- epicomm_sec_full %>%
+  subset(sitetime == "EID")
 CCC <- epicomm_sec_full %>%
   subset(sitetime == "CCD")
 
@@ -165,7 +165,37 @@ RPC_abundance <- sort(RPC_abundance, decreasing = TRUE)
 # RPE rank abundance
 RPE_abundance <- colSums(RPE[,2:31])
 RPE_abundance <- sort(RPE_abundance, decreasing = TRUE)
-RPE_abundance
+# NBA rank abundance
+NBA_abundance <- colSums(NBA[,2:31])
+NBA_abundance <- sort(NBA_abundance, decreasing = TRUE)
+# NBC rank abundance
+NBC_abundance <- colSums(NBC[,2:31])
+NBC_abundance <- sort(NBC_abundance, decreasing = TRUE)
+# NBE rank abundance
+NBE_abundance <- colSums(NBE[,2:31])
+NBE_abundance <- sort(NBE_abundance, decreasing = TRUE)
+# CBA rank abundance
+CBA_abundance <- colSums(CBA[,2:31])
+CBA_abundance <- sort(CBA_abundance, decreasing = TRUE)
+# CBC rank abundance
+CBC_abundance <- colSums(CBC[,2:31])
+CBC_abundance <- sort(CBC_abundance, decreasing = TRUE)
+# CBE rank abundance
+CBE_abundance <- colSums(CBE[,2:31])
+CBE_abundance <- sort(CBE_abundance, decreasing = TRUE)
+# BEC rank abundance
+BEC_abundance <- colSums(BEC[,2:31])
+BEC_abundance <- sort(BEC_abundance, decreasing = TRUE)
+# EIC rank abundance
+EIC_abundance <- colSums(EIC[,2:31])
+EIC_abundance <- sort(EIC_abundance, decreasing = TRUE)
+# BIC rank abundance
+BIC_abundance <- colSums(BIC[,2:31])
+BIC_abundance <- sort(BIC_abundance, decreasing = TRUE)
+# CCC rank abundance
+CCC_abundance <- colSums(CCC[,2:31])
+CCC_abundance <- sort(CCC_abundance, decreasing = TRUE)
+
 ###################################################################################
 # DIVERSITY MEASURES                                                              #
 ###################################################################################
@@ -481,10 +511,17 @@ rare_prim <- rare_prim %>%
 rare_prim$site <- factor(rare_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"))
 
 
+############### MORISITAS INDEX
 
+# Calculates the Morisita index of dispersion, standardized index values, and the 
+# so called clumpedness and uniform indices. crit = two-sided p-value used to 
+# calculate critical Chi-squared values. Used for bold values in Table 2.
 
-
-
+I.DCA <- dispindmorisita(DCA[,-1], unique.rm = TRUE, na.rm = TRUE)
+I.DCC <- dispindmorisita(DCC[,-1], unique.rm = TRUE, na.rm = TRUE)
+I.DCE <- dispindmorisita(DCE[,-1], unique.rm = TRUE, na.rm = TRUE)
+I.WIA <- dispindmorisita(WIA[,-1], unique.rm = TRUE, na.rm = TRUE)
+I.WIC <- dispindmorisita(WIC[,-1], unique.rm = TRUE, na.rm = TRUE)
 
 
 
