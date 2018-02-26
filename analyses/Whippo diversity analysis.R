@@ -21,6 +21,7 @@ library(ggplot2)
 library(purrr)
 
 data <- read.csv("./data/rawcomm.csv")
+#data <- read.csv("./data/epicomm_201802.csv")
 traits <- read.csv("./data/grazertraits3.csv")
 sites <- read.csv("./data/site.info.csv")
 
@@ -75,7 +76,7 @@ names(data.p) <- c("site", "Date", "Sample", "Time.Code2", "species", "dfw","ord
 
 ## Merge with traits and sort by taxa or functional groups
 data.tr <- merge(data.p, traits[,-1], by.x = "species", by.y = "species.names", all.x = TRUE, all.y = FALSE)
-
+## mary check here, looks like some species names from traits col. 1 are making it throught Feb 2018
 
 # Create datafiles for taxa and times -------------------------------------
 
