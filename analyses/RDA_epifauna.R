@@ -51,13 +51,15 @@ library(ellipse)
 library(FactoMineR)
 library(adespatial) # forward selection
 library(tidyverse)
+library(ggvegan) # vegan plots in ggplot2 framework
+library(viridis) # plotting palette
 
 ###################################################################################
 # READ IN AND PREPARE DATA                                                        #
 ###################################################################################
 
 # full community data
-epicomm <- read.csv("epicomm_201802.csv")
+epicomm <- read.csv("./data/epicomm_201802.csv")
 
 # remove redundant columns and summarise species occurrences for middle time period
 epicomm_summ <- epicomm %>%
@@ -82,7 +84,7 @@ epicomm_site <- epicomm_site %>%
   select(-Nebalia.sp., -Margarites.helicinus)
 
 # full environmental data
-environ_full <- read.csv("site.info_201801.csv")
+environ_full <- read.csv("./data/site.info_201801.csv")
 
 
 ###################################################################################
@@ -132,11 +134,34 @@ R2adj <- RsquareAdj(spe_rda)$adj.r.squared
 
 
 # scaling 2 (default): correlation triplot
-plot(spe_rda, main = "Triplot RDA Epifaunal Community ~ Environmental Variables")
+# plot(spe_rda, main = "Triplot RDA Epifaunal Community ~ Environmental Variables")
 #  scaling 2 - wa scores
 # 700 x 650
-spe2_sc <- scores(spe_rda, choices = 1:2, display = "sp")
-arrows(0, 0, spe2_sc[, 1], spe2_sc[, 2], length = 0, lty = 1, col = "red")
+# spe2_sc <- scores(spe_rda, choices = 1:2, display = "sp")
+# arrows(0, 0, spe2_sc[, 1], spe2_sc[, 2], length = 0, lty = 1, col = "red")
+
+
+# attempt to use ggvegan to plot as ggplot
+
+# transform vegan RDA output into ggplot readable format
+gg_rda <- fortify(spe_rda)
+
+# remove unused factors
+gg_rda_min <- gg_rda %>%
+  filter(Score != 'constraints')
+
+# add size vector
+txt_size <-c(rep(4.99,28), rep(5,9), rep(5.01,5))
+
+# run plot
+ggplot(data = gg_rda_min, aes(RDA1, RDA2)) +
+  geom_text(aes(label=Label, color = Score), position = position_jitter(width = 0.1, height = 0.1) ) +
+  scale_color_viridis(end = 0.85, discrete = TRUE, option = "viridis") +
+  theme_minimal() + 
+  theme(legend.position='none') +
+  xlim(-1, 1) +
+  ylim(-1, 1) +
+  geom_segment(x = 0, y = 0, xend = gg_rda_min$RDA1, yend = gg_rda_min$RDA2, aes(color = Score))
 
 ###################################################################################
 # PERMUTATION TESTS OF RDA                                                        #
