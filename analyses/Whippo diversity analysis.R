@@ -56,6 +56,10 @@ levels(data.m$variable)[levels(data.m$variable)== "Olivella.sp."] <- "Callianax.
 levels(data.m$variable)[levels(data.m$variable)== "Cypricercus."] <- "Cyprideis.beaconensis"
 levels(data.m$variable)[levels(data.m$variable)== "Odontosyllis"] <- "Polychaete1"
 
+## why is only one nematode listed in table?
+##  check ranks for table 2
+## clean up this code for posting
+
 # Clean up time code issue
 levels(unique(data$Time.Code2))
 levels(data.m$Time.Code)
