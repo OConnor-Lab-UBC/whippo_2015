@@ -35,6 +35,7 @@
 # RECENT CHANGES TO SCRIPT                                                        #
 ###################################################################################
 
+# 2018-03-05 Changed back to rawcomm with Mary's data treatment
 # 2018-02-20 Added epicomm_201802.csv to replace rawcomm.csv for all community analysis and altered specifics of scripts as needed.
 # 2018-02-02 Updated data source to 'rawcomm.csv'. Started analysis derived from
 # Numerical Ecology with R (Legendre)
@@ -53,35 +54,105 @@ library(adespatial) # forward selection
 library(tidyverse)
 library(ggvegan) # vegan plots in ggplot2 framework
 library(viridis) # plotting palette
+library(lubridate) # data manipulation
 
 ###################################################################################
 # READ IN AND PREPARE DATA                                                        #
 ###################################################################################
 
 # full community data
-epicomm <- read.csv("./data/epicomm_201802.csv")
+#epicomm <- read.csv("./data/epicomm_201802.csv")
 
-# remove redundant columns and summarise species occurrences for middle time period
-epicomm_summ <- epicomm %>%
-  select(-date, -Sieve) %>%
-  filter(Time.Code %in% c("B", "C", "C2", "D")) %>%
-  unite(sitetime, site, Time.Code, sep = "", remove = TRUE)
+
 # finish summarization for every sample by summing
-epicomm_summ <- epicomm_summ %>%
-  group_by(sitetime, Sample) %>%
-  summarise_all(funs(sum))
-# summarise entire sites with total spp abund per site
-epicomm_site <- epicomm_summ %>%
+#epicomm_summ <- epicomm_summ %>%
+#  group_by(sitetime, Sample) %>%
+#  summarise_all(funs(sum))
+
+
+data <- read.csv("./data/rawcomm.csv")
+traits <- read.csv("./data/grazertraits3.csv")
+sites <- read.csv("./data/site.info.csv")
+
+# delete, add and redefine columns ----------------------------------------
+traits <- traits[,-c(3,8:10)]
+
+data$date1 <- mdy(data$date)
+
+# data preparation ---------------------------------------------------
+## Melt and recast so the datafile goes from long to wide (species as columns)
+data.m <- melt(data, id = c(1,2,3,4,5,52, 53))
+
+## Clean and correct species names. 
+## in the data file, some names we initially used for taxa needed updating based on improvements in our ability to identify them. So these replacements reflect those updates. 
+levels(data.m$variable)[levels(data.m$variable)== "Bittium.spp."] <- "Lirobittium.spp."
+levels(data.m$variable)[levels(data.m$variable)== "Olivella.sp."] <- "Callianax.sp."
+levels(data.m$variable)[levels(data.m$variable)== "Cypricercus."] <- "Cyprideis.beaconensis"
+levels(data.m$variable)[levels(data.m$variable)== "Odontosyllis"] <- "Polychaete1"
+levels(data.m$variable)[levels(data.m$variable)== "Idotea.resecata"] <- "Pentidotea.resecata"
+
+# Clean up time code labels so they are easier to model
+levels(unique(data$Time.Code2))
+levels(data.m$Time.Code)
+data.m$Time.Code <- as.character(data.m$Time.Code)
+data.m$Time.Code[data.m$Time.Code == "C "] <- "C"
+data.m$Time.Code <- as.factor(data.m$Time.Code)
+data.m$value <- as.numeric(data.m$value)
+levels(data.m$Time.Code)
+
+## Merge diversity file with site metadata
+data.s <- merge(data.m, sites, by = "site")
+
+## Sum across size classes within plots (samples)
+data.p <- ddply(data.s, .(site, date1, Sample, Time.Code2, variable, dfw,order.dfw,area,salinity, shoot.density, fetch.jc), summarise, sum(value))
+
+data.p$time.ID <- paste(data.p$site, data.p$Time.Code2, sep = '.') #could look at finer time resolution by using Time.Code here
+names(data.p) <- c("site", "Date", "Sample", "Time.Code2", "species", "dfw","order","area","salinity","shoot.density","fetch","abundance", "TimeID")
+
+## Merge with traits and sort by taxa or functional groups
+data.tr <- merge(data.p, traits[,-1], by.x = "species", by.y = "species.names", all.x = TRUE, all.y = FALSE)
+
+## create datafile to be posted with paper: 
+# write.csv(data.tr, "Whippodata.csv")
+
+# Create datafiles for taxa and times -------------------------------------
+
+## Remove all taxa that are not epifauna: 
+levels(data.tr$eelgrss.epifauna)
+epicomm_z <- data.tr %>% filter(eelgrss.epifauna == c("yes", "sometimes"))
+epicomm_s <- epicomm_z %>%
+  spread(species, abundance)
+
+# remove unused columns
+epicomm_s <- epicomm_s %>%
+  select(-Date, -dfw, -order, -area, -salinity, -shoot.density, -fetch, -TimeID, -function., -taxon, -group, -eelgrss.epifauna)
+
+# replace NAs with 0 
+epicomm_s[is.na(epicomm_s)] <- 0
+
+# summarize by sample
+epicomm_s <- epicomm_s %>%
+  group_by(site, Time.Code2, Sample) %>%
+  summarize_all(funs(sum))
+
+# constrain to middle time period
+epicomm_site <- epicomm_s %>%
   select(-Sample) %>%
-  group_by(sitetime) %>%
-  summarise_all(funs(sum))
-# remove time code from site name to map to environ data
-epicomm_site$sitetime <- substr(epicomm_site$sitetime, 1, nchar(epicomm_site$sitetime)-1)
+  filter(Time.Code2 %in% "C") 
 
-
-#remove missing species
+# summarise entire sites with total spp abund per site
 epicomm_site <- epicomm_site %>%
-  select(-Nebalia.sp., -Margarites.helicinus)
+  ungroup() %>%
+  select(-Time.Code2) %>%
+  group_by(site) %>%
+  summarise_all(funs(sum))
+
+
+
+
+#remove missing species (present in other time periods only)
+epicomm_site <- epicomm_site %>%
+  select(-Nebalia.sp., -Margarites.helicinus, -Callianax.sp., -Nemertea)
 
 # full environmental data
 environ_full <- read.csv("./data/site.info_201801.csv")
@@ -93,18 +164,18 @@ environ_full <- read.csv("./data/site.info_201801.csv")
 
 # convert community to matrix for hellinger transformation as suggested by 
 # Legendre & Gallagher 2001
-comm_mat <- as.matrix(epicomm_site[,2:29])
+comm_mat <- as.matrix(epicomm_site[,2:30])
 # hellinger transform community data for use in RDA
 comm_hell <- decostand(comm_mat, method = "hellinger")
 comm_hell <- as.data.frame(comm_hell)
-row.names(comm_hell) <- epicomm_site$sitetime
+row.names(comm_hell) <- epicomm_site$site
 
 # reduce variable list to ecologically relevant factors
 environ <- environ_full %>%
   select(-site, -dfAI, -area, -dfw)
 # center and scale environmental variables
 environ_scaled <- transform(environ, area.ha = scale(area.ha), salinity = scale(salinity), shoot.density = scale(shoot.density), epiphytes = scale(epiphytes), fetch.meters = scale(fetch.meters))
-row.names(environ_scaled) <- epicomm_site$sitetime
+row.names(environ_scaled) <- epicomm_site$site
 
 
 
@@ -162,6 +233,7 @@ ggplot(data = gg_rda_min, aes(RDA1, RDA2)) +
   xlim(-1, 1) +
   ylim(-1, 1) +
   geom_segment(x = 0, y = 0, xend = gg_rda_min$RDA1, yend = gg_rda_min$RDA2, aes(color = Score))
+# 600x520 resolution
 
 ###################################################################################
 # PERMUTATION TESTS OF RDA                                                        #

@@ -19,6 +19,8 @@
 
 # TO DO
 
+# need to remove empty rows from individual sitetime DF for distance matrices
+
 ###################################################################################
 # TABLE OF CONTENTS                                                               #
 #                                                                                 #
@@ -35,16 +37,19 @@
 # RECENT CHANGES TO SCRIPT                                                        #
 ###################################################################################
 
+# 2018-03-05 using rawcomm data with treatment from Mary
 # 2018-02-20 Script tidied from previous analysis and new community (epicomm_201802.csv) used instead of old community (rawcomm.csv)
 
 ###################################################################################
 # LOAD PACKAGES                                                                   #
 ###################################################################################
 
+library(plyr)
 library(tidyverse)
 library(reshape2)
 library(lme4)
 library(vegan)
+library(lubridate) # data manipulation
 
 # YOU MUST RUN RAUP_CRICK.R FOR FUNCTIONALITY 
 
@@ -53,29 +58,113 @@ library(vegan)
 ###################################################################################
 
 # full community data
-epicomm <- read.csv("./data/epicomm_201802.csv")
+#epicomm <- read.csv("./data/epicomm_201802.csv")
 
 # remove redundant columns and summarise species occurrences
-epicomm_summ <- epicomm %>%
-  select(-date, -Sieve) %>%
-  unite(sitetime, site, Time.Code, sep = "", remove = TRUE)
+#epicomm_summ <- epicomm %>%
+ # select(-date, -Sieve) %>%
+#  unite(sitetime, site, Time.Code, sep = "", remove = TRUE)
 # fix CBC typo
-epicomm_summ$sitetime <- gsub("CBC ", "CBC", epicomm_summ$sitetime)
+#epicomm_summ$sitetime <- gsub("CBC ", "CBC", epicomm_summ$sitetime)
 # finish summarization for every sample by summing
-epicomm_summ <- epicomm_summ %>%
-  group_by(sitetime, Sample) %>%
-  summarise_all(funs(sum))
+#epicomm_summ <- epicomm_summ %>%
+#  group_by(sitetime, Sample) %>%
+#  summarise_all(funs(sum))
 # summarise entire sites with total spp abund per site
-epicomm_site <- epicomm_summ %>%
+#epicomm_site <- epicomm_summ %>%
+#  select(-Sample) %>%
+#  group_by(sitetime) %>%
+#  summarise_all(funs(sum))
+
+
+# full community data
+#epicomm_example <- read_csv("./data/epicomm_201802.csv")
+
+data <- read.csv("./data/rawcomm.csv")
+traits <- read.csv("./data/grazertraits3.csv")
+sites <- read.csv("./data/site.info.csv")
+
+# delete, add and redefine columns ----------------------------------------
+traits <- traits[,-c(3,8:10)]
+
+data$date1 <- mdy(data$date)
+
+# data preparation ---------------------------------------------------
+## Melt and recast so the datafile goes from long to wide (species as columns)
+data.m <- melt(data, id = c(1,2,3,4,5,52, 53))
+
+## Clean and correct species names. 
+## in the data file, some names we initially used for taxa needed updating based on improvements in our ability to identify them. So these replacements reflect those updates. 
+levels(data.m$variable)[levels(data.m$variable)== "Bittium.spp."] <- "Lirobittium.spp."
+levels(data.m$variable)[levels(data.m$variable)== "Olivella.sp."] <- "Callianax.sp."
+levels(data.m$variable)[levels(data.m$variable)== "Cypricercus."] <- "Cyprideis.beaconensis"
+levels(data.m$variable)[levels(data.m$variable)== "Odontosyllis"] <- "Polychaete1"
+levels(data.m$variable)[levels(data.m$variable)== "Idotea.resecata"] <- "Pentidotea.resecata"
+
+# Clean up time code labels so they are easier to model
+levels(unique(data$Time.Code2))
+levels(data.m$Time.Code)
+data.m$Time.Code <- as.character(data.m$Time.Code)
+data.m$Time.Code[data.m$Time.Code == "C "] <- "C"
+data.m$Time.Code <- as.factor(data.m$Time.Code)
+data.m$value <- as.numeric(data.m$value)
+levels(data.m$Time.Code)
+
+## Merge diversity file with site metadata
+data.s <- merge(data.m, sites, by = "site")
+
+## Sum across size classes within plots (samples)
+data.p <- ddply(data.s, .(site, date1, Sample, Time.Code2, variable, dfw,order.dfw,area,salinity, shoot.density, fetch.jc), summarise, sum(value))
+
+data.p$time.ID <- paste(data.p$site, data.p$Time.Code2, sep = '.') #could look at finer time resolution by using Time.Code here
+names(data.p) <- c("site", "Date", "Sample", "Time.Code2", "species", "dfw","order","area","salinity","shoot.density","fetch","abundance", "TimeID")
+
+## Merge with traits and sort by taxa or functional groups
+data.tr <- merge(data.p, traits[,-1], by.x = "species", by.y = "species.names", all.x = TRUE, all.y = FALSE)
+
+## create datafile to be posted with paper: 
+# write.csv(data.tr, "Whippodata.csv")
+
+# Create datafiles for taxa and times -------------------------------------
+
+## Remove all taxa that are not epifauna: 
+levels(data.tr$eelgrss.epifauna)
+epicomm_z <- data.tr %>% filter(eelgrss.epifauna == c("yes", "sometimes"))
+epicomm_s <- epicomm_z %>%
+  spread(species, abundance)
+
+# remove unused columns
+epicomm_s <- epicomm_s %>%
+  select(-Date, -dfw, -order, -area, -salinity, -shoot.density, -fetch, -TimeID, -function., -taxon, -group, -eelgrss.epifauna)
+
+# replace NAs with 0 
+epicomm_s[is.na(epicomm_s)] <- 0
+
+# summarize by sample
+epicomm_s <- epicomm_s %>%
+  group_by(site, Time.Code2, Sample) %>%
+  summarize_all(funs(sum))
+
+# create sitetime column for analyses
+epicomm <- epicomm_s %>%
   select(-Sample) %>%
+  unite(sitetime, site, Time.Code2, sep = "") 
+
+# pull out full unsummed sites for site by site analysis
+epicomm_full <- epicomm_s %>%
+  unite(sitetime, site, Time.Code2, sep = "") %>%
+  select(-Sample)
+  
+# sum all sites
+epicomm <- epicomm %>%
   group_by(sitetime) %>%
-  summarise_all(funs(sum))
+  summarize_all(funs(sum))
 
 ###################################################################################
 # PREPARE DATA FOR ANALYSES                                                       #
 ###################################################################################
 
-beta_sim_data <- epicomm_site 
+beta_sim_data <- epicomm
 
 ###################################################################################
 # RAUP-CRICK METRICS                                                              #
@@ -90,7 +179,7 @@ T_rc_1 <- raup_crick(beta_A, plot_names_in_col1 = TRUE)
 T_mat_1 <- as.matrix(T_rc_1)
 t2 <- melt(T_mat_1)[melt(upper.tri(T_mat_1))$value,]
 names(t2) <- c("c1", "c2", "distance")
-t2$time <- rep("A")
+t2$time <- rep("May")
 t2$pair <- seq(from = 1, to=10, by =1)
 
 #Time B, C, D
@@ -99,7 +188,7 @@ T_rc_2 <- raup_crick(beta_C, plot_names_in_col1 = TRUE)
 T_mat_2 <- as.matrix(T_rc_2)
 t3 <- melt(T_mat_2)[melt(upper.tri(T_mat_2))$value,]
 names(t3) <- c("c1", "c2", "distance")
-t3$time <- rep("B")
+t3$time <- rep("June/July")
 t3$pair <- seq(from = 1, to=36, by =1)
 
 # Time E
@@ -108,7 +197,7 @@ T_rc_3 <- raup_crick(beta_E, plot_names_in_col1 = TRUE)
 T_mat_3 <- as.matrix(T_rc_3)
 t4 <- melt(T_mat_3)[melt(upper.tri(T_mat_3))$value,]
 names(t4) <- c("c1", "c2", "distance")
-t4$time <- rep("C")
+t4$time <- rep("August")
 t4$pair <- seq(from = 1, to=10, by =1)
 
 #t1_summary <- as.table(summary(T_rc_1))
@@ -120,8 +209,7 @@ t4$pair <- seq(from = 1, to=10, by =1)
 
 #join data
 
-t1 <- union(t2[,3:5],t4[,3:5])
-t1 <- union(t1,t3[,3:5])
+t1 <- bind_rows(t2, t3, t4)
 
 # Summary of raup-crick values between sites
 inter_raup <- t1 %>%
@@ -156,94 +244,94 @@ ggplot(t1, aes(time, distance)) +
 
 # separate each sitetime for analysis
 
-DCA <- epicomm_summ %>%
+DCA <- epicomm_full %>%
   subset(sitetime == "DCA")
-DCC <- epicomm_summ %>%
+DCC <- epicomm_full %>%
   subset(sitetime == "DCC")
-DCE <- epicomm_summ %>%
+DCE <- epicomm_full %>%
   subset(sitetime == "DCE")
 
-WIA <- epicomm_summ %>%
+WIA <- epicomm_full %>%
   subset(sitetime == "WIA")
-WIC <- epicomm_summ %>%
+WIC <- epicomm_full %>%
   subset(sitetime == "WIC")
-WIE <- epicomm_summ %>%
+WIE <- epicomm_full %>%
   subset(sitetime == "WIE")
 
-RPA <- epicomm_summ %>%
+RPA <- epicomm_full %>%
   subset(sitetime == "RPA")
-RPC <- epicomm_summ %>%
+RPC <- epicomm_full %>%
   subset(sitetime == "RPC")
-RPE <- epicomm_summ %>%
+RPE <- epicomm_full %>%
   subset(sitetime == "RPE")
 
-NBA <- epicomm_summ %>%
+NBA <- epicomm_full %>%
   subset(sitetime == "NBA")
-NBC <- epicomm_summ %>%
+NBC <- epicomm_full %>%
   subset(sitetime == "NBC")
-NBE <- epicomm_summ %>%
+NBE <- epicomm_full %>%
   subset(sitetime == "NBE")
 
-CBA <- epicomm_summ %>%
+CBA <- epicomm_full %>%
   subset(sitetime == "CBA")
-CBC <- epicomm_summ %>%
+CBC <- epicomm_full %>%
   subset(sitetime == "CBC")
-CBE <- epicomm_summ %>%
+CBE <- epicomm_full %>%
   subset(sitetime == "CBE")
 
-BEB <- epicomm_summ %>%
+BEB <- epicomm_full %>%
   subset(sitetime == "BEB")
-BIB <- epicomm_summ %>%
+BIB <- epicomm_full %>%
   subset(sitetime == "BIB")
-CCD <- epicomm_summ %>%
+CCD <- epicomm_full %>%
   subset(sitetime == "CCD")
-EID <- epicomm_summ %>%
+EID <- epicomm_full %>%
   subset(sitetime == "EID")
 
 ############### JACCARD DIVERSITY
 
-DCA_jaccard <- DCA[,2:31] %>%
+DCA_jaccard <- DCA[,2:34] %>%
   vegdist(method = "jaccard")
-DCC_jaccard <- DCC[,2:31] %>%
+DCC_jaccard <- DCC[,2:34] %>%
   vegdist(method = "jaccard")
-DCE_jaccard <- DCE[,2:31] %>%
-  vegdist(method = "jaccard")
-
-WIA_jaccard <- WIA[,2:31] %>%
-  vegdist(method = "jaccard")
-WIC_jaccard <- WIC[,2:31] %>%
-  vegdist(method = "jaccard")
-WIE_jaccard <- WIE[,2:31] %>%
+DCE_jaccard <- DCE[,2:34] %>%
   vegdist(method = "jaccard")
 
-RPA_jaccard <- RPA[,2:31] %>%
+WIA_jaccard <- WIA[,2:34] %>%
   vegdist(method = "jaccard")
-RPC_jaccard <- RPC[,2:31] %>%
+WIC_jaccard <- WIC[,2:34] %>%
   vegdist(method = "jaccard")
-RPE_jaccard <- RPE[,2:31] %>%
-  vegdist(method = "jaccard")
-
-NBA_jaccard <- NBA[,2:31] %>%
-  vegdist(method = "jaccard")
-NBC_jaccard <- NBC[,2:31] %>%
-  vegdist(method = "jaccard")
-NBE_jaccard <- NBE[,2:31] %>%
+WIE_jaccard <- WIE[,2:34] %>%
   vegdist(method = "jaccard")
 
-CBA_jaccard <- CBA[,2:31] %>%
+RPA_jaccard <- RPA[,2:34] %>%
   vegdist(method = "jaccard")
-CBC_jaccard <- CBC[,2:31] %>%
+RPC_jaccard <- RPC[,2:34] %>%
   vegdist(method = "jaccard")
-CBE_jaccard <- CBE[,2:31] %>%
+RPE_jaccard <- RPE[,2:34] %>%
   vegdist(method = "jaccard")
 
-BEB_jaccard <- BEB[,2:31] %>%
+NBA_jaccard <- NBA[,2:34] %>%
   vegdist(method = "jaccard")
-BIB_jaccard <- BIB[,2:31] %>%
+NBC_jaccard <- NBC[,2:34] %>%
   vegdist(method = "jaccard")
-CCD_jaccard <- CCD[,2:31] %>%
+NBE_jaccard <- NBE[,2:34] %>%
   vegdist(method = "jaccard")
-EID_jaccard <- EID[,2:31] %>%
+
+CBA_jaccard <- CBA[,2:34] %>%
+  vegdist(method = "jaccard")
+CBC_jaccard <- CBC[,2:34] %>%
+  vegdist(method = "jaccard")
+CBE_jaccard <- CBE[,2:34] %>%
+  vegdist(method = "jaccard")
+
+BEB_jaccard <- BEB[,2:34] %>%
+  vegdist(method = "jaccard")
+BIB_jaccard <- BIB[,2:34] %>%
+  vegdist(method = "jaccard")
+CCD_jaccard <- CCD[,2:34] %>%
+  vegdist(method = "jaccard")
+EID_jaccard <- EID[,2:34] %>%
   vegdist(method = "jaccard")
 
 
@@ -288,48 +376,48 @@ all_jaccard$site <- factor(all_jaccard$site, levels = c("DC", "WI", "BE", "EI", 
 
 ############### BRAY DIVERSITY
 
-DCA_bray <- DCA[,2:31] %>%
+DCA_bray <- DCA[,2:34] %>%
   vegdist(method = "bray")
-DCC_bray <- DCC[,2:31] %>%
+DCC_bray <- DCC[,2:34] %>%
   vegdist(method = "bray")
-DCE_bray <- DCE[,2:31] %>%
-  vegdist(method = "bray")
-
-WIA_bray <- WIA[,2:31] %>%
-  vegdist(method = "bray")
-WIC_bray <- WIC[,2:31] %>%
-  vegdist(method = "bray")
-WIE_bray <- WIE[,2:31] %>%
+DCE_bray <- DCE[,2:34] %>%
   vegdist(method = "bray")
 
-RPA_bray <- RPA[,2:31] %>%
+WIA_bray <- WIA[,2:34] %>%
   vegdist(method = "bray")
-RPC_bray <- RPC[,2:31] %>%
+WIC_bray <- WIC[,2:34] %>%
   vegdist(method = "bray")
-RPE_bray <- RPE[,2:31] %>%
-  vegdist(method = "bray")
-
-NBA_bray <- NBA[,2:31] %>%
-  vegdist(method = "bray")
-NBC_bray <- NBC[,2:31] %>%
-  vegdist(method = "bray")
-NBE_bray <- NBE[,2:31] %>%
+WIE_bray <- WIE[,2:34] %>%
   vegdist(method = "bray")
 
-CBA_bray <- CBA[,2:31] %>%
+RPA_bray <- RPA[,2:34] %>%
   vegdist(method = "bray")
-CBC_bray <- CBC[,2:31] %>%
+RPC_bray <- RPC[,2:34] %>%
   vegdist(method = "bray")
-CBE_bray <- CBE[,2:31] %>%
+RPE_bray <- RPE[,2:34] %>%
   vegdist(method = "bray")
 
-BEB_bray <- BEB[,2:31] %>%
+NBA_bray <- NBA[,2:34] %>%
   vegdist(method = "bray")
-BIB_bray <- BIB[,2:31] %>%
+NBC_bray <- NBC[,2:34] %>%
   vegdist(method = "bray")
-CCD_bray <- CCD[,2:31] %>%
+NBE_bray <- NBE[,2:34] %>%
   vegdist(method = "bray")
-EID_bray <- EID[,2:31] %>%
+
+CBA_bray <- CBA[,2:34] %>%
+  vegdist(method = "bray")
+CBC_bray <- CBC[,2:34] %>%
+  vegdist(method = "bray")
+CBE_bray <- CBE[,2:34] %>%
+  vegdist(method = "bray")
+
+BEB_bray <- BEB[,2:34] %>%
+  vegdist(method = "bray")
+BIB_bray <- BIB[,2:34] %>%
+  vegdist(method = "bray")
+CCD_bray <- CCD[,2:34] %>%
+  vegdist(method = "bray")
+EID_bray <- EID[,2:34] %>%
   vegdist(method = "bray")
 
 
@@ -414,7 +502,7 @@ bray_plot <- ggplot(all_bray, aes(x = time, y = value, group = site)) +
 # Single sites through time (5 core sites)
 
 # DCA - shared absences (makes little difference)
-DCA_rc  <- epicomm_summ[96:111,-1]
+DCA_rc  <- epicomm_full[96:111,-1]
 DCA_rc <- data.frame(DCA_rc)
 DCA_rc_matrix <- raup_crick(DCA_rc, plot_names_in_col1 = TRUE)
 #beanplot(DCA_rc_matrix)
@@ -425,7 +513,7 @@ d2$time <- rep("A")
 d2$pair <- seq(from = 1, to=120, by =1)
 
 # DCC 
-DCC_rc <- epicomm_summ[112:127, -1]
+DCC_rc <- epicomm_full[112:127, -1]
 DCC_rc <- data.frame(DCC_rc)
 DCC_rc_matrix <- raup_crick(DCC_rc, plot_names_in_col1 = TRUE)
 #beanplot(DCC_rc_matrix)
@@ -436,7 +524,7 @@ d3$time <- rep("B")
 d3$pair <- seq(from = 1, to=120, by =1)
 
 # DCE
-DCE_rc <- epicomm_summ[128:143,-1]
+DCE_rc <- epicomm_full[128:143,-1]
 DCE_rc <- data.frame(DCE_rc)
 DCE_rc_matrix <- raup_crick(DCE_rc, plot_names_in_col1 = TRUE)
 #beanplot(DCE_rc_matrix)
@@ -460,7 +548,7 @@ d5 <- bind_rows(d5, d4)
 #
 
 # WIA - shared absences (makes little difference)
-WIA_rc  <- epicomm_summ[255:270,-1]
+WIA_rc  <- epicomm_full[255:270,-1]
 WIA_rc <- data.frame(WIA_rc)
 WIA_rc_matrix <- raup_crick(WIA_rc, plot_names_in_col1 = TRUE)
 #beanplot(WIA_rc_matrix)
@@ -471,7 +559,7 @@ w2$time <- rep("A")
 w2$pair <- seq(from = 1, to=120, by =1)
 
 # WIC 
-WIC_rc <- epicomm_summ[271:287, -1]
+WIC_rc <- epicomm_full[271:287, -1]
 WIC_rc <- data.frame(WIC_rc)
 WIC_rc_matrix <- raup_crick(WIC_rc, plot_names_in_col1 = TRUE)
 #beanplot(WIC_rc_matrix)
@@ -482,7 +570,7 @@ w3$time <- rep("B")
 w3$pair <- seq(from = 1, to=136, by =1)
 
 # WIE
-WIE_rc <- epicomm_summ[288:303,-1]
+WIE_rc <- epicomm_full[288:303,-1]
 WIE_rc <- data.frame(WIE_rc)
 WIE_rc_matrix <- raup_crick(WIE_rc, plot_names_in_col1 = TRUE)
 #beanplot(WIE_rc_matrix)
@@ -506,7 +594,7 @@ w5 <- bind_rows(w5, w4)
 #
 
 # RPA - shared absences (makes little difference)
-RPA_rc  <- epicomm_summ[208:222,-1]
+RPA_rc  <- epicomm_full[208:222,-1]
 RPA_rc <- data.frame(RPA_rc)
 RPA_rc_matrix <- raup_crick(RPA_rc, plot_names_in_col1 = TRUE)
 #beanplot(RPA_rc_matrix)
@@ -517,7 +605,7 @@ r2$time <- rep("A")
 r2$pair <- seq(from = 1, to=105, by =1)
 
 # RPC 
-RPC_rc <- epicomm_summ[223:238, -1]
+RPC_rc <- epicomm_full[223:238, -1]
 RPC_rc <- data.frame(RPC_rc)
 RPC_rc_matrix <- raup_crick(RPC_rc, plot_names_in_col1 = TRUE)
 #beanplot(RPC_rc_matrix)
@@ -528,7 +616,7 @@ r3$time <- rep("B")
 r3$pair <- seq(from = 1, to=120, by =1)
 
 # RPE
-RPE_rc <- epicomm_summ[239:254,-1]
+RPE_rc <- epicomm_full[239:254,-1]
 RPE_rc <- data.frame(RPE_rc)
 RPE_rc_matrix <- raup_crick(RPE_rc, plot_names_in_col1 = TRUE)
 #beanplot(RPE_rc_matrix)
@@ -552,7 +640,7 @@ r5 <- bind_rows(r5, r4)
 #
 
 # NBA - shared absences (makes little difference)
-NBA_rc  <- epicomm_summ[160:175,-1]
+NBA_rc  <- epicomm_full[160:175,-1]
 NBA_rc <- data.frame(NBA_rc)
 NBA_rc_matrix <- raup_crick(NBA_rc, plot_names_in_col1 = TRUE)
 #beanplot(NBA_rc_matrix)
@@ -563,7 +651,7 @@ n2$time <- rep("A")
 n2$pair <- seq(from = 1, to=120, by =1)
 
 # NBC 
-NBC_rc <- epicomm_summ[176:191, -1]
+NBC_rc <- epicomm_full[176:191, -1]
 NBC_rc <- data.frame(NBC_rc)
 NBC_rc_matrix <- raup_crick(NBC_rc, plot_names_in_col1 = TRUE)
 #beanplot(NBC_rc_matrix)
@@ -574,7 +662,7 @@ n3$time <- rep("B")
 n3$pair <- seq(from = 1, to=120, by =1)
 
 # NBE
-NBE_rc <- epicomm_summ[192:207,-1]
+NBE_rc <- epicomm_full[192:207,-1]
 NBE_rc <- data.frame(NBE_rc)
 NBE_rc_matrix <- raup_crick(NBE_rc, plot_names_in_col1 = TRUE)
 #beanplot(NBE_rc_matrix)
@@ -598,7 +686,7 @@ n5 <- bind_rows(n5, n4)
 #
 
 # CBA - shared absences (makes little difference)
-CBA_rc  <- epicomm_summ[33:48,-1]
+CBA_rc  <- epicomm_full[33:48,-1]
 CBA_rc <- data.frame(CBA_rc)
 CBA_rc_matrix <- raup_crick(CBA_rc, plot_names_in_col1 = TRUE)
 #beanplot(CBA_rc_matrix)
@@ -609,7 +697,7 @@ c2$time <- rep("A")
 c2$pair <- seq(from = 1, to=120, by =1)
 
 # CBC 
-CBC_rc <- epicomm_summ[49:64, -1]
+CBC_rc <- epicomm_full[49:64, -1]
 CBC_rc <- data.frame(CBC_rc)
 CBC_rc_matrix <- raup_crick(CBC_rc, plot_names_in_col1 = TRUE)
 #beanplot(CBC_rc_matrix)
@@ -620,7 +708,7 @@ c3$time <- rep("B")
 c3$pair <- seq(from = 1, to=120, by =1)
 
 # CBE
-CBE_rc <- epicomm_summ[65:79,-1]
+CBE_rc <- epicomm_full[65:79,-1]
 CBE_rc <- data.frame(CBE_rc)
 CBE_rc_matrix <- raup_crick(CBE_rc, plot_names_in_col1 = TRUE)
 #beanplot(CBE_rc_matrix)
@@ -672,7 +760,7 @@ m1$site <- factor(m1$site, levels = c("DC", "WI", "RP", "NB", "CB"))
 # Secondary Sites
 
 # BEB - shared absences (makes little difference)
-BEB_rc  <- epicomm_summ[1:16,-1]
+BEB_rc  <- epicomm_full[1:16,-1]
 BEB_rc <- data.frame(BEB_rc)
 BEB_rc_matrix <- raup_crick(BEB_rc, plot_names_in_col1 = TRUE)
 B_mat <- as.matrix(BEB_rc_matrix)
@@ -684,7 +772,7 @@ b2$pair <- seq(from = 1, to=120, by =1)
 #BEB_summary <- as.table(summary(BEB_rc_matrix))
 
 # BIB - shared absences (makes little difference)
-BIB_rc  <- epicomm_summ[17:32,-1]
+BIB_rc  <- epicomm_full[17:32,-1]
 BIB_rc <- data.frame(BIB_rc)
 BIB_rc_matrix <- raup_crick(BIB_rc, plot_names_in_col1 = TRUE)
 B_mat <- as.matrix(BIB_rc_matrix)
@@ -696,7 +784,7 @@ b3$pair <- seq(from = 1, to=120, by =1)
 #BIB_summary <- as.table(summary(BIB_rc_matrix))
 
 # CCD - shared absences (makes little difference)
-CCD_rc  <- epicomm_summ[80:95,-1]
+CCD_rc  <- epicomm_full[80:95,-1]
 CCD_rc <- data.frame(CCD_rc)
 CCD_rc_matrix <- raup_crick(CCD_rc, plot_names_in_col1 = TRUE)
 B_mat <- as.matrix(CCD_rc_matrix)
@@ -708,7 +796,7 @@ b4$pair <- seq(from = 1, to=120, by =1)
 #CCD_summary <- as.table(summary(CCD_rc_matrix))
 
 # EID - shared absences (makes little difference)
-EID_rc  <- epicomm_summ[144:159,-1]
+EID_rc  <- epicomm_full[144:159,-1]
 EID_rc <- data.frame(EID_rc)
 EID_rc_matrix <- raup_crick(EID_rc, plot_names_in_col1 = TRUE)
 B_mat <- as.matrix(EID_rc_matrix)
