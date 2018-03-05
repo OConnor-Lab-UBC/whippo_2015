@@ -145,6 +145,12 @@ epicomm_s <- epicomm_s %>%
   group_by(site, Time.Code2, Sample) %>%
   summarize_all(funs(sum))
 
+# separate out middle time for Raup-Crick test
+epicomm_C <- epicomm_s %>%
+  filter(Time.Code2 == "C") %>%
+  select(-Sample) %>%
+  unite(sitetime, site, Time.Code2, sep = "")
+
 # create sitetime column for analyses
 epicomm <- epicomm_s %>%
   select(-Sample) %>%
@@ -488,12 +494,9 @@ bray_plot <- ggplot(all_bray, aes(x = time, y = value, group = site)) +
 
 # best size: ~600x400
 
-#####
-#<<<<<<<<<<<<<<<<<<<<<<<<<<END OF SCRIPT>>>>>>>>>>>>>>>>>>>>>>>>#
 
-
-#######
-
+######## TEST OF RAUP-CRICK MIDDLE TIME ALL SAMPLES SEPARATELY
+ALL_rc_C <- raup_crick(epicomm_C, plot_names_in_col1 = TRUE)
 
 
 
@@ -504,34 +507,34 @@ bray_plot <- ggplot(all_bray, aes(x = time, y = value, group = site)) +
 # DCA - shared absences (makes little difference)
 DCA_rc  <- epicomm_full[96:111,-1]
 DCA_rc <- data.frame(DCA_rc)
-DCA_rc_matrix <- raup_crick(DCA_rc, plot_names_in_col1 = TRUE)
+DCA_rc_matrix <- raup_crick(DCA_rc, plot_names_in_col1 = FALSE)
 #beanplot(DCA_rc_matrix)
 D_mat <- as.matrix(DCA_rc_matrix)
 d2 <- melt(D_mat)[melt(upper.tri(D_mat))$value,]
 names(d2) <- c("c1", "c2", "distance")
-d2$time <- rep("A")
+d2$time <- rep("May")
 d2$pair <- seq(from = 1, to=120, by =1)
 
 # DCC 
 DCC_rc <- epicomm_full[112:127, -1]
 DCC_rc <- data.frame(DCC_rc)
-DCC_rc_matrix <- raup_crick(DCC_rc, plot_names_in_col1 = TRUE)
+DCC_rc_matrix <- raup_crick(DCC_rc, plot_names_in_col1 = FALSE)
 #beanplot(DCC_rc_matrix)
 D_mat <- as.matrix(DCC_rc_matrix)
 d3 <- melt(D_mat)[melt(upper.tri(D_mat))$value,]
 names(d3) <- c("c1", "c2", "distance")
-d3$time <- rep("B")
+d3$time <- rep("June/July")
 d3$pair <- seq(from = 1, to=120, by =1)
 
 # DCE
 DCE_rc <- epicomm_full[128:143,-1]
 DCE_rc <- data.frame(DCE_rc)
-DCE_rc_matrix <- raup_crick(DCE_rc, plot_names_in_col1 = TRUE)
+DCE_rc_matrix <- raup_crick(DCE_rc, plot_names_in_col1 = FALSE)
 #beanplot(DCE_rc_matrix)
 D_mat <- as.matrix(DCE_rc_matrix)
 d4 <- melt(D_mat)[melt(upper.tri(D_mat))$value,]
 names(d4) <- c("c1", "c2", "distance")
-d4$time <- rep("C")
+d4$time <- rep("August")
 d4$pair <- seq(from = 1, to=120, by =1)
 
 d5 <- bind_rows(d2, d3)
@@ -550,34 +553,34 @@ d5 <- bind_rows(d5, d4)
 # WIA - shared absences (makes little difference)
 WIA_rc  <- epicomm_full[255:270,-1]
 WIA_rc <- data.frame(WIA_rc)
-WIA_rc_matrix <- raup_crick(WIA_rc, plot_names_in_col1 = TRUE)
+WIA_rc_matrix <- raup_crick(WIA_rc, plot_names_in_col1 = FALSE)
 #beanplot(WIA_rc_matrix)
 W_mat <- as.matrix(WIA_rc_matrix)
 w2 <- melt(W_mat)[melt(upper.tri(W_mat))$value,]
 names(w2) <- c("c1", "c2", "distance")
-w2$time <- rep("A")
+w2$time <- rep("May")
 w2$pair <- seq(from = 1, to=120, by =1)
 
 # WIC 
 WIC_rc <- epicomm_full[271:287, -1]
 WIC_rc <- data.frame(WIC_rc)
-WIC_rc_matrix <- raup_crick(WIC_rc, plot_names_in_col1 = TRUE)
+WIC_rc_matrix <- raup_crick(WIC_rc, plot_names_in_col1 = FALSE)
 #beanplot(WIC_rc_matrix)
 W_mat <- as.matrix(WIC_rc_matrix)
 w3 <- melt(W_mat)[melt(upper.tri(W_mat))$value,]
 names(w3) <- c("c1", "c2", "distance")
-w3$time <- rep("B")
+w3$time <- rep("June/July")
 w3$pair <- seq(from = 1, to=136, by =1)
 
 # WIE
 WIE_rc <- epicomm_full[288:303,-1]
 WIE_rc <- data.frame(WIE_rc)
-WIE_rc_matrix <- raup_crick(WIE_rc, plot_names_in_col1 = TRUE)
+WIE_rc_matrix <- raup_crick(WIE_rc, plot_names_in_col1 = FALSE)
 #beanplot(WIE_rc_matrix)
 W_mat <- as.matrix(WIE_rc_matrix)
 w4 <- melt(W_mat)[melt(upper.tri(W_mat))$value,]
 names(w4) <- c("c1", "c2", "distance")
-w4$time <- rep("C")
+w4$time <- rep("August")
 w4$pair <- seq(from = 1, to=120, by =1)
 
 w5 <- bind_rows(w2, w3)
@@ -596,34 +599,34 @@ w5 <- bind_rows(w5, w4)
 # RPA - shared absences (makes little difference)
 RPA_rc  <- epicomm_full[208:222,-1]
 RPA_rc <- data.frame(RPA_rc)
-RPA_rc_matrix <- raup_crick(RPA_rc, plot_names_in_col1 = TRUE)
+RPA_rc_matrix <- raup_crick(RPA_rc, plot_names_in_col1 = FALSE)
 #beanplot(RPA_rc_matrix)
 R_mat <- as.matrix(RPA_rc_matrix)
 r2 <- melt(R_mat)[melt(upper.tri(R_mat))$value,]
 names(r2) <- c("c1", "c2", "distance")
-r2$time <- rep("A")
+r2$time <- rep("May")
 r2$pair <- seq(from = 1, to=105, by =1)
 
 # RPC 
 RPC_rc <- epicomm_full[223:238, -1]
 RPC_rc <- data.frame(RPC_rc)
-RPC_rc_matrix <- raup_crick(RPC_rc, plot_names_in_col1 = TRUE)
+RPC_rc_matrix <- raup_crick(RPC_rc, plot_names_in_col1 = FALSE)
 #beanplot(RPC_rc_matrix)
 R_mat <- as.matrix(RPC_rc_matrix)
 r3 <- melt(R_mat)[melt(upper.tri(R_mat))$value,]
 names(r3) <- c("c1", "c2", "distance")
-r3$time <- rep("B")
+r3$time <- rep("June/July")
 r3$pair <- seq(from = 1, to=120, by =1)
 
 # RPE
 RPE_rc <- epicomm_full[239:254,-1]
 RPE_rc <- data.frame(RPE_rc)
-RPE_rc_matrix <- raup_crick(RPE_rc, plot_names_in_col1 = TRUE)
+RPE_rc_matrix <- raup_crick(RPE_rc, plot_names_in_col1 = FALSE)
 #beanplot(RPE_rc_matrix)
 R_mat <- as.matrix(RPE_rc_matrix)
 r4 <- melt(R_mat)[melt(upper.tri(R_mat))$value,]
 names(r4) <- c("c1", "c2", "distance")
-r4$time <- rep("C")
+r4$time <- rep("August")
 r4$pair <- seq(from = 1, to=120, by =1)
 
 r5 <- bind_rows(r2, r3)
@@ -642,34 +645,34 @@ r5 <- bind_rows(r5, r4)
 # NBA - shared absences (makes little difference)
 NBA_rc  <- epicomm_full[160:175,-1]
 NBA_rc <- data.frame(NBA_rc)
-NBA_rc_matrix <- raup_crick(NBA_rc, plot_names_in_col1 = TRUE)
+NBA_rc_matrix <- raup_crick(NBA_rc, plot_names_in_col1 = FALSE)
 #beanplot(NBA_rc_matrix)
 N_mat <- as.matrix(NBA_rc_matrix)
 n2 <- melt(N_mat)[melt(upper.tri(N_mat))$value,]
 names(n2) <- c("c1", "c2", "distance")
-n2$time <- rep("A")
+n2$time <- rep("May")
 n2$pair <- seq(from = 1, to=120, by =1)
 
 # NBC 
 NBC_rc <- epicomm_full[176:191, -1]
 NBC_rc <- data.frame(NBC_rc)
-NBC_rc_matrix <- raup_crick(NBC_rc, plot_names_in_col1 = TRUE)
+NBC_rc_matrix <- raup_crick(NBC_rc, plot_names_in_col1 = FALSE)
 #beanplot(NBC_rc_matrix)
 N_mat <- as.matrix(NBC_rc_matrix)
 n3 <- melt(N_mat)[melt(upper.tri(N_mat))$value,]
 names(n3) <- c("c1", "c2", "distance")
-n3$time <- rep("B")
+n3$time <- rep("June/July")
 n3$pair <- seq(from = 1, to=120, by =1)
 
 # NBE
 NBE_rc <- epicomm_full[192:207,-1]
 NBE_rc <- data.frame(NBE_rc)
-NBE_rc_matrix <- raup_crick(NBE_rc, plot_names_in_col1 = TRUE)
+NBE_rc_matrix <- raup_crick(NBE_rc, plot_names_in_col1 = FALSE)
 #beanplot(NBE_rc_matrix)
 N_mat <- as.matrix(NBE_rc_matrix)
 n4 <- melt(N_mat)[melt(upper.tri(N_mat))$value,]
 names(n4) <- c("c1", "c2", "distance")
-n4$time <- rep("C")
+n4$time <- rep("August")
 n4$pair <- seq(from = 1, to=120, by =1)
 
 n5 <- bind_rows(n2, n3)
@@ -688,34 +691,34 @@ n5 <- bind_rows(n5, n4)
 # CBA - shared absences (makes little difference)
 CBA_rc  <- epicomm_full[33:48,-1]
 CBA_rc <- data.frame(CBA_rc)
-CBA_rc_matrix <- raup_crick(CBA_rc, plot_names_in_col1 = TRUE)
+CBA_rc_matrix <- raup_crick(CBA_rc, plot_names_in_col1 = FALSE)
 #beanplot(CBA_rc_matrix)
 C_mat <- as.matrix(CBA_rc_matrix)
 c2 <- melt(C_mat)[melt(upper.tri(C_mat))$value,]
 names(c2) <- c("c1", "c2", "distance")
-c2$time <- rep("A")
+c2$time <- rep("May")
 c2$pair <- seq(from = 1, to=120, by =1)
 
 # CBC 
 CBC_rc <- epicomm_full[49:64, -1]
 CBC_rc <- data.frame(CBC_rc)
-CBC_rc_matrix <- raup_crick(CBC_rc, plot_names_in_col1 = TRUE)
+CBC_rc_matrix <- raup_crick(CBC_rc, plot_names_in_col1 = FALSE)
 #beanplot(CBC_rc_matrix)
 C_mat <- as.matrix(CBC_rc_matrix)
 c3 <- melt(C_mat)[melt(upper.tri(C_mat))$value,]
 names(c3) <- c("c1", "c2", "distance")
-c3$time <- rep("B")
+c3$time <- rep("June/July")
 c3$pair <- seq(from = 1, to=120, by =1)
 
 # CBE
 CBE_rc <- epicomm_full[65:79,-1]
 CBE_rc <- data.frame(CBE_rc)
-CBE_rc_matrix <- raup_crick(CBE_rc, plot_names_in_col1 = TRUE)
+CBE_rc_matrix <- raup_crick(CBE_rc, plot_names_in_col1 = FALSE)
 #beanplot(CBE_rc_matrix)
 C_mat <- as.matrix(CBE_rc_matrix)
 c4 <- melt(C_mat)[melt(upper.tri(C_mat))$value,]
 names(c4) <- c("c1", "c2", "distance")
-c4$time <- rep("C")
+c4$time <- rep("August")
 c4$pair <- seq(from = 1, to=105, by =1)
 
 c5 <- bind_rows(c2, c3)
@@ -762,11 +765,11 @@ m1$site <- factor(m1$site, levels = c("DC", "WI", "RP", "NB", "CB"))
 # BEB - shared absences (makes little difference)
 BEB_rc  <- epicomm_full[1:16,-1]
 BEB_rc <- data.frame(BEB_rc)
-BEB_rc_matrix <- raup_crick(BEB_rc, plot_names_in_col1 = TRUE)
+BEB_rc_matrix <- raup_crick(BEB_rc, plot_names_in_col1 = FALSE)
 B_mat <- as.matrix(BEB_rc_matrix)
 b2 <- melt(B_mat)[melt(upper.tri(B_mat))$value,]
 names(b2) <- c("c1", "c2", "distance")
-b2$time <- rep("B")
+b2$time <- rep("June/July")
 b2$pair <- seq(from = 1, to=120, by =1)
 
 #BEB_summary <- as.table(summary(BEB_rc_matrix))
@@ -774,11 +777,11 @@ b2$pair <- seq(from = 1, to=120, by =1)
 # BIB - shared absences (makes little difference)
 BIB_rc  <- epicomm_full[17:32,-1]
 BIB_rc <- data.frame(BIB_rc)
-BIB_rc_matrix <- raup_crick(BIB_rc, plot_names_in_col1 = TRUE)
+BIB_rc_matrix <- raup_crick(BIB_rc, plot_names_in_col1 = FALSE)
 B_mat <- as.matrix(BIB_rc_matrix)
 b3 <- melt(B_mat)[melt(upper.tri(B_mat))$value,]
 names(b3) <- c("c1", "c2", "distance")
-b3$time <- rep("B")
+b3$time <- rep("June/July")
 b3$pair <- seq(from = 1, to=120, by =1)
 
 #BIB_summary <- as.table(summary(BIB_rc_matrix))
@@ -786,11 +789,11 @@ b3$pair <- seq(from = 1, to=120, by =1)
 # CCD - shared absences (makes little difference)
 CCD_rc  <- epicomm_full[80:95,-1]
 CCD_rc <- data.frame(CCD_rc)
-CCD_rc_matrix <- raup_crick(CCD_rc, plot_names_in_col1 = TRUE)
+CCD_rc_matrix <- raup_crick(CCD_rc, plot_names_in_col1 = FALSE)
 B_mat <- as.matrix(CCD_rc_matrix)
 b4 <- melt(B_mat)[melt(upper.tri(B_mat))$value,]
 names(b4) <- c("c1", "c2", "distance")
-b4$time <- rep("B")
+b4$time <- rep("June/July")
 b4$pair <- seq(from = 1, to=120, by =1)
 
 #CCD_summary <- as.table(summary(CCD_rc_matrix))
@@ -798,11 +801,11 @@ b4$pair <- seq(from = 1, to=120, by =1)
 # EID - shared absences (makes little difference)
 EID_rc  <- epicomm_full[144:159,-1]
 EID_rc <- data.frame(EID_rc)
-EID_rc_matrix <- raup_crick(EID_rc, plot_names_in_col1 = TRUE)
+EID_rc_matrix <- raup_crick(EID_rc, plot_names_in_col1 = FALSE)
 B_mat <- as.matrix(EID_rc_matrix)
 b5 <- melt(B_mat)[melt(upper.tri(B_mat))$value,]
 names(b5) <- c("c1", "c2", "distance")
-b5$time <- rep("B")
+b5$time <- rep("June/July")
 b5$pair <- seq(from = 1, to=120, by =1)
 
 #EID_summary <- as.table(summary(EID_rc_matrix))
@@ -890,13 +893,13 @@ y1$loc <- as.factor(y1$loc)
 
 # summary of raup-crick within/between
 
-#raup_crick_summary <- y1 %>%
-#  group_by(time, loc) %>%
-#  summarise(mean(distance))
+raup_crick_summary <- y1 %>%
+  group_by(time, loc) %>%
+  summarise(mean(distance))
 
 # anova of within/between raup crick data
-#raup_crick.aov <- aov(distance ~ loc * time, data = y1)
-#summary(raup_crick.aov)
+raup_crick.aov <- aov(distance ~ loc * time, data = y1)
+summary(raup_crick.aov)
 
 #Df Sum Sq Mean Sq F value Pr(>F)    
 #loc            1    0.0   0.034   0.144  0.704    
@@ -909,7 +912,7 @@ y1$loc <- as.factor(y1$loc)
 #library(car)
 
 # levene test of variance
-#raup_crick.var <- leveneTest(distance ~ loc * time, data = y1)
+raup_crick.var <- leveneTest(distance ~ loc * time, data = y1)
 #raup_crick.var
 
 #Levene's Test for Homogeneity of Variance (center = median)
@@ -937,9 +940,17 @@ ggplot(y1, aes(loc, distance)) +
 
 # 500 x 600
 
+#####
+#<<<<<<<<<<<<<<<<<<<<<<<<<<END OF SCRIPT>>>>>>>>>>>>>>>>>>>>>>>>#
 
 
+#######
 
+#####
+#<<<<<<<<<<<<<<<<<<<<<<<<<<END OF SCRIPT>>>>>>>>>>>>>>>>>>>>>>>>#
+
+
+#######
 
 
 
@@ -1139,7 +1150,7 @@ CCD_BC <- mean(CCD.mat)
 
 
 Sites <- rep(c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"),3)
-Times <- c(rep("A", 9), rep("B",9), rep("C",9))
+Times <- c(rep("May", 9), rep("June/July",9), rep("August",9))
 rawbeta <- c(DCA_rawbeta, WIA_rawbeta, "NA", "NA", RPA_rawbeta, NBA_rawbeta, CBA_rawbeta, "NA", "NA", DCC_rawbeta, WIC_rawbeta, BEB_rawbeta, EID_rawbeta, RPC_rawbeta, NBC_rawbeta, CBC_rawbeta, BIB_rawbeta, CCD_rawbeta, DCE_rawbeta, WIE_rawbeta, "NA", "NA", RPE_rawbeta, NBE_rawbeta, CBE_rawbeta, "NA", "NA" )
 BCbeta <- c(DCA_BC, WIA_BC, "NA", "NA", RPA_BC, NBA_BC, CBA_BC, "NA", "NA", DCC_BC, WIC_BC, BEB_BC, EID_BC, RPC_BC, NBC_BC, CBC_BC, BIB_BC, CCD_BC, DCE_BC, WIE_BC, "NA", "NA", RPE_BC, NBE_BC, CBE_BC, "NA", "NA")
   
@@ -1722,7 +1733,7 @@ for (i in levels(bray.all$group)) {
 
 
 #distance matrix of May############
-A.comm <- new.comm[grep("A", new.comm$sitetime),] 
+A.comm <- new.comm[grep("May", new.comm$sitetime),] 
 
 #reorder factors
 A.comm$sitetime <- factor(A.comm$sitetime, levels = c("DCA", "WIA", "RPA", "NBA", "CBA")) 
