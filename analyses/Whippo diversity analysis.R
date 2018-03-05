@@ -40,27 +40,19 @@ plot(sites$shoot.density~ sites$fetch.jc)
 plot(sites$fetch.jc~ sites$dfw)
 plot(log(sites$area) ~ sites$fetch.jc)
 
-### what needs to happen here is: 
-# 1a. create a dataframe of species (columns) pooled across sizes for each site. 
-# 1b. create a dataframe of species (columns) pooled across sizes for each plot. 
-# 2. in this dataframe, include potential gradients (watershed position)
-
 
 # data preparation ---------------------------------------------------
 ## Melt and recast so the datafile goes from long to wide (species as columns)
 data.m <- melt(data, id = c(1,2,3,4,5,52, 53))
 
-## Clean and correct species names
+## Clean and correct species names. 
+## in the data file, some names we initially used for taxa needed updating based on improvements in our ability to identify them. So these replacements reflect those updates. 
 levels(data.m$variable)[levels(data.m$variable)== "Bittium.spp."] <- "Lirobittium.spp."
 levels(data.m$variable)[levels(data.m$variable)== "Olivella.sp."] <- "Callianax.sp."
 levels(data.m$variable)[levels(data.m$variable)== "Cypricercus."] <- "Cyprideis.beaconensis"
 levels(data.m$variable)[levels(data.m$variable)== "Odontosyllis"] <- "Polychaete1"
 
-## why is only one nematode listed in table?
-##  check ranks for table 2
-## clean up this code for posting
-
-# Clean up time code issue
+# Clean up time code labels so they are easier to model
 levels(unique(data$Time.Code2))
 levels(data.m$Time.Code)
 data.m$Time.Code <- as.character(data.m$Time.Code)
@@ -69,7 +61,7 @@ data.m$Time.Code <- as.factor(data.m$Time.Code)
 data.m$value <- as.numeric(data.m$value)
 levels(data.m$Time.Code)
 
-## Merge with site info
+## Merge diversity file with site metadata
 data.s <- merge(data.m, sites, by = "site")
 
 ## Sum across size classes within plots (samples)
@@ -80,7 +72,9 @@ names(data.p) <- c("site", "Date", "Sample", "Time.Code2", "species", "dfw","ord
 
 ## Merge with traits and sort by taxa or functional groups
 data.tr <- merge(data.p, traits[,-1], by.x = "species", by.y = "species.names", all.x = TRUE, all.y = FALSE)
-## mary check here, looks like some species names from traits col. 1 are making it through Feb 2018
+
+## create datafile to be posted with paper: 
+write.csv(data.tr, "Whippodata.csv")
 
 # Create datafiles for taxa and times -------------------------------------
 
@@ -88,7 +82,7 @@ data.tr <- merge(data.p, traits[,-1], by.x = "species", by.y = "species.names", 
 levels(data.tr$eelgrss.epifauna)
 data.e <- data.tr %>% filter(eelgrss.epifauna == c("yes", "sometimes"))
 data.y <- data.tr %>% filter(eelgrss.epifauna == "yes")
-data.s <- data.tr %>% filter(patch == "yes")
+#data.s <- data.tr %>% filter(patch == "yes")
 data.g <- data.tr %>% filter(function. == "grazer")
 data.c <- data.tr %>% filter(group == "crustacean")
 data.ga <- data.tr %>% filter(group == "gastropod")
