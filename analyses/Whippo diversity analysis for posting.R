@@ -135,7 +135,7 @@ names(I.means) <- c("I", "lower", "upper","Nsig","site")
 
 ### NEED CODE FOR TABLE 2 HERE
 
-## Build-yer-own rank abundance curves.
+## Build-yer-own rank abundance curves. ## need to do this for each site and time, then put together into a table (table 2).
 BEsp <- div.data %>%
   filter(site == "BE") %>%
   select(., -(c(1:3,38:39))) %>%
