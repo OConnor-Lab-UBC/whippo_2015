@@ -11,7 +11,7 @@
 # load libraries and data -------------------------------------------------
 
 library(vegan)
-library(BiodiversityR)
+#library(BiodiversityR)
 library(plyr)
 library(reshape2)
 library(dplyr)
