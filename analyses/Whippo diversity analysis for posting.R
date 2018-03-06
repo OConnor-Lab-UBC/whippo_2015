@@ -21,6 +21,8 @@ library(ggplot2)
 library(purrr)
 
 data.tr <- read.csv("./data/Whippodata.csv")
+data.tr <- data.tr[,-1]
+sites <- read.csv("./data/site.info.csv")
 
 # Create datafiles for taxa and times -------------------------------------
 
@@ -63,11 +65,11 @@ data.t <- dataJULY9 #data3times # dataJULY9
 
 div.data <- dcast(data.t[,c(1:4,12)], site + Date + Sample ~ species, sum)
 
-#H <- diversity(div.data[,-(c(1:3))], index ="shannon")
-#S <- diversity(div.data[,-(c(1:3))], index ="simpson")
-#I <- dispindmorisita(div.data[,-(c(1:3))], unique.rm = TRUE)
-#div.data$alpha.p <- specnumber(div.data[,4:37])
-#div.data$N <- rowSums(div.data[,(4:37)])
+H <- diversity(div.data[,-(c(1:3))], index ="shannon")
+S <- diversity(div.data[,-(c(1:3))], index ="simpson")
+I <- dispindmorisita(div.data[,-(c(1:3))], unique.rm = TRUE)
+div.data$alpha.p <- specnumber(div.data[,4:37])
+div.data$N <- rowSums(div.data[,(4:37)])
 
 ## calculate rarified richness for samples with more than 5 individuals
 ### this needs to be updated for the chao2 estimator. COME BACK TO THIS
@@ -127,15 +129,32 @@ I.means <- as.data.frame(I.means)
 names(I.means) <- c("I", "lower", "upper","Nsig","site")
 
 
+### code for rarified richness here
 
 
 
+### NEED CODE FOR TABLE 2 HERE
+
+## Build-yer-own rank abundance curves.
+BEsp <- div.data %>%
+  filter(site == "BE") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) %>%
+  filter(N > 0)
+
+BEspR <- BEsp %>%
+  mutate(., rank = min_rank(desc(N)))
+
+View(BEspR)  
 
 
-# Compile indices into one dataframe
+
+# Compile indices into one dataframe to make FIGURE 2
 div.summary <- cbind(div.data[c(1:3, 38:39)], H, S)
-div.summaryE <- merge(div.summary, RR.data, by.x = c("site", "Date","sample", "alpha.p", "N", "H", "S"), by.y = c("site", "Date","alpha.p","N", "Sample"))
-div.summary2 <- merge(div.summaryE, sites, by.x = c("site"), by.y = c("site"))
+#div.summaryE <- merge(div.summary, RR.data, by.x = c("site", "Date","Sample", "alpha.p", "N"), by.y = c("site", "Date","alpha.p","N", "Sample"))
+div.summary2 <- merge(div.summary, sites, by.x = c("site"), by.y = c("site"))
 div.summaryI <- merge(div.summary2, I.means, by.x = c("site"), by.y = c("site"))
 div.summaryT <- merge(div.summaryI, site.alpha, by.x = c("site"), by.y = c("site")) # get site alpha from EMS code (this can be changed to reference code above in this file)
 head(div.summaryT)
@@ -153,17 +172,15 @@ site.RR <- ddply(div.summaryT, .(site), summarise, mean(RR))
 
 # Get and plot observed site means
 
+## check distributions: 
+hist(div.summary2$alpha.p)
+
 # does plot level alpha diversity differ among meadows?
 mods4 <- lm(div.summary2$alpha.p ~ div.summary2$site)
 mods0 <-  lm(div.summary2$alpha.p ~ 1)
 anova(mods4, mods0)
 model.sel(mods4, mods0)
 summary(mods4)
-
-mods1 <- lm(div.summary2$H ~ div.summary2$site)
-mods2 <- lm(div.summary2$S ~ div.summary2$site)
-mods3 <- lm(div.summary2$N ~ div.summary2$site)
-mods4 <- lm(div.summary2$alpha.p ~ div.summary2$site)
 
 # i had date as a predictor, but it seems to be confounded with meadow ID, so I'm not going to include it as a predictor, within the June sampling time.
 mod1a <- lm(div.summary2$H ~ div.summary2$fetch.jc)
@@ -196,6 +213,12 @@ mod2g <- lm(div.summary2$S ~ div.summary2$site)
 mod3g <- lm(div.summary2$alpha.p ~ div.summary2$site)
 mod4g <- lm(div.summary2$RR ~ div.summary2$site)
 
+## TABLE 3
+model.sel(mod1a, mod1b, mod1c, mod1d, mod1f, mod1g)
+model.sel(mod2a, mod2b, mod2c, mod2d, mod2f, mod2g)
+model.sel(mod3a, mod3b, mod3c, mod3d, mod3f, mod3g)
+model.sel(mod4a, mod4b, mod4c, mod4d, mod4f, mod4g)
+
 
 
 # FIGURE 2 ----------------------------------------------------------------
@@ -210,7 +233,7 @@ div.plot <- ggplot(data = div.summary2, aes(reorder(site, -order.dfw), y = alpha
   ylab("Species Richness")
 
 div.plot
-ggsave("Jan2017alphaplot.png", device = "png", width = 4, height = 2.5)
+ggsave("Julyalphaplot.png", device = "png", width = 4, height = 2.5)
 
 H.plot <- ggplot(data = div.summary2, aes(reorder(site, -order.dfw), y = H, ymin = 0, ymax = 2)) + 
   theme_bw() +
@@ -280,12 +303,6 @@ mod2f <- lm(log(data9$grazer+1) ~ data9$dfw + data9$fetch)
 model.sel(mod1a, mod1b, mod1, mod1c, mod1e, mod1f, mod10)
 model.sel(mod2a, mod2b, mod2, mod2c, mod2e, mod2f, mod20)
 
-
-## TABLE S5
-model.sel(mod1a, mod1b, mod1, mod1c, mod1d, mod1f, mod1g)
-model.sel(mod2a, mod2b, mod2, mod2c, mod2d, mod2f, mod2g)
-model.sel(mod3a, mod3b, mod3, mod3c, mod3d, mod3f, mod3g)
-model.sel(mod4a, mod4b, mod4, mod4c, mod4d, mod4f, mod4g)
 
 
 ## Abundance analyses for trends over time in sites sampled 3 times.
