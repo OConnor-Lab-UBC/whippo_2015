@@ -270,7 +270,7 @@ RR.plot
 ggsave("Jan2017RRplot.png", device = "png", width = 4, height = 2.5)
 
 
-
+ggsave("histogram", device = "png", width = 4, height = 4)
 
 
 # Table S5 ----------------------------------------------------------------
