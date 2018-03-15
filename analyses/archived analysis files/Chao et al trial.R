@@ -11,7 +11,7 @@ iNEXT(x, q=0, datatype="abundance", size=NULL, endpoint=NULL, knots=40, se=TRUE,
 
 
 ## bring in Ross's data from two sites: 
-RBE <- rankBE[,2]
+RBE <- BEsp[,2]
 RRP <- rankRP[,2]
 RDC <- rankDC[,2]
 RWI <- rankWI[,2]
@@ -40,7 +40,7 @@ test
 
 ## you choose a base level that is 2x the smallest reference sample size, OR the largest reference sample size, whichever is biggest. so in this case teh base level for comparison is n = 17484. 
 ## then from iNEXT, we can (somehow) extract these richnesses and their confidence intervals. 
-
+$RBE
 test$iNextEst$RBE[103,4:6] -> BE
 test$iNextEst$RRP[103,4:6] -> RP
 test$iNextEst$RDC[103,4:6] -> DC

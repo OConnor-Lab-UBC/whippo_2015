@@ -69,8 +69,8 @@ div.data <- dcast(data.t[,c(1:4,12)], site + Date + Sample ~ species, sum)
 H <- diversity(div.data[,-(c(1:3))], index ="shannon") #sample-level H
 S <- diversity(div.data[,-(c(1:3))], index ="simpson")
 I <- dispindmorisita(div.data[,-(c(1:3))], unique.rm = TRUE)
-div.data$alpha.p <- specnumber(div.data[,4:49])
-div.data$N <- rowSums(div.data[,(4:49)])
+div.data$alpha.p <- specnumber(div.data[,4:37])
+div.data$N <- rowSums(div.data[,(4:37)])
 
 
 ### Morisita's I within meadows for Table 1
@@ -125,14 +125,8 @@ names(I.means) <- c("I", "lower", "upper","Nsig","site")
 #information for Table 1:
 I.means
 
-
-### code for rarified richness here
-
-
-
 ### CODE FOR TABLE 2 HERE
-
-## Build rank abundance curves.
+## Order species by abundance. There is a command for this in BiodiversityR, but it is no longer working R. So doing it by hand.
 
 BEsp <- div.data %>%
   filter(site == "BE") %>%
@@ -142,7 +136,7 @@ BEsp <- div.data %>%
   arrange(., desc(N)) %>%
   filter(N > 0)
 
-BEspR <- BEsp %>%
+rankBE <- BEsp %>%
   mutate(., rank = min_rank(desc(N))) %>%
   View(.)
 
@@ -154,7 +148,7 @@ DCsp <- div.data %>%
   arrange(., desc(N)) %>%
   filter(N > 0)
 
-DCspR <- DCsp %>%
+rankDC <- DCsp %>%
   mutate(., rank = min_rank(desc(N))) %>%
   View(.)
 
@@ -166,9 +160,112 @@ WIsp <- div.data %>%
   arrange(., desc(N)) %>%
   filter(N > 0)
 
-WIspR <- WIsp %>%
+rankWI <- WIsp %>%
   mutate(., rank = min_rank(desc(N))) %>%
   View(.)
+
+EIsp <- div.data %>%
+  filter(site == "EI") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) %>%
+  filter(N > 0)
+
+rankEI <- EIsp %>%
+  mutate(., rank = min_rank(desc(N))) %>%
+  View(.)
+
+RPsp <- div.data %>%
+  filter(site == "RP") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) %>%
+  filter(N > 0)
+
+rankRP <- RPsp %>%
+  mutate(., rank = min_rank(desc(N))) %>%
+  View(.)
+
+NBsp <- div.data %>%
+  filter(site == "NB") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) %>%
+  filter(N > 0)
+
+rankNB <- NBsp %>%
+  mutate(., rank = min_rank(desc(N))) %>%
+  View(.)
+
+CBsp <- div.data %>%
+  filter(site == "CB") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) %>%
+  filter(N > 0)
+
+rankCB <- CBsp %>%
+  mutate(., rank = min_rank(desc(N))) %>%
+  View(.)
+
+BIsp <- div.data %>%
+  filter(site == "BI") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) %>%
+  filter(N > 0)
+
+rankBI <- BIsp %>%
+  mutate(., rank = min_rank(desc(N))) %>%
+  View(.)
+
+CCsp <- div.data %>%
+  filter(site == "CC") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) %>%
+  filter(N > 0)
+
+rankCC <- CCsp %>%
+  mutate(., rank = min_rank(desc(N))) %>%
+  View(.)
+
+ALLsp <- div.data %>%
+  #filter(site == "CC") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) %>%
+  filter(N > 0)
+
+rankALL <- ALLsp %>%
+  mutate(., rank = min_rank(desc(N))) %>%
+  View(.)
+
+### code for rarified richness here below, after ranks are generated:
+##
+library(iNEXT)
+library(ggplot2)
+
+#create data input: 
+RBE <- rankBE[,2]
+RRP <- rankRP[,2]
+RDC <- rankDC[,2]
+RWI <- rankWI[,2]
+RCC <- rankCC[,2]
+RCB <- rankCB[,2]
+RNB <- rankNB[,2]
+REI <- rankEI[,2]
+RBI <- rankBI[,2]
+
+
+
 
 
 
