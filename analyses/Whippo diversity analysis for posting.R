@@ -11,7 +11,8 @@
 # load libraries and data -------------------------------------------------
 
 library(vegan)
-#library(BiodiversityR)
+library(Rcmdr)
+library(BiodiversityR)
 library(plyr)
 library(reshape2)
 library(dplyr)
@@ -28,8 +29,8 @@ sites <- read.csv("./data/site.info.csv")
 
 ## Remove all taxa that are not epifauna: 
 levels(data.tr$eelgrss.epifauna)
-data.e <- data.tr %>% filter(eelgrss.epifauna == c("yes", "sometimes"))
-data.n <- data.tr %>% filter(eelgrss.epifauna == c("no"))
+data.e <- data.tr %>% filter(eelgrss.epifauna == "yes" | eelgrss.epifauna == "sometimes")
+data.n <- data.tr %>% filter(eelgrss.epifauna == "no")
 data.tr <- data.e #reset to data.e
 
 ## create data subsets for different sampling times
@@ -53,30 +54,23 @@ site.alpha <- as.data.frame(cbind(as.character(data2$TimeID), data.alpha))
 names(site.alpha) <- c("site.time", "alpha")
 site.alpha$site <- c("BE", "BI", "CB", "CC", "DC", "EI", "NB", "RP", "WI")
 
+#info for Table 1: 
+site.alpha
 
-
-## for each plot, estimate relative abundance of grazers
-data.t <- dataJULY9 #data3times # dataJULY9
+## for each plot, estimate relative abundance of grazers for period in start.data
+data.t <- start.data 
 
 # STATISTICAL ANALYSIS ON JULY ABUNDANCE PATTERNS 
-## Table 1
 # Diversity analyses ------------------------------------------------------
 ## assemble diversity indices for Tables 1 and 3, Figure 2
 
 div.data <- dcast(data.t[,c(1:4,12)], site + Date + Sample ~ species, sum)
 
-H <- diversity(div.data[,-(c(1:3))], index ="shannon")
+H <- diversity(div.data[,-(c(1:3))], index ="shannon") #sample-level H
 S <- diversity(div.data[,-(c(1:3))], index ="simpson")
 I <- dispindmorisita(div.data[,-(c(1:3))], unique.rm = TRUE)
-div.data$alpha.p <- specnumber(div.data[,4:37])
-div.data$N <- rowSums(div.data[,(4:37)])
-
-## calculate rarified richness for samples with more than 5 individuals
-### this needs to be updated for the chao2 estimator. COME BACK TO THIS
-RR.data <- div.data %>%
-  filter(N > 4) 
-
-RR.data$RR = rarefy(RR.data[,4:37], 5)
+div.data$alpha.p <- specnumber(div.data[,4:49])
+div.data$N <- rowSums(div.data[,(4:49)])
 
 
 ### Morisita's I within meadows for Table 1
@@ -128,14 +122,18 @@ I.means <- cbind(means, ci.lowers, ci.uppers, Nsig, c('DC', 'WI', 'BE', 'EI', 'R
 I.means <- as.data.frame(I.means)
 names(I.means) <- c("I", "lower", "upper","Nsig","site")
 
+#information for Table 1:
+I.means
+
 
 ### code for rarified richness here
 
 
 
-### NEED CODE FOR TABLE 2 HERE
+### CODE FOR TABLE 2 HERE
 
-## Build-yer-own rank abundance curves. ## need to do this for each site and time, then put together into a table (table 2).
+## Build rank abundance curves.
+
 BEsp <- div.data %>%
   filter(site == "BE") %>%
   select(., -(c(1:3,38:39))) %>%
@@ -145,9 +143,32 @@ BEsp <- div.data %>%
   filter(N > 0)
 
 BEspR <- BEsp %>%
-  mutate(., rank = min_rank(desc(N)))
+  mutate(., rank = min_rank(desc(N))) %>%
+  View(.)
 
-View(BEspR)  
+DCsp <- div.data %>%
+  filter(site == "DC") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) %>%
+  filter(N > 0)
+
+DCspR <- DCsp %>%
+  mutate(., rank = min_rank(desc(N))) %>%
+  View(.)
+
+WIsp <- div.data %>%
+  filter(site == "WI") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) %>%
+  filter(N > 0)
+
+WIspR <- WIsp %>%
+  mutate(., rank = min_rank(desc(N))) %>%
+  View(.)
 
 
 
