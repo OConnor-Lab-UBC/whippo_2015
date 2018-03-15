@@ -66,6 +66,7 @@ data.t <- start.data
 
 div.data <- dcast(data.t[,c(1:4,12)], site + Date + Sample ~ species, sum)
 
+## estimate univariate diversity for each sample
 H <- diversity(div.data[,-(c(1:3))], index ="shannon") #sample-level H
 S <- diversity(div.data[,-(c(1:3))], index ="simpson")
 I <- dispindmorisita(div.data[,-(c(1:3))], unique.rm = TRUE)
@@ -95,7 +96,7 @@ I.NB[order(I.NB$imor, decreasing = TRUE),]
 I.EI[order(I.EI$imor, decreasing = TRUE),]
 I.BI[order(I.BI$imor, decreasing = TRUE),]
 
-## now rank by Pchisq
+## now rank species within sites by Pchisq value just so it's easier to see which are signficant, for Table 2.
 I.BE[order(I.BE$pchisq),]
 I.RP[order(I.RP$pchisq),]
 I.DC[order(I.DC$pchisq),]
@@ -125,7 +126,9 @@ names(I.means) <- c("I", "lower", "upper","Nsig","site")
 #information for Table 1:
 I.means
 
-### CODE FOR TABLE 2 HERE
+
+### CODE FOR TABLE 2 HERE. Table 2 presents each species rank within each site and time. It allows us to see whether similar species were abundant across sites and times.
+
 ## Order species by abundance. There is a command for this in BiodiversityR, but it is no longer working R. So doing it by hand.
 
 BEsp <- div.data %>%
@@ -248,7 +251,8 @@ rankALL <- ALLsp %>%
   mutate(., rank = min_rank(desc(N))) %>%
   View(.)
 
-### code for rarified richness here below, after ranks are generated:
+## below here, still cleaning up, so not sure it works yet: March 15 2018
+### Code for rarified richness here below, for Table 1, after ranks are generated:
 ##
 library(iNEXT)
 library(ggplot2)
