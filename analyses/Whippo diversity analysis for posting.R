@@ -54,25 +54,14 @@ site.alpha <- as.data.frame(cbind(as.character(data2$TimeID), data.alpha))
 names(site.alpha) <- c("site.time", "alpha")
 site.alpha$site <- c("BE", "BI", "CB", "CC", "DC", "EI", "NB", "RP", "WI")
 
-#info for Table 1: 
-site.alpha
-
 ## for each plot, estimate relative abundance of grazers for period in start.data
-data.t <- start.data 
+#data.t <- start.data 
 
 # STATISTICAL ANALYSIS ON JULY ABUNDANCE PATTERNS 
 # Diversity analyses ------------------------------------------------------
 ## assemble diversity indices for Tables 1 and 3, Figure 2
 
-div.data <- dcast(data.t[,c(1:4,12)], site + Date + Sample ~ species, sum)
-
-## estimate univariate diversity for each sample
-H <- diversity(div.data[,-(c(1:3))], index ="shannon") #sample-level H
-S <- diversity(div.data[,-(c(1:3))], index ="simpson")
-I <- dispindmorisita(div.data[,-(c(1:3))], unique.rm = TRUE)
-div.data$alpha.p <- specnumber(div.data[,4:37])
-div.data$N <- rowSums(div.data[,(4:37)])
-
+div.data <- dcast(start.data[,c(1:4,12)], site + Date + Sample ~ species, sum)
 
 ### Morisita's I within meadows for Table 1
 I.BE <- dispindmorisita(div.data[(div.data$site=='BE'),-(c(1:3,38:39))], unique.rm = TRUE, na.rm = TRUE)
@@ -95,17 +84,6 @@ I.CC[order(I.CC$imor, decreasing = TRUE),]
 I.NB[order(I.NB$imor, decreasing = TRUE),]
 I.EI[order(I.EI$imor, decreasing = TRUE),]
 I.BI[order(I.BI$imor, decreasing = TRUE),]
-
-## now rank species within sites by Pchisq value just so it's easier to see which are signficant, for Table 2.
-I.BE[order(I.BE$pchisq),]
-I.RP[order(I.RP$pchisq),]
-I.DC[order(I.DC$pchisq),]
-I.WI[order(I.WI$pchisq),]
-I.CB[order(I.CB$pchisq),]
-I.CC[order(I.CC$pchisq),]
-I.NB[order(I.NB$pchisq),]
-I.EI[order(I.EI$pchisq),]
-I.BI[order(I.BI$pchisq),]
 
 ## assemble mean I values, and confidence intervals for TABLE 1
 means <- c(mean(I.DC[,4], na.rm = TRUE), mean(I.WI[,4], na.rm = TRUE), mean(I.BE[,4], na.rm = TRUE), mean(I.EI[,4], na.rm = TRUE), mean(I.RP[,4], na.rm = TRUE), mean(I.NB[,4], na.rm = TRUE), mean(I.CB[,4], na.rm = TRUE), mean(I.BI[,4], na.rm = TRUE), mean(I.CC[,4], na.rm = TRUE))
@@ -130,6 +108,17 @@ I.means
 ### CODE FOR TABLE 2 HERE. Table 2 presents each species rank within each site and time. It allows us to see whether similar species were abundant across sites and times.
 
 ## Order species by abundance. There is a command for this in BiodiversityR, but it is no longer working R. So doing it by hand.
+
+## now rank species within sites by Pchisq value just so it's easier to see which are signficant, for Table 2.
+I.BE[order(I.BE$pchisq),]
+I.RP[order(I.RP$pchisq),]
+I.DC[order(I.DC$pchisq),]
+I.WI[order(I.WI$pchisq),]
+I.CB[order(I.CB$pchisq),]
+I.CC[order(I.CC$pchisq),]
+I.NB[order(I.NB$pchisq),]
+I.EI[order(I.EI$pchisq),]
+I.BI[order(I.BI$pchisq),]
 
 BEsp <- div.data %>%
   filter(site == "BE") %>%
@@ -293,6 +282,13 @@ site.RR <- ddply(div.summaryT, .(site), summarise, mean(RR))
 # ANALYZE UNIVARIATE DIVERSITY INDICES ----------------------------------------------
 
 # Get and plot observed site means
+## estimate univariate diversity for each sample
+H <- diversity(div.data[,-(c(1:3))], index ="shannon") #sample-level H
+S <- diversity(div.data[,-(c(1:3))], index ="simpson")
+I <- dispindmorisita(div.data[,-(c(1:3))], unique.rm = TRUE) #do we report this anywhere?
+div.data$alpha.p <- specnumber(div.data[,4:37])
+div.data$N <- rowSums(div.data[,(4:37)])
+
 
 ## check distributions: 
 hist(div.summary2$alpha.p)

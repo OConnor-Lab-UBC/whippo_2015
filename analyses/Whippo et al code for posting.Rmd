@@ -1,0 +1,283 @@
+---
+title: "Whippo et al Code for Posting"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+Libraries
+```{r, echo = TRUE}
+library(vegan)
+#library(Rcmdr)
+#library(BiodiversityR)
+library(plyr)
+library(reshape2)
+library(dplyr)
+library(MuMIn)
+library(lubridate)
+library(ggplot2)
+library(purrr)
+library(knitr)
+```
+
+Load data
+```{r, echo = TRUE}
+data.tr <- read.csv("../data/Whippodata.csv")
+data.tr <- data.tr[,-1]
+sites <- read.csv("../data/site.info.csv")
+```
+
+From full datasets of all sites, species and sampling dates, subset data:
+
+1. Remove all taxa that are not epifauna: 
+```{r}
+# levels(data.tr$eelgrss.epifauna)
+data.e <- data.tr %>% filter(eelgrss.epifauna == "yes" | eelgrss.epifauna == "sometimes")
+data.n <- data.tr %>% filter(eelgrss.epifauna == "no")
+data.tr <- data.e #reset to data.e
+```
+
+2. Create data subsets for different sampling times
+```{r, echo = TRUE}
+# 5 sites were sampled in May, June and July
+dataMAY <- data.tr[(data.tr$Time.Code2=="A"),]
+dataJULY <- data.tr[(data.tr$Time.Code2=="C" & data.tr$site!="BE" & data.tr$site!="EI" & data.tr$site!="CC" & data.tr$site!="BI"),]
+dataAUG <- data.tr[(data.tr$Time.Code2=="E"),]
+
+# this set has all three sampling times for the 5 sites sampled 3 times
+data3times <- data.tr[(data.tr$site!="BE" & data.tr$site!="EI" & data.tr$site!="CC" & data.tr$site!="BI"),]
+
+# this set has the 9 sites sampled in July
+dataJULY9 <- data.tr[(data.tr$Time.Code2=="C"),]
+```
+
+3. Create site-level data by collapsing across plots. Change the data used in start data to consider other temporal subsets.
+```{r, ech = TRUE}
+start.data <- dataJULY9 # dataMAY, dataAUG, dataJULY, data3times
+data.ms <- ddply(start.data, .(TimeID, area, species), summarise, sum(abundance)) #order
+data2 <- dcast(data.ms, TimeID ~ species, mean) #order
+```
+
+Table 1: Site-level results for July
+
+1. Diversity (Gamma) Observed number of species per site for month identified in start.data: 
+```{r}
+# dim(data2)
+data.alpha <- data2
+data.alpha <- specnumber(data.alpha[,2:35])
+site.alpha <- as.data.frame(cbind(as.character(data2$TimeID), data.alpha))
+names(site.alpha) <- c("site.time", "alpha")
+site.alpha$site <- c("BE", "BI", "CB", "CC", "DC", "EI", "NB", "RP", "WI")
+kable(site.alpha, caption = "Observed Number of Species at each site on sample date indicated in column site.time. This information is in the 'Diversity' column in Table 1.")
+```
+
+2. Morisita's index (aggregation)
+```{r}
+div.data <- dcast(start.data[,c(1:4,12)], site + Date + Sample ~ species, sum)
+
+### Morisita's I within meadows for column Im
+I.BE <- dispindmorisita(div.data[(div.data$site=='BE'),-(c(1:3,38:39))], unique.rm = TRUE, na.rm = TRUE)
+I.RP <- dispindmorisita(div.data[(div.data$site=='RP'),-(c(1:3,38:39))], unique.rm = TRUE, na.rm = TRUE)
+I.DC <- dispindmorisita(div.data[(div.data$site=='DC'),-(c(1:3,38:39))], unique.rm = TRUE, na.rm = TRUE)
+I.WI <- dispindmorisita(div.data[(div.data$site=='WI'),-(c(1:3,38:39))], unique.rm = TRUE, na.rm = TRUE)
+I.CB <- dispindmorisita(div.data[(div.data$site=='CB'),-(c(1:3,38:39))], unique.rm = TRUE, na.rm = TRUE)
+I.CC <- dispindmorisita(div.data[(div.data$site=='CC'),-(c(1:3,34:35))], unique.rm = TRUE, na.rm = TRUE)
+I.EI <- dispindmorisita(div.data[(div.data$site=='EI'),-(c(1:3,38:39))], unique.rm = TRUE, na.rm = TRUE)
+I.NB <- dispindmorisita(div.data[(div.data$site=='NB'),-(c(1:3,38:39))], unique.rm = TRUE, na.rm = TRUE)
+I.BI <- dispindmorisita(div.data[(div.data$site=='BI'),-(c(1:3,38:39))], unique.rm = TRUE, na.rm = TRUE)
+
+## assemble mean I values, and confidence intervals for TABLE 1
+means <- c(mean(I.DC[,4], na.rm = TRUE), mean(I.WI[,4], na.rm = TRUE), mean(I.BE[,4], na.rm = TRUE), mean(I.EI[,4], na.rm = TRUE), mean(I.RP[,4], na.rm = TRUE), mean(I.NB[,4], na.rm = TRUE), mean(I.CB[,4], na.rm = TRUE), mean(I.BI[,4], na.rm = TRUE), mean(I.CC[,4], na.rm = TRUE))
+
+ci.upper <- function(x) mean(x) + 1.96*sd(x)/sqrt(length(x))
+ci.lower <- function(x) mean(x) - 1.96*sd(x)/sqrt(length(x))
+
+ci.lowers <- c(ci.lower(I.DC[(I.DC$imst != "NaN"),4]), ci.lower(I.WI[(I.WI$imst != "NaN"),4]), ci.lower(I.BE[(I.BE$imst != "NaN"),4]), ci.lower(I.EI[(I.EI$imst != "NaN"),4]), ci.lower(I.RP[(I.RP$imst != "NaN"),4]), ci.lower(I.NB[(I.NB$imst != "NaN"),4]), ci.lower(I.CB[(I.CB$imst != "NaN"),4]), ci.lower(I.BI[(I.BI$imst != "NaN"),4]), ci.lower(I.CC[(I.CC$imst != "NaN"),4]))
+
+ci.uppers <- c(ci.upper(I.DC[(I.DC$imst != "NaN"),4]), ci.upper(I.WI[(I.WI$imst != "NaN"),4]), ci.upper(I.BE[(I.BE$imst != "NaN"),4]), ci.upper(I.EI[(I.EI$imst != "NaN"),4]), ci.upper(I.RP[(I.RP$imst != "NaN"),4]), ci.upper(I.NB[(I.NB$imst != "NaN"),4]), ci.upper(I.CB[(I.CB$imst != "NaN"),4]), ci.upper(I.BI[(I.BI$imst != "NaN"),4]), ci.upper(I.CC[(I.CC$imst != "NaN"),4]))
+
+Nsig <- c((length(I.DC[(I.DC$pchisq != "NaN" & I.DC$pchisq < 0.01),1])/length(I.DC[(I.DC$imor != "NaN"),1])), (length(I.WI[(I.WI$pchisq != "NaN" & I.WI$pchisq < 0.01),1])/length(I.WI[(I.WI$imor != "NaN"),1])), (length(I.BE[(I.BE$pchisq != "NaN" & I.BE$pchisq < 0.01),1])/length(I.BE[(I.BE$imor != "NaN"),1])), (length(I.EI[(I.EI$pchisq != "NaN" & I.EI$pchisq < 0.01),1])/length(I.EI[(I.EI$imor != "NaN"),1])), (length(I.RP[(I.RP$pchisq != "NaN" & I.RP$pchisq < 0.01),1])/length(I.RP[(I.RP$imor != "NaN"),1])), (length(I.NB[(I.NB$pchisq != "NaN" & I.NB$pchisq < 0.01),1])/length(I.NB[(I.NB$imor != "NaN"),1])), (length(I.CB[(I.CB$pchisq != "NaN" & I.CB$pchisq < 0.01),1])/length(I.CB[(I.CB$imor != "NaN"),1])), (length(I.BI[(I.BI$pchisq != "NaN" & I.BI$pchisq < 0.01),1])/length(I.BI[(I.BI$imor != "NaN"),1])), (length(I.CC[(I.CC$pchisq != "NaN" & I.CC$pchisq < 0.01),1])/length(I.CC[(I.CC$imor != "NaN"),1])))
+
+I.means <- cbind(means, ci.lowers, ci.uppers, Nsig, c('DC', 'WI', 'BE', 'EI', 'RP', 'NB', 'CB', 'BI', 'CC'))
+I.means <- as.data.frame(I.means)
+names(I.means) <- c("Aggregation (I.m)", "CI.lower", "CI.upper","Proportion species with significant I.m","Site")
+
+#information for Table 1:
+kable(I.means, caption = "")
+
+
+```
+
+3. Rarified richness estimates for estimated species richess at the meadow scale, extrapolated to 2x the observed abundance for one sample within each meadow.
+```{r}
+library(iNEXT)
+
+# create rank abundance profiles for each site
+BEsp <- div.data %>%
+  filter(site == "BE") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) 
+
+rankBE <- BEsp %>%
+  mutate(., rank = min_rank(desc(N)))
+
+DCsp <- div.data %>%
+  filter(site == "DC") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) 
+
+rankDC <- DCsp %>%
+  mutate(., rank = min_rank(desc(N)))
+
+WIsp <- div.data %>%
+  filter(site == "WI") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) 
+
+rankWI <- WIsp %>%
+  mutate(., rank = min_rank(desc(N)))
+
+EIsp <- div.data %>%
+  filter(site == "EI") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) 
+
+rankEI <- EIsp %>%
+  mutate(., rank = min_rank(desc(N)))
+
+RPsp <- div.data %>%
+  filter(site == "RP") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) 
+
+rankRP <- RPsp %>%
+  mutate(., rank = min_rank(desc(N)))
+
+NBsp <- div.data %>%
+  filter(site == "NB") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) 
+
+rankNB <- NBsp %>%
+  mutate(., rank = min_rank(desc(N))) 
+
+CBsp <- div.data %>%
+  filter(site == "CB") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N))
+
+rankCB <- CBsp %>%
+  mutate(., rank = min_rank(desc(N)))
+
+BIsp <- div.data %>%
+  filter(site == "BI") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) 
+
+rankBI <- BIsp %>%
+  mutate(., rank = min_rank(desc(N)))
+
+CCsp <- div.data %>%
+  filter(site == "CC") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) 
+
+rankCC <- CCsp %>%
+  mutate(., rank = min_rank(desc(N)))
+
+ALLsp <- div.data %>%
+  #filter(site == "CC") %>%
+  select(., -(c(1:3,38:39))) %>%
+  summarise_all(., funs(sum)) %>%
+  tidyr::gather(., "species", "N") %>%
+  arrange(., desc(N)) 
+
+rankALL <- ALLsp %>%
+  mutate(., rank = min_rank(desc(N)))
+
+#create data input: 
+RBE <- rankBE[,2]
+RRP <- rankRP[,2]
+RDC <- rankDC[,2]
+RWI <- rankWI[,2]
+RCC <- rankCC[,2]
+RCB <- rankCB[,2]
+RNB <- rankNB[,2]
+REI <- rankEI[,2]
+RBI <- rankBI[,2]
+
+Rd <- cbind(RBE, RRP, RDC, RWI, RCC, RCB, RNB, REI, RBI)
+
+## Set m based on maximum observed abundance: 32164.
+#m <- seq(1,32164,32164/100)
+m <- seq(1,(2*7587),(2*7587)/100)
+
+iNEXT(Rd, q= c(0), datatype="abundance", size=NULL, endpoint=NULL, knots=40, se=TRUE, conf=0.95, nboot=50) -> test
+
+results <- rbind(test$iNextEst$RBE[40,4:6], test$iNextEst$RRP[40,4:6], test$iNextEst$RDC[40,4:6], test$iNextEst$RWI[40,4:6], test$iNextEst$RCC[40,4:6], test$iNextEst$RCB[40,4:6], test$iNextEst$RNB[40,4:6], test$iNextEst$REI[40,4:6], test$iNextEst$REI[40,4:6])
+rownames(results) <- test$DataInfo[,1]
+
+#information for Table 1:
+kable(results, col.names = c("Extrapolated Richness", "CI.Lower", "CI.Upper"), caption = "")
+
+
+```
+
+TABLE 2. Table 2 presents each species rank within each site and time. It allows us to see whether similar species were abundant across sites and times.
+
+```{r}
+## Order species by abundance. There is a command for this in BiodiversityR, but it is no longer working R. So doing it by hand.
+
+## now rank species within sites by Pchisq value just so it's easier to see which are signficant, for Table 2.
+I.BE[order(I.BE$pchisq),]
+I.RP[order(I.RP$pchisq),]
+I.DC[order(I.DC$pchisq),]
+I.WI[order(I.WI$pchisq),]
+I.CB[order(I.CB$pchisq),]
+I.CC[order(I.CC$pchisq),]
+I.NB[order(I.NB$pchisq),]
+I.EI[order(I.EI$pchisq),]
+I.BI[order(I.BI$pchisq),]
+```
+
+
+
+
+
+Esimation of univariate diversity indices and rank abundance distributions
+```{r}
+div.data <- dcast(start.data[,c(1:4,12)], site + Date + Sample ~ species, sum)
+#Shannon Diversity at the sample level (16 samples / meadow / time)
+H <- diversity(div.data[,-(c(1:3))], index ="shannon") 
+#Simpson diversity at the sample level (16 samples / meadow / time)
+S <- diversity(div.data[,-(c(1:3))], index ="simpson")
+#Morisita's index for each meadow
+I <- dispindmorisita(div.data[,-(c(1:3))], unique.rm = TRUE)
+#Number of species observed per sample
+div.data$alpha.p <- specnumber(div.data[,4:37])
+#Abundance of individauls per sample
+div.data$N <- rowSums(div.data[,(4:37)])
+```
+
+
+
