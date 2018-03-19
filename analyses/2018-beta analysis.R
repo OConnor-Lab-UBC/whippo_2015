@@ -44,12 +44,12 @@
 # LOAD PACKAGES                                                                   #
 ###################################################################################
 
-library(plyr)
 library(tidyverse)
 library(reshape2)
 library(lme4)
 library(vegan)
 library(lubridate) # data manipulation
+library(viridis) # plots
 
 # YOU MUST RUN RAUP_CRICK.R FOR FUNCTIONALITY 
 
@@ -99,7 +99,7 @@ levels(data.m$variable)[levels(data.m$variable)== "Bittium.spp."] <- "Lirobittiu
 levels(data.m$variable)[levels(data.m$variable)== "Olivella.sp."] <- "Callianax.sp."
 levels(data.m$variable)[levels(data.m$variable)== "Cypricercus."] <- "Cyprideis.beaconensis"
 levels(data.m$variable)[levels(data.m$variable)== "Odontosyllis"] <- "Polychaete1"
-levels(data.m$variable)[levels(data.m$variable)== "Idotea.resecata"] <- "Pentidotea.resecata"
+#levels(data.m$variable)[levels(data.m$variable)== "Idotea.resecata"] <- "Pentidotea.resecata"
 
 # Clean up time code labels so they are easier to model
 levels(unique(data$Time.Code2))
@@ -113,8 +113,10 @@ levels(data.m$Time.Code)
 ## Merge diversity file with site metadata
 data.s <- merge(data.m, sites, by = "site")
 
+library(plyr)
 ## Sum across size classes within plots (samples)
 data.p <- ddply(data.s, .(site, date1, Sample, Time.Code2, variable, dfw,order.dfw,area,salinity, shoot.density, fetch.jc), summarise, sum(value))
+detach(package:plyr)
 
 data.p$time.ID <- paste(data.p$site, data.p$Time.Code2, sep = '.') #could look at finer time resolution by using Time.Code here
 names(data.p) <- c("site", "Date", "Sample", "Time.Code2", "species", "dfw","order","area","salinity","shoot.density","fetch","abundance", "TimeID")
@@ -285,14 +287,14 @@ CBC <- epicomm_full %>%
 CBE <- epicomm_full %>%
   subset(sitetime == "CBE")
 
-BEB <- epicomm_full %>%
-  subset(sitetime == "BEB")
-BIB <- epicomm_full %>%
-  subset(sitetime == "BIB")
-CCD <- epicomm_full %>%
-  subset(sitetime == "CCD")
-EID <- epicomm_full %>%
-  subset(sitetime == "EID")
+BEC <- epicomm_full %>%
+  subset(sitetime == "BEC")
+BIC <- epicomm_full %>%
+  subset(sitetime == "BIC")
+CCC <- epicomm_full %>%
+  subset(sitetime == "CCC")
+EIC <- epicomm_full %>%
+  subset(sitetime == "EIC")
 
 ############### JACCARD DIVERSITY
 
@@ -331,13 +333,13 @@ CBC_jaccard <- CBC[,2:34] %>%
 CBE_jaccard <- CBE[,2:34] %>%
   vegdist(method = "jaccard")
 
-BEB_jaccard <- BEB[,2:34] %>%
+BEC_jaccard <- BEC[,2:34] %>%
   vegdist(method = "jaccard")
-BIB_jaccard <- BIB[,2:34] %>%
+BIC_jaccard <- BIC[,2:34] %>%
   vegdist(method = "jaccard")
-CCD_jaccard <- CCD[,2:34] %>%
+CCC_jaccard <- CCC[,2:34] %>%
   vegdist(method = "jaccard")
-EID_jaccard <- EID[,2:34] %>%
+EIC_jaccard <- EIC[,2:34] %>%
   vegdist(method = "jaccard")
 
 
@@ -364,10 +366,10 @@ CBC_jmean <- mean(CBC_jaccard)
 CBE_jmean <- mean(CBE_jaccard)
 
 # renamed time code for secondaries
-BIC_jmean <- mean(BIB_jaccard)
-BEC_jmean <- mean(BEB_jaccard)
-CCC_jmean <- mean(CCD_jaccard)
-EIC_jmean <- mean(EID_jaccard)
+BIC_jmean <- mean(BIC_jaccard)
+BEC_jmean <- mean(BEC_jaccard)
+CCC_jmean <- mean(CCC_jaccard)
+EIC_jmean <- mean(EIC_jaccard)
 
 all_jaccard <- melt(data.frame(DCA_jmean, DCC_jmean, DCE_jmean, WIA_jmean, WIC_jmean, WIE_jmean, RPA_jmean, RPC_jmean, RPE_jmean, NBA_jmean, NBC_jmean, NBE_jmean, CBA_jmean, CBC_jmean, CBE_jmean, BIC_jmean, BEC_jmean, CCC_jmean, EIC_jmean))
 # rename columns, reduce sitetime values, and split into site and time
@@ -417,13 +419,13 @@ CBC_bray <- CBC[,2:34] %>%
 CBE_bray <- CBE[,2:34] %>%
   vegdist(method = "bray")
 
-BEB_bray <- BEB[,2:34] %>%
+BEC_bray <- BEC[,2:34] %>%
   vegdist(method = "bray")
-BIB_bray <- BIB[,2:34] %>%
+BIC_bray <- BIC[,2:34] %>%
   vegdist(method = "bray")
-CCD_bray <- CCD[,2:34] %>%
+CCC_bray <- CCC[,2:34] %>%
   vegdist(method = "bray")
-EID_bray <- EID[,2:34] %>%
+EIC_bray <- EIC[,2:34] %>%
   vegdist(method = "bray")
 
 
@@ -450,10 +452,10 @@ CBC_bmean <- mean(CBC_bray)
 CBE_bmean <- mean(CBE_bray)
 
 # renamed time code for secondaries
-BIC_bmean <- mean(BIB_bray)
-BEC_bmean <- mean(BEB_bray)
-CCC_bmean <- mean(CCD_bray)
-EIC_bmean <- mean(EID_bray)
+BIC_bmean <- mean(BIC_bray)
+BEC_bmean <- mean(BEC_bray)
+CCC_bmean <- mean(CCC_bray)
+EIC_bmean <- mean(EIC_bray)
 
 all_bray <- melt(data.frame(DCA_bmean, DCC_bmean, DCE_bmean, WIA_bmean, WIC_bmean, WIE_bmean, RPA_bmean, RPC_bmean, RPE_bmean, NBA_bmean, NBC_bmean, NBE_bmean, CBA_bmean, CBC_bmean, CBE_bmean, BIC_bmean, BEC_bmean, CCC_bmean, EIC_bmean))
 # rename columns, reduce sitetime values, and split into site and time
@@ -632,7 +634,7 @@ r4$pair <- seq(from = 1, to=120, by =1)
 r5 <- bind_rows(r2, r3)
 r5 <- bind_rows(r5, r4)
 
-#ggplot(r5, aes(time, distance)) + 
+ggplot(r5, aes(time, distance)) + 
   geom_violin(trim = TRUE) +
   geom_boxplot(width = 0.1) 
 
@@ -678,7 +680,7 @@ n4$pair <- seq(from = 1, to=120, by =1)
 n5 <- bind_rows(n2, n3)
 n5 <- bind_rows(n5, n4)
 
-#ggplot(n5, aes(time, distance)) + 
+ggplot(n5, aes(time, distance)) + 
   geom_violin(trim = TRUE) +
   geom_boxplot(width = 0.1) 
 
@@ -724,7 +726,7 @@ c4$pair <- seq(from = 1, to=105, by =1)
 c5 <- bind_rows(c2, c3)
 c5 <- bind_rows(c5, c4)
 
-#ggplot(c5, aes(time, distance)) + 
+ggplot(c5, aes(time, distance)) + 
   geom_violin(trim = TRUE) +
   geom_boxplot(width = 0.1) 
 
@@ -762,56 +764,56 @@ m1$site <- factor(m1$site, levels = c("DC", "WI", "RP", "NB", "CB"))
 
 # Secondary Sites
 
-# BEB - shared absences (makes little difference)
-BEB_rc  <- epicomm_full[1:16,-1]
-BEB_rc <- data.frame(BEB_rc)
-BEB_rc_matrix <- raup_crick(BEB_rc, plot_names_in_col1 = FALSE)
-B_mat <- as.matrix(BEB_rc_matrix)
+# BEC - shared absences (makes little difference)
+BEC_rc  <- epicomm_full[1:16,-1]
+BEC_rc <- data.frame(BEC_rc)
+BEC_rc_matrix <- raup_crick(BEC_rc, plot_names_in_col1 = FALSE)
+B_mat <- as.matrix(BEC_rc_matrix)
 b2 <- melt(B_mat)[melt(upper.tri(B_mat))$value,]
 names(b2) <- c("c1", "c2", "distance")
 b2$time <- rep("June/July")
 b2$pair <- seq(from = 1, to=120, by =1)
 
-#BEB_summary <- as.table(summary(BEB_rc_matrix))
+#BEC_summary <- as.table(summary(BEC_rc_matrix))
 
-# BIB - shared absences (makes little difference)
-BIB_rc  <- epicomm_full[17:32,-1]
-BIB_rc <- data.frame(BIB_rc)
-BIB_rc_matrix <- raup_crick(BIB_rc, plot_names_in_col1 = FALSE)
-B_mat <- as.matrix(BIB_rc_matrix)
+# BIC - shared absences (makes little difference)
+BIC_rc  <- epicomm_full[17:32,-1]
+BIC_rc <- data.frame(BIC_rc)
+BIC_rc_matrix <- raup_crick(BIC_rc, plot_names_in_col1 = FALSE)
+B_mat <- as.matrix(BIC_rc_matrix)
 b3 <- melt(B_mat)[melt(upper.tri(B_mat))$value,]
 names(b3) <- c("c1", "c2", "distance")
 b3$time <- rep("June/July")
 b3$pair <- seq(from = 1, to=120, by =1)
 
-#BIB_summary <- as.table(summary(BIB_rc_matrix))
+#BIC_summary <- as.table(summary(BIC_rc_matrix))
 
-# CCD - shared absences (makes little difference)
-CCD_rc  <- epicomm_full[80:95,-1]
-CCD_rc <- data.frame(CCD_rc)
-CCD_rc_matrix <- raup_crick(CCD_rc, plot_names_in_col1 = FALSE)
-B_mat <- as.matrix(CCD_rc_matrix)
+# CCC - shared absences (makes little difference)
+CCC_rc  <- epicomm_full[80:95,-1]
+CCC_rc <- data.frame(CCC_rc)
+CCC_rc_matrix <- raup_crick(CCC_rc, plot_names_in_col1 = FALSE)
+B_mat <- as.matrix(CCC_rc_matrix)
 b4 <- melt(B_mat)[melt(upper.tri(B_mat))$value,]
 names(b4) <- c("c1", "c2", "distance")
 b4$time <- rep("June/July")
 b4$pair <- seq(from = 1, to=120, by =1)
 
-#CCD_summary <- as.table(summary(CCD_rc_matrix))
+#CCC_summary <- as.table(summary(CCC_rc_matrix))
 
-# EID - shared absences (makes little difference)
-EID_rc  <- epicomm_full[144:159,-1]
-EID_rc <- data.frame(EID_rc)
-EID_rc_matrix <- raup_crick(EID_rc, plot_names_in_col1 = FALSE)
-B_mat <- as.matrix(EID_rc_matrix)
+# EIC - shared absences (makes little difference)
+EIC_rc  <- epicomm_full[144:159,-1]
+EIC_rc <- data.frame(EIC_rc)
+EIC_rc_matrix <- raup_crick(EIC_rc, plot_names_in_col1 = FALSE)
+B_mat <- as.matrix(EIC_rc_matrix)
 b5 <- melt(B_mat)[melt(upper.tri(B_mat))$value,]
 names(b5) <- c("c1", "c2", "distance")
 b5$time <- rep("June/July")
 b5$pair <- seq(from = 1, to=120, by =1)
 
-#EID_summary <- as.table(summary(EID_rc_matrix))
+#EIC_summary <- as.table(summary(EIC_rc_matrix))
 
 # Export all summary values of analysis
-#RC_all <- rbind(DCA_summary, DCC_summary, DCE_summary, WIA_summary, WIC_summary, WIE_summary, RPA_summary, RPC_summary, RPE_summary, NBA_summary, NBC_summary, NBE_summary, CBA_summary, CBC_summary, CBE_summary, BEB_summary, BIB_summary, EID_summary, CCD_summary)
+#RC_all <- rbind(DCA_summary, DCC_summary, DCE_summary, WIA_summary, WIC_summary, WIE_summary, RPA_summary, RPC_summary, RPE_summary, NBA_summary, NBC_summary, NBE_summary, CBA_summary, CBC_summary, CBE_summary, BEC_summary, BIC_summary, EIC_summary, CCC_summary)
 #write.csv(RC_all, file = "RC_all.csv")
 
 #RC_time_all <- rbind(t1_summary, t2_summary, t3_summary)
@@ -1041,14 +1043,14 @@ CBC <- beta.new.comm %>%
   subset(sitetime == "CBC")
 CBE <- beta.new.comm %>%
   subset(sitetime == "CBE")
-BEB <- beta.new.comm %>%
-  subset(sitetime == "BEB")
-EID <- beta.new.comm %>%
-  subset(sitetime == "EID")
-BIB <- beta.new.comm %>%
-  subset(sitetime == "BIB")
-CCD <- beta.new.comm %>%
-  subset(sitetime == "CCD")
+BEC <- beta.new.comm %>%
+  subset(sitetime == "BEC")
+EIC <- beta.new.comm %>%
+  subset(sitetime == "EIC")
+BIC <- beta.new.comm %>%
+  subset(sitetime == "BIC")
+CCC <- beta.new.comm %>%
+  subset(sitetime == "CCC")
 
 # Beta as raw alpha/gamma
 
@@ -1072,13 +1074,13 @@ CBA_rawbeta <- ncol(CBA[,5:50])/mean(specnumber(CBA[,5:50])) - 1
 CBC_rawbeta <- ncol(CBC[,5:50])/mean(specnumber(CBC[,5:50])) - 1
 CBE_rawbeta <- ncol(CBE[,5:50])/mean(specnumber(CBE[,5:50])) - 1
 
-BIB_rawbeta <- ncol(BIB[,5:50])/mean(specnumber(BIB[,5:50])) - 1
+BIC_rawbeta <- ncol(BIC[,5:50])/mean(specnumber(BIC[,5:50])) - 1
 
-BEB_rawbeta <- ncol(BEB[,5:50])/mean(specnumber(BEB[,5:50])) - 1
+BEC_rawbeta <- ncol(BEC[,5:50])/mean(specnumber(BEC[,5:50])) - 1
 
-EID_rawbeta <- ncol(EID[,5:50])/mean(specnumber(EID[,5:50])) - 1
+EIC_rawbeta <- ncol(EIC[,5:50])/mean(specnumber(EIC[,5:50])) - 1
 
-CCD_rawbeta <- ncol(CCD[,5:50])/mean(specnumber(CCD[,5:50])) - 1
+CCC_rawbeta <- ncol(CCC[,5:50])/mean(specnumber(CCC[,5:50])) - 1
 
 # Beta as Bray Curtis
 
@@ -1132,27 +1134,27 @@ CBE.mat <- CBE[,5:50] %>%
   vegdist(method = "bray")
 CBE_BC <- mean(CBE.mat)
 
-BEB.mat <- BEB[,5:50] %>%
+BEC.mat <- BEC[,5:50] %>%
   vegdist(method = "bray")
-BEB_BC <- mean(BEB.mat)
+BEC_BC <- mean(BEC.mat)
 
-EID.mat <- EID[,5:50] %>%
+EIC.mat <- EIC[,5:50] %>%
   vegdist(method = "bray")
-EID_BC <- mean(EID.mat)
+EIC_BC <- mean(EIC.mat)
 
-BIB.mat <- BIB[,5:50] %>%
+BIC.mat <- BIC[,5:50] %>%
   vegdist(method = "bray")
-BIB_BC <- mean(BIB.mat)
+BIC_BC <- mean(BIC.mat)
 
-CCD.mat <- CCD[,5:50] %>%
+CCC.mat <- CCC[,5:50] %>%
   vegdist(method = "bray")
-CCD_BC <- mean(CCD.mat)
+CCC_BC <- mean(CCC.mat)
 
 
 Sites <- rep(c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"),3)
 Times <- c(rep("May", 9), rep("June/July",9), rep("August",9))
-rawbeta <- c(DCA_rawbeta, WIA_rawbeta, "NA", "NA", RPA_rawbeta, NBA_rawbeta, CBA_rawbeta, "NA", "NA", DCC_rawbeta, WIC_rawbeta, BEB_rawbeta, EID_rawbeta, RPC_rawbeta, NBC_rawbeta, CBC_rawbeta, BIB_rawbeta, CCD_rawbeta, DCE_rawbeta, WIE_rawbeta, "NA", "NA", RPE_rawbeta, NBE_rawbeta, CBE_rawbeta, "NA", "NA" )
-BCbeta <- c(DCA_BC, WIA_BC, "NA", "NA", RPA_BC, NBA_BC, CBA_BC, "NA", "NA", DCC_BC, WIC_BC, BEB_BC, EID_BC, RPC_BC, NBC_BC, CBC_BC, BIB_BC, CCD_BC, DCE_BC, WIE_BC, "NA", "NA", RPE_BC, NBE_BC, CBE_BC, "NA", "NA")
+rawbeta <- c(DCA_rawbeta, WIA_rawbeta, "NA", "NA", RPA_rawbeta, NBA_rawbeta, CBA_rawbeta, "NA", "NA", DCC_rawbeta, WIC_rawbeta, BEC_rawbeta, EIC_rawbeta, RPC_rawbeta, NBC_rawbeta, CBC_rawbeta, BIC_rawbeta, CCC_rawbeta, DCE_rawbeta, WIE_rawbeta, "NA", "NA", RPE_rawbeta, NBE_rawbeta, CBE_rawbeta, "NA", "NA" )
+BCbeta <- c(DCA_BC, WIA_BC, "NA", "NA", RPA_BC, NBA_BC, CBA_BC, "NA", "NA", DCC_BC, WIC_BC, BEC_BC, EIC_BC, RPC_BC, NBC_BC, CBC_BC, BIC_BC, CCC_BC, DCE_BC, WIE_BC, "NA", "NA", RPE_BC, NBE_BC, CBE_BC, "NA", "NA")
   
   
 Raw_beta <- data.frame(Sites, Times, rawbeta, BCbeta)

@@ -78,7 +78,7 @@ levels(data.m$variable)[levels(data.m$variable)== "Bittium.spp."] <- "Lirobittiu
 levels(data.m$variable)[levels(data.m$variable)== "Olivella.sp."] <- "Callianax.sp."
 levels(data.m$variable)[levels(data.m$variable)== "Cypricercus."] <- "Cyprideis.beaconensis"
 levels(data.m$variable)[levels(data.m$variable)== "Odontosyllis"] <- "Polychaete1"
-levels(data.m$variable)[levels(data.m$variable)== "Idotea.resecata"] <- "Pentidotea.resecata"
+#levels(data.m$variable)[levels(data.m$variable)== "Idotea.resecata"] <- "Pentidotea.resecata"
 
 # Clean up time code labels so they are easier to model
 levels(unique(data$Time.Code2))
@@ -92,8 +92,10 @@ levels(data.m$Time.Code)
 ## Merge diversity file with site metadata
 data.s <- merge(data.m, sites, by = "site")
 
+library(plyr)
 ## Sum across size classes within plots (samples)
 data.p <- ddply(data.s, .(site, date1, Sample, Time.Code2, variable, dfw,order.dfw,area,salinity, shoot.density, fetch.jc), summarise, sum(value))
+detach(package:plyr)
 
 data.p$time.ID <- paste(data.p$site, data.p$Time.Code2, sep = '.') #could look at finer time resolution by using Time.Code here
 names(data.p) <- c("site", "Date", "Sample", "Time.Code2", "species", "dfw","order","area","salinity","shoot.density","fetch","abundance", "TimeID")
@@ -660,7 +662,7 @@ Figure3 <- ggarrange(rare_plot, ens_plot, shannon_plot, even_plot,
                      labels = c("A", "B", "C", "D"),
                      ncol = 2, nrow = 2,
                      common.legend = TRUE, legend = "right")
-#annotate_figure(Figure3, bottom = text_grob("Figure 3: Measures of A) observed richness, B) shannon diversity, and C) effective number of species (ENS) across five seagrass habitats types \n sampled in May, June/July, and August", size = 10))
+annotate_figure(Figure3, bottom = text_grob("Figure 3: Measures of A) observed richness, B) shannon diversity, and C) effective number of species (ENS) across five seagrass habitats types \n sampled in May, June/July, and August", size = 10))
 
 # best size: ~950x620
 

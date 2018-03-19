@@ -55,6 +55,7 @@ library(tidyverse)
 library(ggvegan) # vegan plots in ggplot2 framework
 library(viridis) # plotting palette
 library(lubridate) # data manipulation
+library(reshape) # manipulate data
 
 ###################################################################################
 # READ IN AND PREPARE DATA                                                        #
@@ -103,8 +104,10 @@ levels(data.m$Time.Code)
 ## Merge diversity file with site metadata
 data.s <- merge(data.m, sites, by = "site")
 
+library(plyr)
 ## Sum across size classes within plots (samples)
 data.p <- ddply(data.s, .(site, date1, Sample, Time.Code2, variable, dfw,order.dfw,area,salinity, shoot.density, fetch.jc), summarise, sum(value))
+detach(package:plyr)
 
 data.p$time.ID <- paste(data.p$site, data.p$Time.Code2, sep = '.') #could look at finer time resolution by using Time.Code here
 names(data.p) <- c("site", "Date", "Sample", "Time.Code2", "species", "dfw","order","area","salinity","shoot.density","fetch","abundance", "TimeID")
