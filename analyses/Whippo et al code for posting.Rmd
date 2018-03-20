@@ -248,6 +248,8 @@ kable(results, col.names = c("Extrapolated Richness", "CI.Lower", "CI.Upper"), c
 
 TABLE 2. Table 2 presents each species rank within each site and time. It allows us to see whether similar species were abundant across sites and times.
 
+First for July:
+
 ```{r}
 ## create datafile with ranks:
 RanksJuly <- rankDC %>%
@@ -264,59 +266,99 @@ View(RanksJuly)
 
 kable(RanksJuly, col.names = c("Species", "DC", "WI", "BE", "EI", "RP",  "NB", "CB","BI", "CC"), caption = "Ranks for July species abundances (N)")
 
+```
+
+
+Then for May:
+```{r}
 ## need to redefine div.data for May: 
 start.data <- dataMAY
 div.data <- dcast(start.data[,c(1:4,12)], site + Date + Sample ~ species, sum)
 
-DCsp <- div.data %>%
+DCag <- div.data %>%
   filter(site == "DC") %>%
-  select(., -(c(1:3,38:39))) %>%
+  select(., -(c(1:3))) %>%
+  dispindmorisita(., unique.rm = TRUE, na.rm = TRUE) %>%
+  mutate(., species = rownames(.)) %>%
+  mutate(., aggregated = ifelse(pchisq < 0.05, 'Yes', 'No')) %>%
+  select(., species:aggregated)
+
+rankDC <- div.data %>%
+  filter(site == "DC") %>%
+  select(., -(c(1:3))) %>%
   summarise_all(., funs(sum)) %>%
   tidyr::gather(., "species", "N") %>%
-  arrange(., desc(N)) 
+  arrange(., desc(N)) %>%
+  mutate(., rank = min_rank(desc(N))) %>%
+  full_join(DCag, by = "species")
 
-rankDC <- DCsp %>%
-  mutate(., rank = min_rank(desc(N)))
-
-WIsp <- div.data %>%
+WIag <- div.data %>%
   filter(site == "WI") %>%
-  select(., -(c(1:3,38:39))) %>%
+  select(., -(c(1:3))) %>%
+  dispindmorisita(., unique.rm = TRUE, na.rm = TRUE) %>%
+  mutate(., species = rownames(.)) %>%
+  mutate(., aggregated = ifelse(pchisq < 0.05, 'Yes', 'No')) %>%
+  select(., species:aggregated)
+
+rankWI <- div.data %>%
+  filter(site == "WI") %>%
+  select(., -(c(1:3))) %>%
   summarise_all(., funs(sum)) %>%
   tidyr::gather(., "species", "N") %>%
-  arrange(., desc(N)) 
+  arrange(., desc(N)) %>%
+  mutate(., rank = min_rank(desc(N))) %>%
+  full_join(WIag, by = "species")
 
-rankWI <- WIsp %>%
-  mutate(., rank = min_rank(desc(N)))
-
-RPsp <- div.data %>%
+RPag <- div.data %>%
   filter(site == "RP") %>%
-  select(., -(c(1:3,38:39))) %>%
+  select(., -(c(1:3))) %>%
+  dispindmorisita(., unique.rm = TRUE, na.rm = TRUE) %>%
+  mutate(., species = rownames(.)) %>%
+  mutate(., aggregated = ifelse(pchisq < 0.05, 'Yes', 'No')) %>%
+  select(., species:aggregated)
+
+rankRP <- div.data %>%
+  filter(site == "RP") %>%
+  select(., -(c(1:3))) %>%
   summarise_all(., funs(sum)) %>%
   tidyr::gather(., "species", "N") %>%
-  arrange(., desc(N)) 
+  arrange(., desc(N)) %>%
+  mutate(., rank = min_rank(desc(N))) %>%
+  full_join(RPag, by = "species")
 
-rankRP <- RPsp %>%
-  mutate(., rank = min_rank(desc(N)))
-
-NBsp <- div.data %>%
+NBag <- div.data %>%
   filter(site == "NB") %>%
-  select(., -(c(1:3,38:39))) %>%
+  select(., -(c(1:3))) %>%
+  dispindmorisita(., unique.rm = TRUE, na.rm = TRUE) %>%
+  mutate(., species = rownames(.)) %>%
+  mutate(., aggregated = ifelse(pchisq < 0.05, 'Yes', 'No')) %>%
+  select(., species:aggregated)
+
+rankNB <- div.data %>%
+  filter(site == "NB") %>%
+  select(., -(c(1:3))) %>%
   summarise_all(., funs(sum)) %>%
   tidyr::gather(., "species", "N") %>%
-  arrange(., desc(N)) 
+  arrange(., desc(N)) %>%
+  mutate(., rank = min_rank(desc(N))) %>%
+  full_join(NBag, by = "species")
 
-rankNB <- NBsp %>%
-  mutate(., rank = min_rank(desc(N))) 
-
-CBsp <- div.data %>%
+CBag <- div.data %>%
   filter(site == "CB") %>%
-  select(., -(c(1:3,38:39))) %>%
+  select(., -(c(1:3))) %>%
+  dispindmorisita(., unique.rm = TRUE, na.rm = TRUE) %>%
+  mutate(., species = rownames(.)) %>%
+  mutate(., aggregated = ifelse(pchisq < 0.05, 'Yes', 'No')) %>%
+  select(., species:aggregated)
+
+rankCB <- div.data %>%
+  filter(site == "CB") %>%
+  select(., -(c(1:3))) %>%
   summarise_all(., funs(sum)) %>%
   tidyr::gather(., "species", "N") %>%
-  arrange(., desc(N))
-
-rankCB <- CBsp %>%
-  mutate(., rank = min_rank(desc(N)))
+  arrange(., desc(N)) %>%
+  mutate(., rank = min_rank(desc(N))) %>%
+  full_join(CBag, by = "species")
 
 RanksMay <- rankDC %>%
   full_join(rankWI, by = "species", suffix = c(".DC", ".WI")) %>%
@@ -325,8 +367,13 @@ RanksMay <- rankDC %>%
   full_join(rankCB, by = "species", suffix = c("", ".CB")) %>%
   select(., -starts_with("N"))
 
-kable(RanksMay, col.names = c("Species", "DC", "WI", "RP","NB", "CB"), caption = "Ranks for May species abundances (N)")
+kable(RanksMay, col.names = c("Species", "DC.rank", "DC.aggregated", "WI.rank","WI.aggregated", "RP.rank", "RP.aggregated", "NB.rank", "NB.aggregated", "CB.rank","CB.aggregated"), caption = "Ranks for May species abundances (N). Aggregated column indicates signficant (P < 0.05) spatial aggregation within species across plots within each meadow, based on chi-squared tests on Morisita's index I")
 
+
+```
+
+Then for August:
+```{r}
 ## need to redefine div.data for Aug: 
 start.data <- dataAUG
 div.data <- dcast(start.data[,c(1:4,12)], site + Date + Sample ~ species, sum)
@@ -393,9 +440,11 @@ kable(RanksAug, col.names = c("Species", "DC", "WI", "RP","NB", "CB"), caption =
 
 
 
-Esimation of univariate diversity indices and rank abundance distributions
+Estimation of univariate diversity indices and rank abundance distributions
 ```{r}
+start.data <- dataJULY9
 div.data <- dcast(start.data[,c(1:4,12)], site + Date + Sample ~ species, sum)
+
 #Shannon Diversity at the sample level (16 samples / meadow / time)
 H <- diversity(div.data[,-(c(1:3))], index ="shannon") 
 #Simpson diversity at the sample level (16 samples / meadow / time)
