@@ -217,6 +217,7 @@ dataJULY9 &lt;- data.tr[(data.tr$Time.Code2==&quot;C&quot;),]</code></pre>
 </tr>
 </tbody>
 </table>
+<p>Create the data file we will use for univariate diversity indices and ranks:</p>
 <ol start="2" style="list-style-type: decimal">
 <li>Morisita’s index (aggregation)</li>
 </ol>
@@ -297,7 +298,7 @@ dataJULY9 &lt;- data.tr[(data.tr$Time.Code2==&quot;C&quot;),]</code></pre>
 </tbody>
 </table>
 <ol start="3" style="list-style-type: decimal">
-<li>Rarified richness estimates</li>
+<li>Rarified richness estimates for estimated species richess at the meadow scale, extrapolated to 2x the observed abundance for one sample within each meadow.</li>
 </ol>
 <table>
 <thead>
@@ -312,56 +313,1058 @@ dataJULY9 &lt;- data.tr[(data.tr$Time.Code2==&quot;C&quot;),]</code></pre>
 <tr class="odd">
 <td>RBE</td>
 <td align="right">18.656</td>
-<td align="right">14.266</td>
-<td align="right">23.046</td>
+<td align="right">14.534</td>
+<td align="right">22.778</td>
 </tr>
 <tr class="even">
 <td>RRP</td>
 <td align="right">26.189</td>
-<td align="right">20.636</td>
-<td align="right">31.742</td>
+<td align="right">22.109</td>
+<td align="right">30.270</td>
 </tr>
 <tr class="odd">
 <td>RDC</td>
 <td align="right">16.432</td>
-<td align="right">13.408</td>
-<td align="right">19.456</td>
+<td align="right">13.998</td>
+<td align="right">18.866</td>
 </tr>
 <tr class="even">
 <td>RWI</td>
 <td align="right">22.864</td>
-<td align="right">19.542</td>
-<td align="right">26.186</td>
+<td align="right">19.821</td>
+<td align="right">25.907</td>
 </tr>
 <tr class="odd">
 <td>RCC</td>
 <td align="right">11.000</td>
-<td align="right">9.688</td>
-<td align="right">12.312</td>
+<td align="right">9.754</td>
+<td align="right">12.246</td>
 </tr>
 <tr class="even">
 <td>RCB</td>
 <td align="right">17.245</td>
-<td align="right">14.876</td>
-<td align="right">19.615</td>
+<td align="right">13.731</td>
+<td align="right">20.759</td>
 </tr>
 <tr class="odd">
 <td>RNB</td>
 <td align="right">18.633</td>
-<td align="right">14.703</td>
-<td align="right">22.563</td>
+<td align="right">15.043</td>
+<td align="right">22.223</td>
 </tr>
 <tr class="even">
 <td>REI</td>
 <td align="right">19.397</td>
-<td align="right">15.093</td>
-<td align="right">23.702</td>
+<td align="right">15.144</td>
+<td align="right">23.650</td>
 </tr>
 <tr class="odd">
 <td>RBI</td>
 <td align="right">19.397</td>
-<td align="right">15.093</td>
-<td align="right">23.702</td>
+<td align="right">15.144</td>
+<td align="right">23.650</td>
+</tr>
+</tbody>
+</table>
+<p>TABLE 2. Table 2 presents each species rank within each site and time. It allows us to see whether similar species were abundant across sites and times.</p>
+<table>
+<caption>Ranks for July species abundances (N)</caption>
+<thead>
+<tr class="header">
+<th align="left">Species</th>
+<th align="right">DC</th>
+<th align="right">WI</th>
+<th align="right">BE</th>
+<th align="right">EI</th>
+<th align="right">RP</th>
+<th align="right">NB</th>
+<th align="right">CB</th>
+<th align="right">BI</th>
+<th align="right">CC</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Caprella.spp.</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="right">4</td>
+<td align="right">1</td>
+<td align="right">13</td>
+<td align="right">8</td>
+<td align="right">14</td>
+<td align="right">5</td>
+</tr>
+<tr class="even">
+<td align="left">Aoroides.columbiae</td>
+<td align="right">2</td>
+<td align="right">19</td>
+<td align="right">8</td>
+<td align="right">6</td>
+<td align="right">8</td>
+<td align="right">12</td>
+<td align="right">6</td>
+<td align="right">11</td>
+<td align="right">11</td>
+</tr>
+<tr class="odd">
+<td align="left">Photis.brevipes</td>
+<td align="right">3</td>
+<td align="right">8</td>
+<td align="right">4</td>
+<td align="right">7</td>
+<td align="right">6</td>
+<td align="right">6</td>
+<td align="right">9</td>
+<td align="right">17</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">Idotea.resecata</td>
+<td align="right">4</td>
+<td align="right">3</td>
+<td align="right">5</td>
+<td align="right">11</td>
+<td align="right">10</td>
+<td align="right">3</td>
+<td align="right">5</td>
+<td align="right">5</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">Platynereis.bicanaliculata</td>
+<td align="right">5</td>
+<td align="right">6</td>
+<td align="right">3</td>
+<td align="right">5</td>
+<td align="right">4</td>
+<td align="right">6</td>
+<td align="right">15</td>
+<td align="right">9</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">Monocorophium.achersicum</td>
+<td align="right">6</td>
+<td align="right">13</td>
+<td align="right">18</td>
+<td align="right">20</td>
+<td align="right">22</td>
+<td align="right">10</td>
+<td align="right">11</td>
+<td align="right">8</td>
+<td align="right">7</td>
+</tr>
+<tr class="odd">
+<td align="left">Leptochelia.dubia</td>
+<td align="right">7</td>
+<td align="right">23</td>
+<td align="right">11</td>
+<td align="right">20</td>
+<td align="right">5</td>
+<td align="right">5</td>
+<td align="right">3</td>
+<td align="right">4</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="left">Pontogeneia.rostrata</td>
+<td align="right">8</td>
+<td align="right">15</td>
+<td align="right">11</td>
+<td align="right">11</td>
+<td align="right">18</td>
+<td align="right">8</td>
+<td align="right">12</td>
+<td align="right">10</td>
+<td align="right">12</td>
+</tr>
+<tr class="odd">
+<td align="left">Lacuna.spp.</td>
+<td align="right">9</td>
+<td align="right">5</td>
+<td align="right">7</td>
+<td align="right">13</td>
+<td align="right">14</td>
+<td align="right">14</td>
+<td align="right">12</td>
+<td align="right">7</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">Mytilus.trossulus</td>
+<td align="right">10</td>
+<td align="right">1</td>
+<td align="right">6</td>
+<td align="right">3</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="right">3</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">Phyllaplysia.taylori</td>
+<td align="right">11</td>
+<td align="right">10</td>
+<td align="right">10</td>
+<td align="right">2</td>
+<td align="right">3</td>
+<td align="right">14</td>
+<td align="right">18</td>
+<td align="right">21</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">Amph.E..dorsal.teeth.</td>
+<td align="right">12</td>
+<td align="right">15</td>
+<td align="right">2</td>
+<td align="right">18</td>
+<td align="right">25</td>
+<td align="right">19</td>
+<td align="right">18</td>
+<td align="right">6</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="left">Pugettia.richii</td>
+<td align="right">13</td>
+<td align="right">21</td>
+<td align="right">18</td>
+<td align="right">20</td>
+<td align="right">25</td>
+<td align="right">19</td>
+<td align="right">18</td>
+<td align="right">21</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">Copepod</td>
+<td align="right">14</td>
+<td align="right">13</td>
+<td align="right">18</td>
+<td align="right">13</td>
+<td align="right">11</td>
+<td align="right">17</td>
+<td align="right">15</td>
+<td align="right">21</td>
+<td align="right">12</td>
+</tr>
+<tr class="odd">
+<td align="left">Eogammarus.confervicolus</td>
+<td align="right">15</td>
+<td align="right">9</td>
+<td align="right">9</td>
+<td align="right">9</td>
+<td align="right">25</td>
+<td align="right">8</td>
+<td align="right">18</td>
+<td align="right">15</td>
+<td align="right">10</td>
+</tr>
+<tr class="even">
+<td align="left">Cirolana.harfordi</td>
+<td align="right">16</td>
+<td align="right">17</td>
+<td align="right">15</td>
+<td align="right">20</td>
+<td align="right">21</td>
+<td align="right">19</td>
+<td align="right">18</td>
+<td align="right">21</td>
+<td align="right">12</td>
+</tr>
+<tr class="odd">
+<td align="left">Alia.carinata</td>
+<td align="right">17</td>
+<td align="right">23</td>
+<td align="right">18</td>
+<td align="right">20</td>
+<td align="right">25</td>
+<td align="right">19</td>
+<td align="right">18</td>
+<td align="right">11</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">Amphithoe.spp.</td>
+<td align="right">17</td>
+<td align="right">11</td>
+<td align="right">18</td>
+<td align="right">13</td>
+<td align="right">20</td>
+<td align="right">10</td>
+<td align="right">18</td>
+<td align="right">17</td>
+<td align="right">12</td>
+</tr>
+<tr class="odd">
+<td align="left">Balanus.spp.</td>
+<td align="right">17</td>
+<td align="right">23</td>
+<td align="right">18</td>
+<td align="right">10</td>
+<td align="right">15</td>
+<td align="right">17</td>
+<td align="right">18</td>
+<td align="right">21</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">Callianax.sp.</td>
+<td align="right">17</td>
+<td align="right">23</td>
+<td align="right">18</td>
+<td align="right">20</td>
+<td align="right">25</td>
+<td align="right">19</td>
+<td align="right">18</td>
+<td align="right">21</td>
+<td align="right">12</td>
+</tr>
+<tr class="odd">
+<td align="left">Cyprideis.beaconensis</td>
+<td align="right">17</td>
+<td align="right">4</td>
+<td align="right">15</td>
+<td align="right">13</td>
+<td align="right">16</td>
+<td align="right">14</td>
+<td align="right">7</td>
+<td align="right">15</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">Halacarid.mite</td>
+<td align="right">17</td>
+<td align="right">17</td>
+<td align="right">13</td>
+<td align="right">8</td>
+<td align="right">12</td>
+<td align="right">4</td>
+<td align="right">4</td>
+<td align="right">1</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">Haminoea.sp.</td>
+<td align="right">17</td>
+<td align="right">23</td>
+<td align="right">18</td>
+<td align="right">20</td>
+<td align="right">22</td>
+<td align="right">19</td>
+<td align="right">18</td>
+<td align="right">21</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">Janua.pagastecheri</td>
+<td align="right">17</td>
+<td align="right">11</td>
+<td align="right">13</td>
+<td align="right">20</td>
+<td align="right">7</td>
+<td align="right">19</td>
+<td align="right">18</td>
+<td align="right">21</td>
+<td align="right">12</td>
+</tr>
+<tr class="odd">
+<td align="left">Lirobittium.spp.</td>
+<td align="right">17</td>
+<td align="right">23</td>
+<td align="right">18</td>
+<td align="right">13</td>
+<td align="right">25</td>
+<td align="right">19</td>
+<td align="right">18</td>
+<td align="right">21</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">Lottia.pelta</td>
+<td align="right">17</td>
+<td align="right">19</td>
+<td align="right">18</td>
+<td align="right">20</td>
+<td align="right">25</td>
+<td align="right">19</td>
+<td align="right">17</td>
+<td align="right">13</td>
+<td align="right">12</td>
+</tr>
+<tr class="odd">
+<td align="left">Margarites.helicinus</td>
+<td align="right">17</td>
+<td align="right">23</td>
+<td align="right">18</td>
+<td align="right">20</td>
+<td align="right">25</td>
+<td align="right">19</td>
+<td align="right">18</td>
+<td align="right">21</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">Nebalia.sp.</td>
+<td align="right">17</td>
+<td align="right">23</td>
+<td align="right">18</td>
+<td align="right">20</td>
+<td align="right">25</td>
+<td align="right">19</td>
+<td align="right">18</td>
+<td align="right">21</td>
+<td align="right">12</td>
+</tr>
+<tr class="odd">
+<td align="left">Nematode</td>
+<td align="right">17</td>
+<td align="right">21</td>
+<td align="right">18</td>
+<td align="right">18</td>
+<td align="right">9</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">5</td>
+</tr>
+<tr class="even">
+<td align="left">Nemertea</td>
+<td align="right">17</td>
+<td align="right">23</td>
+<td align="right">18</td>
+<td align="right">20</td>
+<td align="right">22</td>
+<td align="right">19</td>
+<td align="right">18</td>
+<td align="right">21</td>
+<td align="right">12</td>
+</tr>
+<tr class="odd">
+<td align="left">Pagurus.quaylei</td>
+<td align="right">17</td>
+<td align="right">23</td>
+<td align="right">18</td>
+<td align="right">20</td>
+<td align="right">25</td>
+<td align="right">19</td>
+<td align="right">18</td>
+<td align="right">17</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">Pandalidae</td>
+<td align="right">17</td>
+<td align="right">23</td>
+<td align="right">18</td>
+<td align="right">20</td>
+<td align="right">18</td>
+<td align="right">19</td>
+<td align="right">18</td>
+<td align="right">21</td>
+<td align="right">12</td>
+</tr>
+<tr class="odd">
+<td align="left">Pycnogonum.sp.</td>
+<td align="right">17</td>
+<td align="right">7</td>
+<td align="right">15</td>
+<td align="right">1</td>
+<td align="right">12</td>
+<td align="right">19</td>
+<td align="right">12</td>
+<td align="right">17</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="left">Thick.nematode.</td>
+<td align="right">17</td>
+<td align="right">23</td>
+<td align="right">18</td>
+<td align="right">20</td>
+<td align="right">17</td>
+<td align="right">19</td>
+<td align="right">10</td>
+<td align="right">21</td>
+<td align="right">12</td>
+</tr>
+</tbody>
+</table>
+<table>
+<caption>Ranks for May species abundances (N)</caption>
+<thead>
+<tr class="header">
+<th align="left">Species</th>
+<th align="right">DC</th>
+<th align="right">WI</th>
+<th align="right">RP</th>
+<th align="right">NB</th>
+<th align="right">CB</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Caprella.spp.</td>
+<td align="right">1</td>
+<td align="right">13</td>
+<td align="right">1</td>
+<td align="right">7</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">Aoroides.columbiae</td>
+<td align="right">2</td>
+<td align="right">5</td>
+<td align="right">3</td>
+<td align="right">11</td>
+<td align="right">18</td>
+</tr>
+<tr class="odd">
+<td align="left">Idotea.resecata</td>
+<td align="right">3</td>
+<td align="right">8</td>
+<td align="right">6</td>
+<td align="right">1</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">Photis.brevipes</td>
+<td align="right">4</td>
+<td align="right">6</td>
+<td align="right">9</td>
+<td align="right">5</td>
+<td align="right">11</td>
+</tr>
+<tr class="odd">
+<td align="left">Phyllaplysia.taylori</td>
+<td align="right">4</td>
+<td align="right">19</td>
+<td align="right">4</td>
+<td align="right">20</td>
+<td align="right">18</td>
+</tr>
+<tr class="even">
+<td align="left">Monocorophium.achersicum</td>
+<td align="right">6</td>
+<td align="right">14</td>
+<td align="right">12</td>
+<td align="right">12</td>
+<td align="right">15</td>
+</tr>
+<tr class="odd">
+<td align="left">Platynereis.bicanaliculata</td>
+<td align="right">7</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">7</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="left">Eogammarus.confervicolus</td>
+<td align="right">8</td>
+<td align="right">9</td>
+<td align="right">12</td>
+<td align="right">15</td>
+<td align="right">11</td>
+</tr>
+<tr class="odd">
+<td align="left">Lacuna.spp.</td>
+<td align="right">9</td>
+<td align="right">10</td>
+<td align="right">8</td>
+<td align="right">9</td>
+<td align="right">15</td>
+</tr>
+<tr class="even">
+<td align="left">Pontogeneia.rostrata</td>
+<td align="right">9</td>
+<td align="right">3</td>
+<td align="right">10</td>
+<td align="right">10</td>
+<td align="right">11</td>
+</tr>
+<tr class="odd">
+<td align="left">Amphithoe.spp.</td>
+<td align="right">11</td>
+<td align="right">4</td>
+<td align="right">10</td>
+<td align="right">15</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="left">Leptochelia.dubia</td>
+<td align="right">12</td>
+<td align="right">7</td>
+<td align="right">7</td>
+<td align="right">5</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="left">Pugettia.richii</td>
+<td align="right">13</td>
+<td align="right">24</td>
+<td align="right">16</td>
+<td align="right">20</td>
+<td align="right">18</td>
+</tr>
+<tr class="even">
+<td align="left">Copepod</td>
+<td align="right">14</td>
+<td align="right">12</td>
+<td align="right">16</td>
+<td align="right">2</td>
+<td align="right">6</td>
+</tr>
+<tr class="odd">
+<td align="left">Pagurus.quaylei</td>
+<td align="right">14</td>
+<td align="right">18</td>
+<td align="right">12</td>
+<td align="right">20</td>
+<td align="right">18</td>
+</tr>
+<tr class="even">
+<td align="left">Alia.carinata</td>
+<td align="right">16</td>
+<td align="right">24</td>
+<td align="right">16</td>
+<td align="right">20</td>
+<td align="right">18</td>
+</tr>
+<tr class="odd">
+<td align="left">Amph.E..dorsal.teeth.</td>
+<td align="right">16</td>
+<td align="right">19</td>
+<td align="right">12</td>
+<td align="right">20</td>
+<td align="right">18</td>
+</tr>
+<tr class="even">
+<td align="left">Balanus.spp.</td>
+<td align="right">16</td>
+<td align="right">24</td>
+<td align="right">16</td>
+<td align="right">15</td>
+<td align="right">18</td>
+</tr>
+<tr class="odd">
+<td align="left">Callianax.sp.</td>
+<td align="right">16</td>
+<td align="right">24</td>
+<td align="right">16</td>
+<td align="right">20</td>
+<td align="right">11</td>
+</tr>
+<tr class="even">
+<td align="left">Cirolana.harfordi</td>
+<td align="right">16</td>
+<td align="right">11</td>
+<td align="right">16</td>
+<td align="right">13</td>
+<td align="right">18</td>
+</tr>
+<tr class="odd">
+<td align="left">Cyprideis.beaconensis</td>
+<td align="right">16</td>
+<td align="right">16</td>
+<td align="right">16</td>
+<td align="right">20</td>
+<td align="right">18</td>
+</tr>
+<tr class="even">
+<td align="left">Halacarid.mite</td>
+<td align="right">16</td>
+<td align="right">16</td>
+<td align="right">16</td>
+<td align="right">3</td>
+<td align="right">8</td>
+</tr>
+<tr class="odd">
+<td align="left">Haminoea.sp.</td>
+<td align="right">16</td>
+<td align="right">24</td>
+<td align="right">16</td>
+<td align="right">20</td>
+<td align="right">18</td>
+</tr>
+<tr class="even">
+<td align="left">Janua.pagastecheri</td>
+<td align="right">16</td>
+<td align="right">24</td>
+<td align="right">4</td>
+<td align="right">20</td>
+<td align="right">7</td>
+</tr>
+<tr class="odd">
+<td align="left">Lirobittium.spp.</td>
+<td align="right">16</td>
+<td align="right">24</td>
+<td align="right">16</td>
+<td align="right">20</td>
+<td align="right">18</td>
+</tr>
+<tr class="even">
+<td align="left">Lottia.pelta</td>
+<td align="right">16</td>
+<td align="right">19</td>
+<td align="right">16</td>
+<td align="right">20</td>
+<td align="right">10</td>
+</tr>
+<tr class="odd">
+<td align="left">Margarites.helicinus</td>
+<td align="right">16</td>
+<td align="right">24</td>
+<td align="right">16</td>
+<td align="right">20</td>
+<td align="right">18</td>
+</tr>
+<tr class="even">
+<td align="left">Mytilus.trossulus</td>
+<td align="right">16</td>
+<td align="right">15</td>
+<td align="right">16</td>
+<td align="right">4</td>
+<td align="right">15</td>
+</tr>
+<tr class="odd">
+<td align="left">Nebalia.sp.</td>
+<td align="right">16</td>
+<td align="right">19</td>
+<td align="right">16</td>
+<td align="right">15</td>
+<td align="right">18</td>
+</tr>
+<tr class="even">
+<td align="left">Nematode</td>
+<td align="right">16</td>
+<td align="right">1</td>
+<td align="right">16</td>
+<td align="right">13</td>
+<td align="right">18</td>
+</tr>
+<tr class="odd">
+<td align="left">Nemertea</td>
+<td align="right">16</td>
+<td align="right">24</td>
+<td align="right">16</td>
+<td align="right">15</td>
+<td align="right">18</td>
+</tr>
+<tr class="even">
+<td align="left">Pandalidae</td>
+<td align="right">16</td>
+<td align="right">24</td>
+<td align="right">16</td>
+<td align="right">20</td>
+<td align="right">18</td>
+</tr>
+<tr class="odd">
+<td align="left">Pycnogonum.sp.</td>
+<td align="right">16</td>
+<td align="right">19</td>
+<td align="right">16</td>
+<td align="right">20</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">Thick.nematode.</td>
+<td align="right">16</td>
+<td align="right">24</td>
+<td align="right">16</td>
+<td align="right">20</td>
+<td align="right">18</td>
+</tr>
+</tbody>
+</table>
+<table>
+<caption>Ranks for Aug species abundances (N)</caption>
+<thead>
+<tr class="header">
+<th align="left">Species</th>
+<th align="right">DC</th>
+<th align="right">WI</th>
+<th align="right">RP</th>
+<th align="right">NB</th>
+<th align="right">CB</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Phyllaplysia.taylori</td>
+<td align="right">1</td>
+<td align="right">9</td>
+<td align="right">1</td>
+<td align="right">18</td>
+<td align="right">25</td>
+</tr>
+<tr class="even">
+<td align="left">Caprella.spp.</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">5</td>
+<td align="right">6</td>
+</tr>
+<tr class="odd">
+<td align="left">Aoroides.columbiae</td>
+<td align="right">3</td>
+<td align="right">6</td>
+<td align="right">6</td>
+<td align="right">9</td>
+<td align="right">13</td>
+</tr>
+<tr class="even">
+<td align="left">Platynereis.bicanaliculata</td>
+<td align="right">4</td>
+<td align="right">4</td>
+<td align="right">4</td>
+<td align="right">6</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="left">Idotea.resecata</td>
+<td align="right">5</td>
+<td align="right">5</td>
+<td align="right">10</td>
+<td align="right">3</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="left">Monocorophium.achersicum</td>
+<td align="right">6</td>
+<td align="right">14</td>
+<td align="right">17</td>
+<td align="right">8</td>
+<td align="right">8</td>
+</tr>
+<tr class="odd">
+<td align="left">Photis.brevipes</td>
+<td align="right">7</td>
+<td align="right">7</td>
+<td align="right">9</td>
+<td align="right">4</td>
+<td align="right">6</td>
+</tr>
+<tr class="even">
+<td align="left">Mytilus.trossulus</td>
+<td align="right">8</td>
+<td align="right">1</td>
+<td align="right">3</td>
+<td align="right">1</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">Leptochelia.dubia</td>
+<td align="right">9</td>
+<td align="right">22</td>
+<td align="right">8</td>
+<td align="right">11</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">Margarites.helicinus</td>
+<td align="right">10</td>
+<td align="right">8</td>
+<td align="right">22</td>
+<td align="right">18</td>
+<td align="right">25</td>
+</tr>
+<tr class="odd">
+<td align="left">Copepod</td>
+<td align="right">11</td>
+<td align="right">19</td>
+<td align="right">14</td>
+<td align="right">7</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="left">Lottia.pelta</td>
+<td align="right">11</td>
+<td align="right">16</td>
+<td align="right">22</td>
+<td align="right">15</td>
+<td align="right">18</td>
+</tr>
+<tr class="odd">
+<td align="left">Pugettia.richii</td>
+<td align="right">11</td>
+<td align="right">19</td>
+<td align="right">17</td>
+<td align="right">18</td>
+<td align="right">25</td>
+</tr>
+<tr class="even">
+<td align="left">Amphithoe.spp.</td>
+<td align="right">14</td>
+<td align="right">12</td>
+<td align="right">17</td>
+<td align="right">10</td>
+<td align="right">25</td>
+</tr>
+<tr class="odd">
+<td align="left">Nematode</td>
+<td align="right">14</td>
+<td align="right">27</td>
+<td align="right">17</td>
+<td align="right">2</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">Pandalidae</td>
+<td align="right">14</td>
+<td align="right">21</td>
+<td align="right">13</td>
+<td align="right">18</td>
+<td align="right">20</td>
+</tr>
+<tr class="odd">
+<td align="left">Pycnogonum.sp.</td>
+<td align="right">14</td>
+<td align="right">11</td>
+<td align="right">16</td>
+<td align="right">18</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="left">Balanus.spp.</td>
+<td align="right">18</td>
+<td align="right">17</td>
+<td align="right">12</td>
+<td align="right">11</td>
+<td align="right">18</td>
+</tr>
+<tr class="odd">
+<td align="left">Eogammarus.confervicolus</td>
+<td align="right">18</td>
+<td align="right">18</td>
+<td align="right">22</td>
+<td align="right">18</td>
+<td align="right">25</td>
+</tr>
+<tr class="even">
+<td align="left">Alia.carinata</td>
+<td align="right">20</td>
+<td align="right">27</td>
+<td align="right">22</td>
+<td align="right">18</td>
+<td align="right">25</td>
+</tr>
+<tr class="odd">
+<td align="left">Amph.E..dorsal.teeth.</td>
+<td align="right">20</td>
+<td align="right">22</td>
+<td align="right">22</td>
+<td align="right">18</td>
+<td align="right">25</td>
+</tr>
+<tr class="even">
+<td align="left">Callianax.sp.</td>
+<td align="right">20</td>
+<td align="right">22</td>
+<td align="right">22</td>
+<td align="right">18</td>
+<td align="right">20</td>
+</tr>
+<tr class="odd">
+<td align="left">Cirolana.harfordi</td>
+<td align="right">20</td>
+<td align="right">15</td>
+<td align="right">22</td>
+<td align="right">18</td>
+<td align="right">25</td>
+</tr>
+<tr class="even">
+<td align="left">Cyprideis.beaconensis</td>
+<td align="right">20</td>
+<td align="right">27</td>
+<td align="right">22</td>
+<td align="right">18</td>
+<td align="right">11</td>
+</tr>
+<tr class="odd">
+<td align="left">Halacarid.mite</td>
+<td align="right">20</td>
+<td align="right">27</td>
+<td align="right">22</td>
+<td align="right">14</td>
+<td align="right">10</td>
+</tr>
+<tr class="even">
+<td align="left">Haminoea.sp.</td>
+<td align="right">20</td>
+<td align="right">27</td>
+<td align="right">15</td>
+<td align="right">18</td>
+<td align="right">20</td>
+</tr>
+<tr class="odd">
+<td align="left">Janua.pagastecheri</td>
+<td align="right">20</td>
+<td align="right">3</td>
+<td align="right">5</td>
+<td align="right">18</td>
+<td align="right">25</td>
+</tr>
+<tr class="even">
+<td align="left">Lacuna.spp.</td>
+<td align="right">20</td>
+<td align="right">13</td>
+<td align="right">11</td>
+<td align="right">17</td>
+<td align="right">15</td>
+</tr>
+<tr class="odd">
+<td align="left">Lirobittium.spp.</td>
+<td align="right">20</td>
+<td align="right">27</td>
+<td align="right">22</td>
+<td align="right">18</td>
+<td align="right">13</td>
+</tr>
+<tr class="even">
+<td align="left">Nebalia.sp.</td>
+<td align="right">20</td>
+<td align="right">27</td>
+<td align="right">22</td>
+<td align="right">18</td>
+<td align="right">20</td>
+</tr>
+<tr class="odd">
+<td align="left">Nemertea</td>
+<td align="right">20</td>
+<td align="right">22</td>
+<td align="right">17</td>
+<td align="right">11</td>
+<td align="right">16</td>
+</tr>
+<tr class="even">
+<td align="left">Pagurus.quaylei</td>
+<td align="right">20</td>
+<td align="right">22</td>
+<td align="right">22</td>
+<td align="right">18</td>
+<td align="right">25</td>
+</tr>
+<tr class="odd">
+<td align="left">Pontogeneia.rostrata</td>
+<td align="right">20</td>
+<td align="right">10</td>
+<td align="right">22</td>
+<td align="right">15</td>
+<td align="right">17</td>
+</tr>
+<tr class="even">
+<td align="left">Thick.nematode.</td>
+<td align="right">20</td>
+<td align="right">27</td>
+<td align="right">7</td>
+<td align="right">18</td>
+<td align="right">20</td>
 </tr>
 </tbody>
 </table>
