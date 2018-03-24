@@ -232,13 +232,15 @@ inter_raup_var <- t1 %>%
 #m1$site <- factor(m1$site, levels = c("DC", "WI", "RP", "NB", "CB"))
 
 # Cross site comparison by time
-ggplot(t1, aes(time, distance)) + 
-  geom_violin(trim = TRUE, fill = "#9ecae1") +
+ggplot(t1, aes(time, distance, fill = time)) + 
+  geom_violin(trim = TRUE) +
   geom_boxplot(width = 0.1) +
+  fill_palette(viridis(3, option = "D", begin = 0.3)) +
   #facet_grid(site~.) +
   scale_y_continuous(breaks=seq(-1,1, 1)) +
   geom_hline(yintercept=0, color = "red", linetype = "dashed") +
   ylab("Raup-Crick Distance") +
+  theme_minimal() +
   xlab("Time Period") +
   theme(legend.position = "none")
 
