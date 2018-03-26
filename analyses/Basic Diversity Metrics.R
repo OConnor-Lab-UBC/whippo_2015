@@ -1,10 +1,10 @@
 ###################################################################################
 #                                                                                ##
 # Basic Diversity Metrics                                                        ##
-# Data are current as of 2018-02-21                                              ##
+# Data are current as of 2018-03-26                                              ##
 # Data source: O'Connor Lab - UBC                                                ##
 # R code prepared by Ross Whippo                                                 ##
-# Last updated 2018-02-21                                                        ##
+# Last updated 2018-03-26                                                        ##
 #                                                                                ##
 ###################################################################################
 
@@ -37,6 +37,7 @@
 # RECENT CHANGES TO SCRIPT                                                        #
 ###################################################################################
 
+# 2018-03-26 Cleaned up for figures and added analyses from 2018-beta analysis.R
 # 2018-03-24 Added MDS analysis
 # 2018-03-05 Switched back to rawcomm dataset with treatment from Mary's script
 # 2018-02-23 Added evenness code, and began Figure 3 panel.
@@ -53,6 +54,7 @@ library(viridis) # color palette
 library(ggpubr) # combining plots
 library(lubridate) # manipulate data
 library(car) # normality tests
+library(lme4)
 
 # function to scale hellinger matrix between 0 and 1
 range01 <- function(x){(x-min(x))/(max(x)-min(x))}
@@ -715,6 +717,7 @@ even_prim$sitetime <- as.character(even_prim$sitetime)
 even_prim$sitetime <- substr(even_prim$sitetime,1,3)
 even_prim <- transform(even_prim, site = substr(sitetime, 1, 2), time = substr(sitetime, 3, 3))
 even_prim <- even_prim %>%
+  filter(!is.na(value)) %>%
   select(-sitetime)
 # reorder factors
 even_prim$site <- factor(even_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"))
@@ -837,7 +840,227 @@ library(plyr)
 chulls_tax <- ddply(plot_data_tax, .(site), function(df) df[chull(df$MDS1, df$MDS2), ])
 detach(package:plyr)
 
+###################################################################################
+# TIME SERIES BETA FIGURES                                                        #
+###################################################################################
 
+############### JACCARD DIVERSITY
+
+DCA_jaccard <- DCA[,2:35] %>%
+  vegdist(method = "jaccard")
+DCC_jaccard <- DCC[,2:35] %>%
+  vegdist(method = "jaccard")
+DCE_jaccard <- DCE[,2:35] %>%
+  vegdist(method = "jaccard")
+
+WIA_jaccard <- WIA[,2:35] %>%
+  vegdist(method = "jaccard")
+WIC_jaccard <- WIC[,2:35] %>%
+  vegdist(method = "jaccard")
+WIE_jaccard <- WIE[,2:35] %>%
+  vegdist(method = "jaccard")
+
+RPA_jaccard <- RPA[,2:35] %>%
+  vegdist(method = "jaccard")
+RPC_jaccard <- RPC[,2:35] %>%
+  vegdist(method = "jaccard")
+RPE_jaccard <- RPE[,2:35] %>%
+  vegdist(method = "jaccard")
+
+NBA_jaccard <- NBA[,2:35] %>%
+  vegdist(method = "jaccard")
+NBC_jaccard <- NBC[,2:35] %>%
+  vegdist(method = "jaccard")
+NBE_jaccard <- NBE[,2:35] %>%
+  vegdist(method = "jaccard")
+
+CBA_jaccard <- CBA[,2:35] %>%
+  vegdist(method = "jaccard")
+CBC_jaccard <- CBC[,2:35] %>%
+  vegdist(method = "jaccard")
+CBE_jaccard <- CBE[,2:35] %>%
+  vegdist(method = "jaccard")
+
+BEC_jaccard <- BEC[,2:35] %>%
+  vegdist(method = "jaccard")
+BIC_jaccard <- BIC[,2:35] %>%
+  vegdist(method = "jaccard")
+CCC_jaccard <- CCC[,2:35] %>%
+  vegdist(method = "jaccard")
+EIC_jaccard <- EIC[,2:35] %>%
+  vegdist(method = "jaccard")
+
+
+# take mean of jaccard distance
+
+DCA_jmean <- mean(DCA_jaccard)
+DCC_jmean <- mean(DCC_jaccard)
+DCE_jmean <- mean(DCE_jaccard)
+
+WIA_jmean <- mean(WIA_jaccard)
+WIC_jmean <- mean(WIC_jaccard)
+WIE_jmean <- mean(WIE_jaccard)
+
+RPA_jmean <- mean(RPA_jaccard)
+RPC_jmean <- mean(RPC_jaccard)
+RPE_jmean <- mean(RPE_jaccard)
+
+NBA_jmean <- mean(NBA_jaccard)
+NBC_jmean <- mean(NBC_jaccard)
+NBE_jmean <- mean(NBE_jaccard)
+
+CBA_jmean <- mean(CBA_jaccard)
+CBC_jmean <- mean(CBC_jaccard)
+CBE_jmean <- mean(CBE_jaccard)
+
+# renamed time code for secondaries
+BIC_jmean <- mean(BIC_jaccard)
+BEC_jmean <- mean(BEC_jaccard)
+CCC_jmean <- mean(CCC_jaccard)
+EIC_jmean <- mean(EIC_jaccard)
+
+all_jaccard <- melt(data.frame(DCA_jmean, DCC_jmean, DCE_jmean, WIA_jmean, WIC_jmean, WIE_jmean, RPA_jmean, RPC_jmean, RPE_jmean, NBA_jmean, NBC_jmean, NBE_jmean, CBA_jmean, CBC_jmean, CBE_jmean, BIC_jmean, BEC_jmean, CCC_jmean, EIC_jmean))
+# rename columns, reduce sitetime values, and split into site and time
+colnames(all_jaccard) <- c('sitetime', 'value') 
+all_jaccard$sitetime <- as.character(all_jaccard$sitetime)
+all_jaccard$sitetime <- substr(all_jaccard$sitetime,1,3)
+all_jaccard <- transform(all_jaccard, site = substr(sitetime, 1, 2), time = substr(sitetime, 3, 3))
+all_jaccard <- all_jaccard %>%
+  select(-sitetime)
+# reorder factors
+all_jaccard$site <- factor(all_jaccard$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
+
+############### BRAY DIVERSITY
+
+DCA_bray <- DCA[,2:35] %>%
+  vegdist(method = "bray")
+DCC_bray <- DCC[,2:35] %>%
+  vegdist(method = "bray")
+DCE_bray <- DCE[,2:35] %>%
+  vegdist(method = "bray")
+
+WIA_bray <- WIA[,2:35] %>%
+  vegdist(method = "bray")
+WIC_bray <- WIC[,2:35] %>%
+  vegdist(method = "bray")
+WIE_bray <- WIE[,2:35] %>%
+  vegdist(method = "bray")
+
+RPA_bray <- RPA[,2:35] %>%
+  vegdist(method = "bray")
+RPC_bray <- RPC[,2:35] %>%
+  vegdist(method = "bray")
+RPE_bray <- RPE[,2:35] %>%
+  vegdist(method = "bray")
+
+NBA_bray <- NBA[,2:35] %>%
+  vegdist(method = "bray")
+NBC_bray <- NBC[,2:35] %>%
+  vegdist(method = "bray")
+NBE_bray <- NBE[,2:35] %>%
+  vegdist(method = "bray")
+
+CBA_bray <- CBA[,2:35] %>%
+  vegdist(method = "bray")
+CBC_bray <- CBC[,2:35] %>%
+  vegdist(method = "bray")
+CBE_bray <- CBE[,2:35] %>%
+  vegdist(method = "bray")
+
+BEC_bray <- BEC[,2:35] %>%
+  vegdist(method = "bray")
+BIC_bray <- BIC[,2:35] %>%
+  vegdist(method = "bray")
+CCC_bray <- CCC[,2:35] %>%
+  vegdist(method = "bray")
+EIC_bray <- EIC[,2:35] %>%
+  vegdist(method = "bray")
+
+
+# take mean of bray distance
+
+DCA_bmean <- mean(DCA_bray, na.rm = TRUE)
+DCC_bmean <- mean(DCC_bray, na.rm = TRUE)
+DCE_bmean <- mean(DCE_bray, na.rm = TRUE)
+
+WIA_bmean <- mean(WIA_bray, na.rm = TRUE)
+WIC_bmean <- mean(WIC_bray, na.rm = TRUE)
+WIE_bmean <- mean(WIE_bray, na.rm = TRUE)
+
+RPA_bmean <- mean(RPA_bray, na.rm = TRUE)
+RPC_bmean <- mean(RPC_bray, na.rm = TRUE)
+RPE_bmean <- mean(RPE_bray, na.rm = TRUE)
+
+NBA_bmean <- mean(NBA_bray, na.rm = TRUE)
+NBC_bmean <- mean(NBC_bray, na.rm = TRUE)
+NBE_bmean <- mean(NBE_bray, na.rm = TRUE)
+
+CBA_bmean <- mean(CBA_bray, na.rm = TRUE)
+CBC_bmean <- mean(CBC_bray, na.rm = TRUE)
+CBE_bmean <- mean(CBE_bray, na.rm = TRUE)
+
+# renamed time code for secondaries
+BIC_bmean <- mean(BIC_bray)
+BEC_bmean <- mean(BEC_bray)
+CCC_bmean <- mean(CCC_bray)
+EIC_bmean <- mean(EIC_bray)
+
+all_bray <- melt(data.frame(DCA_bmean, DCC_bmean, DCE_bmean, WIA_bmean, WIC_bmean, WIE_bmean, RPA_bmean, RPC_bmean, RPE_bmean, NBA_bmean, NBC_bmean, NBE_bmean, CBA_bmean, CBC_bmean, CBE_bmean, BIC_bmean, BEC_bmean, CCC_bmean, EIC_bmean))
+# rename columns, reduce sitetime values, and split into site and time
+colnames(all_bray) <- c('sitetime', 'value') 
+all_bray$sitetime <- as.character(all_bray$sitetime)
+all_bray$sitetime <- substr(all_bray$sitetime,1,3)
+all_bray <- transform(all_bray, site = substr(sitetime, 1, 2), time = substr(sitetime, 3, 3))
+all_bray <- all_bray %>%
+  select(-sitetime)
+# reorder factors
+all_bray$site <- factor(all_bray$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
+target <- c("DC", "WI", "RP", "NB", "CB")
+all_bray <- all_bray %>%
+  filter(site %in% target)
+
+
+
+
+# Beta as raw alpha/gamma
+
+DCA_rawbeta <- ncol(DCA[,2:35])/mean(specnumber(DCA[,2:35])) - 1
+DCC_rawbeta <- ncol(DCC[,2:35])/mean(specnumber(DCC[,2:35])) - 1
+DCE_rawbeta <- ncol(DCE[,2:35])/mean(specnumber(DCE[,2:35])) - 1
+
+WIA_rawbeta <- ncol(WIA[,2:35])/mean(specnumber(WIA[,2:35])) - 1
+WIC_rawbeta <- ncol(WIC[,2:35])/mean(specnumber(WIC[,2:35])) - 1
+WIE_rawbeta <- ncol(WIE[,2:35])/mean(specnumber(WIE[,2:35])) - 1
+
+RPA_rawbeta <- ncol(RPA[,2:35])/mean(specnumber(RPA[,2:35])) - 1
+RPC_rawbeta <- ncol(RPC[,2:35])/mean(specnumber(RPC[,2:35])) - 1
+RPE_rawbeta <- ncol(RPE[,2:35])/mean(specnumber(RPE[,2:35])) - 1
+
+NBA_rawbeta <- ncol(NBA[,2:35])/mean(specnumber(NBA[,2:35])) - 1
+NBC_rawbeta <- ncol(NBC[,2:35])/mean(specnumber(NBC[,2:35])) - 1
+NBE_rawbeta <- ncol(NBE[,2:35])/mean(specnumber(NBE[,2:35])) - 1
+
+CBA_rawbeta <- ncol(CBA[,2:35])/mean(specnumber(CBA[,2:35])) - 1
+CBC_rawbeta <- ncol(CBC[,2:35])/mean(specnumber(CBC[,2:35])) - 1
+CBE_rawbeta <- ncol(CBE[,2:35])/mean(specnumber(CBE[,2:35])) - 1
+
+BIC_rawbeta <- ncol(BIC[,2:35])/mean(specnumber(BIC[,2:35])) - 1
+
+BEC_rawbeta <- ncol(BEC[,2:35])/mean(specnumber(BEC[,2:35])) - 1
+
+EIC_rawbeta <- ncol(EIC[,2:35])/mean(specnumber(EIC[,2:35])) - 1
+
+CCC_rawbeta <- ncol(CCC[,2:35])/mean(specnumber(CCC[,2:35])) - 1
+
+Sites <- rep(c("DC", "WI", "RP", "NB", "CB"),3)
+Times <- c(rep("May", 5), rep("June/July",5), rep("August",5))
+rawbeta <- c(DCA_rawbeta, WIA_rawbeta, RPA_rawbeta, NBA_rawbeta, CBA_rawbeta, DCC_rawbeta, WIC_rawbeta, RPC_rawbeta, NBC_rawbeta, CBC_rawbeta, DCE_rawbeta, WIE_rawbeta, RPE_rawbeta, NBE_rawbeta, CBE_rawbeta)
+
+
+
+Raw_beta <- data.frame(Sites, Times, rawbeta)
+Raw_beta$rawbeta <- as.numeric(as.character(Raw_beta$rawbeta))
+Raw_beta$Sites <- factor(Raw_beta$Sites, levels = c("DC","WI","RP","NB","CB"))
 
 
 ###################################################################################
@@ -902,10 +1125,40 @@ Figure2 <- ggarrange(rich_midsum_plot, ens_midsum_plot, shannon_midsum_plot, hel
 
 
 
-########### FIGURE 3
+########### FIGURE 4
 
-# This is code for 3A-3D, 3E&F are generated in '2018-beta analysis.R'. They can
-# then be joined from the common environment into a full panel. 
+########### JACCARD DISTANCE THROUGH TIME
+
+jacc_plot <- ggplot(all_jaccard, aes(x = time, y = value, group = site)) + 
+  geom_point(size=4, aes(colour = site)) +
+  geom_line(aes(color = site)) +
+  scale_color_viridis(discrete=TRUE) +
+  theme_minimal() +
+  theme(axis.text.x=element_blank()) +
+  labs(x="", y="Mean Jaccard Distance")
+
+# best size: ~600x400
+
+########### BRAY DISTANCE THROUGH TIME
+
+bray_plot <- ggplot(all_bray, aes(x = time, y = value, group = site)) + 
+  geom_point(size=4, aes(colour = site)) +
+  geom_line(aes(color = site)) +
+  scale_color_viridis(discrete=TRUE, begin = 0.3) +
+  theme_minimal() +
+  theme(axis.text.x=element_blank()) +
+  labs(x="", y="Mean Bray-Curtis Dist.")
+
+# best size: ~600x400
+
+# raw beta plot
+rawbeta_plot <- ggplot(na.omit(Raw_beta), aes(x = Times, y = rawbeta, group = Sites)) +
+  geom_point(size=4, aes(color = Sites)) + 
+  geom_line(aes(color = Sites)) +
+  scale_color_viridis(discrete = TRUE, begin = 0.3) +
+  theme_minimal() +
+  theme(axis.text.x=element_blank()) +
+  labs(x="", y="Gamma/Mean(Alpha)") 
 
 # OBSERVED RICHNESS
 
@@ -960,15 +1213,27 @@ mds_plot <- ggplot(plot_data_tax, aes(x=MDS1, y=MDS2, pch = month, color = site)
   geom_polygon(data=chulls_tax, aes(x=MDS1, y=MDS2, group=site), fill=NA) 
 
 
-# FULL FIGURE 3
+# FULL FIGURE 4
 
-Figure3 <- ggarrange(rich_plot, ens_plot, shannon_plot, mds_plot,
-                     labels = c("A", "B", "C", "D"),
-                     ncol = 2, nrow = 2,
-                     common.legend = TRUE, legend = "right")
-annotate_figure(Figure3, bottom = text_grob("Figure 3: Measures of A) observed richness, B) shannon diversity, and C) effective number of species (ENS) across five seagrass habitats types \n sampled in May, June/July, and August", size = 10))
 
-# best size: ~950x620
+Figure4 <- ggarrange(ggarrange(rawbeta_plot, bray_plot,
+                               labels = c("A", "B"),
+                               ncol = 2, nrow = 1,
+                               legend = FALSE), 
+                     ggarrange(rich_plot, ens_plot, shannon_plot, even_plot, 
+                               labels = c("C", "D", "E", "F"), 
+                               ncol = 2, nrow = 2,
+                               legend = FALSE),
+                     ggarrange(mds_plot, 
+                               labels = "G",
+                               ncol = 1, nrow = 1),                        
+                     ncol = 1, nrow = 3,
+                     common.legend = TRUE, legend = "right",
+                     heights = c(1,2,2))
+                  
+annotate_figure(Figure3, bottom = text_grob("Figure 4: Measures of A) observed richness, B) shannon diversity, and C) effective number of species (ENS) across five seagrass habitats types \n sampled in May, June/July, and August", size = 10))
+
+# best size: ~800x1100
 
 
 
@@ -978,22 +1243,3 @@ annotate_figure(Figure3, bottom = text_grob("Figure 3: Measures of A) observed r
 
 
 ##### SCRATCH PAD
-
-# code to separate sitetime column
-
-
-separate(shannon_prim, sitetime, 1, c("site", "time"), 2)
-
-
-S <- specnumber(DCA[,2:31]) # observed number of species
-(raremax <- min(rowSums(DCA[,2:31])))
-Srare <- rarefy(DCA[,2:31], raremax)
-plot(S, Srare, xlab = "Observed No. of Species", ylab = "Rarefied No. of Species")
-abline(0, 1)
-rarecurve(DCA[,2:31], step = 20, sample = raremax, col = "blue", cex = 0.6)
-
-data(varespec)
-vare.dist <- vegdist(varespec)
-# Orlóci's Chord distance: range 0 .. sqrt(2)
-vare.dist <- vegdist(decostand(varespec, "hellinger"), "euclidean")
-

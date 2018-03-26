@@ -500,7 +500,7 @@ bray_plot <- ggplot(all_bray, aes(x = time, y = value, group = site)) +
 
 
 ######## TEST OF RAUP-CRICK MIDDLE TIME ALL SAMPLES SEPARATELY
-ALL_rc_C <- raup_crick(epicomm_C, plot_names_in_col1 = TRUE)
+# ALL_rc_C <- raup_crick(epicomm_C, plot_names_in_col1 = TRUE)
 
 
 
