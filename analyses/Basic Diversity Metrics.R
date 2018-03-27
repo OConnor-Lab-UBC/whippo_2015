@@ -1063,6 +1063,61 @@ Raw_beta$rawbeta <- as.numeric(as.character(Raw_beta$rawbeta))
 Raw_beta$Sites <- factor(Raw_beta$Sites, levels = c("DC","WI","RP","NB","CB"))
 
 
+
+
+################ CHECKERBOARD HEATMAP PREP
+
+checkerboard_epicomm <- epicomm_s %>%
+  select(-Sample) %>%
+  filter(Time.Code2 == "C")
+  
+checkerboard_epicomm <- checkerboard_epicomm %>%
+  ungroup() %>%
+  select(-Time.Code2, -Margarites.helicinus, -Nebalia.sp., -Callianax.sp.) %>%
+  group_by(site) %>%
+  summarise_all(sum)
+
+checkerboard_epicomm <- checkerboard_epicomm %>%
+  gather(species, abun, -site)
+
+checkerboard_epicomm$site <- factor(checkerboard_epicomm$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
+
+checkerboard_epicomm$abun <- sqrt(log10(checkerboard_epicomm$abun + 1))
+
+checkerboard_epicomm$species <- as.factor(checkerboard_epicomm$species)
+
+# rename species for plot
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Thick.nematode."] <- "Nematode sp. 2"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Pycnogonum.sp."] <- "Pycnogonum sp."
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Pugettia.richii"] <- "Pugettia richii"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Pugettia.richii"] <- "Pugettia richii"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Pontogeneia.rostrata"] <- "Pontogeneia rostrata"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Platynereis.bicanaliculata"] <- "Platynereis bicanaliculata"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Phyllaplysia.taylori"] <- "Phyllaplysia taylori"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Photis.brevipes"] <- "Photis brevipes"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Pagurus.quaylei"] <- "Pagurus quaylei"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Mytilus.trossulus"] <- "Mytilus trossulus"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Monocorophium.achersicum"] <- "Monocorophium achersicum"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Lottia.pelta"] <- "Lottia pelta"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Lirobittium.spp."] <- "Lirobittium"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Leptochelia.dubia"] <- "Leptochelia dubia"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Lacuna.spp."] <- "Lacuna spp."
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Janua.pagastecheri"] <- "Janua pagastecheri"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Idotea.resecata"] <- "Pentidotea resecata"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Haminoea.sp."] <- "Haminoea spp."
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Halacarid.mite"] <- "Halacarid mite"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Eogammarus.confervicolus"] <- "Eogammarus confervicolus"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Cyprideis.beaconensis"] <- "Cyprideis beaconensis"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Copepod"] <- "Harpacticoid copepod"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Cirolana.harfordi"] <- "Cirolana harfordi"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Caprella.spp."] <- "Caprella spp."
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Balanus.spp."] <- "Balanus spp."
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Aoroides.columbiae"] <- "Aoroides columbiae"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Amphithoe.spp."] <- "Amphithoe spp."
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Amph.E..dorsal.teeth."] <- "Amphipoda sp."
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Alia.carinata"] <- "Alia carinata"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Nematode"] <- "Nematode sp. 1"
+
 ###################################################################################
 # FIGURES                                                                         #
 ###################################################################################
@@ -1070,15 +1125,76 @@ Raw_beta$Sites <- factor(Raw_beta$Sites, levels = c("DC","WI","RP","NB","CB"))
 
 ########### FIGURE 2 - Diversity metrics for 9 sites in midsummer
 
-# Richness (ANOVA and TUKEY stats are above)
 
-rich_midsum_plot <- ggplot(epicomm_richness, aes(x = site, y = richness, fill = site)) +
+
+
+####### MARY'S CODE FOR TABLE 2
+
+
+
+
+
+H.plot <- ggplot(data = div.summary2, aes(reorder(site, -order.dfw), y = H, ymin = 0, ymax = 2)) + 
+  theme_bw() +
+  geom_boxplot() +
+  geom_point(x = 5, y = 1.9, pch = '*', size = 8, colour = "gray50") +
+  xlab("Site") +
+  ylab("Shannon Diversity")
+
+H.plot
+ggsave("Jan2017Hplot.png", device = "png", width = 4, height = 2.5)
+
+S.plot <- ggplot(data = div.summary2, aes(reorder(site, -order.dfw), y = S, ymin = 0, ymax = 1)) + 
+  theme_bw() +
+  geom_boxplot() +
+  geom_point(x = 5, y = 1, pch = '*', size = 8, colour = "gray50") +
+  geom_point(x = 1, y = 1, pch = '*', size = 8, colour = "gray50") +
+  xlab("Site") +
+  ylab("Simpson Evenness")
+
+S.plot
+ggsave("Jan2017Splot.png", device = "png", width = 4, height = 2.5)
+
+
+RR.plot <- ggplot(data = div.summary2, aes(reorder(site, -order.dfw), y = RR, ymin = 0, ymax = 4)) + 
+  theme_bw() +
+  geom_boxplot() +
+  geom_point(x = 6, y = 3.5, pch = '*', size = 8, colour = "gray50") +
+  geom_point(x = 4, y = 3.5, pch = '*', size = 8, colour = "gray50") +
+  geom_point(x = 1, y = 3.5, pch = '*', size = 8, colour = "gray50") +
+  xlab("Site") +
+  ylab("RR") 
+
+RR.plot
+ggsave("Jan2017RRplot.png", device = "png", width = 4, height = 2.5)
+
+
+ggsave("histogram", device = "png", width = 4, height = 4)
+
+# factor levels
+div.summary2$site <- factor(div.summary2$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
+
+div.plot <- ggplot(data = div.summary2, aes(x= site, y = alpha.p, ymin = 0, ymax = 12, fill = site)) +
   geom_boxplot() +
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
+  annotate("text", x = 4, y = 18.5, label = "*", size = 8) +
+  annotate("text", x = 5, y = 18.5, label = "*") +
+  annotate("text", x = 7, y = 18.5, label = "*") +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y = "Richness") +
-  annotate("text", x = 1:9, y = 11.9, label = c("ac", "ac", "ac", "a", "b", "ac", "ac", "a", "c"))
+  labs(x="", y = "Richness")
+
+# Richness (ANOVA and TUKEY stats are above)
+
+#rich_midsum_plot <- ggplot(epicomm_richness, aes(x = site, y = richness, fill = site)) +
+#  geom_boxplot() +
+#  fill_palette(viridis(9, option = "viridis")) +
+#  theme_minimal() +
+#  theme(axis.text.x=element_blank()) +
+#  labs(x="", y = "Richness") +
+#  annotate("text", x = 1:9, y = 11.9, label = c("ac", "ac", "ac", "a", "b", "ac", "ac", "a", "c"))
+
+
 
 # ENS (ANOVA and TUKEY stats are above)
 
@@ -1111,15 +1227,26 @@ hell_midsum_plot <- ggplot(hell_midsum, aes(x = site, y = value, fill = site)) +
   labs(x ="", y="Hellinger Distance") +
   annotate("text", x = 1:9, y = 1.1, label = c("a", "a", "a", "b", "a", "ab", "a", "a", "a"))
 
+checkerboard_plot <- ggplot(checkerboard_epicomm, aes(site, species, fill = abun)) +
+  geom_tile(colour = "gray30", stat = "identity") +
+  scale_fill_viridis(option = "B") +
+  theme_minimal() +
+  guides(fill = guide_colorbar(label = TRUE, ticks = FALSE, title = "abundance", fill = c("high", "low")))
+
 # FULL FIGURE 2
 
-Figure2 <- ggarrange(rich_midsum_plot, ens_midsum_plot, shannon_midsum_plot, hell_midsum_plot,
+Figure2 <- ggarrange(ggarrange(rich_midsum_plot, ens_midsum_plot, shannon_midsum_plot, hell_midsum_plot,
                      labels = c("A", "B", "C", "D"),
                      ncol = 2, nrow = 2,
-                     common.legend = TRUE, legend = "right")
+                     common.legend = TRUE, legend = "right"),
+                     ggarrange(checkerboard_plot,
+                               labels = "E",
+                               ncol = 1, nrow = 1,
+                               legend = "right"),
+                     ncol = 1, nrow = 2)
 # annotate_figure(Figure2, bottom = text_grob("Figure 2: Measures of A) observed richness, B) shannon diversity, C) effective number of species (ENS), and  \n D) Hellinger distance across nine seagrass habitats types sampled in midsummer.", size = 10))
 
-# best size: ~950x620
+# best size: ~700x1020
 
 
 
