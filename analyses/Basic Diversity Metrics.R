@@ -225,12 +225,15 @@ CCC <- epicomm_sec_full %>%
 
 # separate into time periods for shannon and ens
 EpiA <- bind_rows(DCA, WIA, RPA, NBA, CBA)
+EpiA$site <- as.factor(EpiA$site)
 
 EpiC <- bind_rows(DCC, WIC, BEC, EIC, RPC, NBC, CBC, BIC, CCC)
 EpiC <- transform(EpiC, site = substr(sitetime, 1, 2))
+EpiC <- Epi
 EpiC$site <- as.factor(EpiC$site)
 
 EpiE <- bind_rows(DCE, WIE, RPE, NBE, CBE)
+EpiE$site <- as.factor(EpiE$site)
 
 ###################################################################################
 # COMMUNITY DESCRIPTION                                                           #
@@ -464,7 +467,7 @@ ens_midsum$site <- factor(ens_midsum$site, levels = c("DC", "WI", "BE", "EI", "R
 # FULL TIME PERIOD SHANNON
 
 
-Shannon <- diversity(EpiC[,-c(1,36,37)], index ="shannon")
+Shannon <- diversity(EpiC[,-c(1,36)], index ="shannon")
 # Compile indices into one dataframe to make FIGURE 2
 div.summary <- cbind(EpiC[36], Shannon)
 #div.summaryE <- merge(div.summary, RR.data, by.x = c("site", "Date","Sample", "alpha.p", "N"), by.y = c("site", "Date","alpha.p","N", "Sample"))
@@ -847,7 +850,11 @@ levels(epicomm_mds$Time.Code2)[levels(epicomm_mds$Time.Code2)== "E"] <- "August"
 
 colnames(epicomm_mds)[which(names(epicomm_mds) == "Time.Code2")] <- "month"
 
-epi_mat <- epicomm_mds[,3:36]
+# remove species only found at secondary sites
+epicomm_mds <- epicomm_mds %>%
+  select(-c(Nebalia.sp., Callianax.sp., Nemertea, Lirobittium.spp., Alia.carinata)) 
+
+epi_mat <- epicomm_mds[,3:31]
 
 epiMDS <- metaMDS(epi_mat)
 epicomm_mds_points <- epiMDS$points
@@ -1235,7 +1242,7 @@ shannon_midsum_plot <- ggplot(shannon_midsum, aes(x = site, y = value, fill = si
 
 
 
-ggplot(div.summary, aes(x = sitetime, y = Shannon, fill = sitetime)) + 
+ggplot(div.summary, aes(x = site, y = Shannon, fill = site)) + 
   geom_boxplot() + 
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
