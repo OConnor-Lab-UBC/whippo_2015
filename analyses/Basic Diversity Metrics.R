@@ -117,7 +117,7 @@ data.tr <- merge(data.p, traits[,-1], by.x = "species", by.y = "species.names", 
 
 ## Remove all taxa that are not epifauna: 
 levels(data.tr$eelgrss.epifauna)
-epicomm_z <- data.tr %>% filter(eelgrss.epifauna == c("yes", "sometimes"))
+epicomm_z <- data.tr %>% filter(eelgrss.epifauna == "yes" | eelgrss.epifauna == "sometimes")
 epicomm_s <- epicomm_z %>%
   spread(species, abundance)
 
@@ -222,6 +222,15 @@ EIC <- epicomm_sec_full %>%
   subset(sitetime == "EIC")
 CCC <- epicomm_sec_full %>%
   subset(sitetime == "CCC")
+
+# separate into time periods for shannon and ens
+EpiA <- bind_rows(DCA, WIA, RPA, NBA, CBA)
+
+EpiC <- bind_rows(DCC, WIC, BEC, EIC, RPC, NBC, CBC, BIC, CCC)
+EpiC <- transform(EpiC, site = substr(sitetime, 1, 2))
+EpiC$site <- as.factor(EpiC$site)
+
+EpiE <- bind_rows(DCE, WIE, RPE, NBE, CBE)
 
 ###################################################################################
 # COMMUNITY DESCRIPTION                                                           #
@@ -452,6 +461,14 @@ ens_midsum <- ens_midsum %>%
 # reorder factors
 ens_midsum$site <- factor(ens_midsum$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
 
+# FULL TIME PERIOD SHANNON
+
+
+Shannon <- diversity(EpiC[,-c(1,36,37)], index ="shannon")
+# Compile indices into one dataframe to make FIGURE 2
+div.summary <- cbind(EpiC[36], Shannon)
+#div.summaryE <- merge(div.summary, RR.data, by.x = c("site", "Date","Sample", "alpha.p", "N"), by.y = c("site", "Date","alpha.p","N", "Sample"))
+div.summary2 <- merge(div.summary, sites, by.x = c("site"), by.y = c("site"))
 
 
 ############### ENS ANOVA across all sites in midsummer
@@ -1217,6 +1234,15 @@ shannon_midsum_plot <- ggplot(shannon_midsum, aes(x = site, y = value, fill = si
   annotate("text", x = 1:9, y = 1.9, label = c("ac", "abc", "ac", "ab", "b", "abc", "ac", "ab", "c"))
 
 
+
+ggplot(div.summary, aes(x = sitetime, y = Shannon, fill = sitetime)) + 
+  geom_boxplot() + 
+  fill_palette(viridis(9, option = "viridis")) +
+  theme_minimal() +
+  theme(axis.text.x=element_blank()) +
+  labs(x ="", y="Shannon Diversity") +
+  annotate("text", x = 1:9, y = 1.9, label = c("ac", "abc", "ac", "ab", "b", "abc", "ac", "ab", "c"))
+
 # HELLINGER DISTANCE (ANOVA and TUKEY stats are above)
 
 hell_midsum_plot <- ggplot(hell_midsum, aes(x = site, y = value, fill = site)) + 
@@ -1370,3 +1396,94 @@ annotate_figure(Figure3, bottom = text_grob("Figure 4: Measures of A) observed r
 
 
 ##### SCRATCH PAD
+
+
+test1 <- div.summary2 %>%
+  group_by(site) %>%
+  summarise(mean(H))
+test2 <- div.summary %>%
+  group_by(site) %>%
+  summarise(mean(Shannon))
+
+div.data$site <- factor(epicomm_richness$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
+div.data <- div.data %>%
+  group_by(site)
+levels(div.data$site)
+levels(EpiC$sitetime)
+EpiC$sitetime <- as.factor(EpiC$sitetime)
+EpiC <- EpiC %>%
+  group_by(site)
+
+
+
+Captest <- epicomm_z %>%
+  filter(TimeID == "DC.C")
+
+
+
+filtertest <- data.tr %>%
+  group_by(species, eelgrss.epifauna) %>%
+  filter(species == "Caprella.spp.")
+
+
+data <- read.csv("./data/rawcomm.csv")
+traits <- read.csv("./data/grazertraits3.csv")
+sites <- read.csv("./data/site.info.csv")
+
+# delete, add and redefine columns ----------------------------------------
+traits <- traits[,-c(3,8:10)]
+
+data$date1 <- mdy(data$date)
+
+# data preparation ---------------------------------------------------
+## Melt and recast so the datafile goes from long to wide (species as columns)
+data.m <- melt(data, id = c(1,2,3,4,5,52, 53))
+
+## Clean and correct species names. 
+## in the data file, some names we initially used for taxa needed updating based on improvements in our ability to identify them. So these replacements reflect those updates. 
+levels(data.m$variable)[levels(data.m$variable)== "Bittium.spp."] <- "Lirobittium.spp."
+levels(data.m$variable)[levels(data.m$variable)== "Olivella.sp."] <- "Callianax.sp."
+levels(data.m$variable)[levels(data.m$variable)== "Cypricercus."] <- "Cyprideis.beaconensis"
+levels(data.m$variable)[levels(data.m$variable)== "Odontosyllis"] <- "Polychaete1"
+#levels(data.m$variable)[levels(data.m$variable)== "Idotea.resecata"] <- "Pentidotea.resecata"
+
+# Clean up time code labels so they are easier to model
+levels(unique(data$Time.Code2))
+levels(data.m$Time.Code)
+data.m$Time.Code <- as.character(data.m$Time.Code)
+data.m$Time.Code[data.m$Time.Code == "C "] <- "C"
+data.m$Time.Code <- as.factor(data.m$Time.Code)
+data.m$value <- as.numeric(data.m$value)
+levels(data.m$Time.Code)
+
+## Merge diversity file with site metadata
+data.s <- merge(data.m, sites, by = "site")
+
+library(plyr)
+## Sum across size classes within plots (samples)
+data.p <- ddply(data.s, .(site, date1, Sample, Time.Code2, variable, dfw,order.dfw,area,salinity, shoot.density, fetch.jc), summarise, sum(value))
+detach(package:plyr)
+
+data.p$time.ID <- paste(data.p$site, data.p$Time.Code2, sep = '.') #could look at finer time resolution by using Time.Code here
+names(data.p) <- c("site", "Date", "Sample", "Time.Code2", "species", "dfw","order","area","salinity","shoot.density","fetch","abundance", "TimeID")
+
+## Merge with traits and sort by taxa or functional groups
+data.tr <- merge(data.p, traits[,-1], by.x = "species", by.y = "species.names", all.x = TRUE, all.y = FALSE)
+
+## create datafile to be posted with paper: 
+# write.csv(data.tr, "Whippodata.csv")
+
+# Create datafiles for taxa and times -------------------------------------
+
+## Remove all taxa that are not epifauna: 
+levels(data.tr$eelgrss.epifauna)
+epicomm_z <- data.tr %>% filter(eelgrss.epifauna == c("yes", "sometimes"))
+epicomm_s <- epicomm_z %>%
+  spread(species, abundance)
+
+# remove unused columns
+epicomm_s <- epicomm_s %>%
+  select(-Date, -dfw, -order, -area, -salinity, -shoot.density, -fetch, -TimeID, -function., -taxon, -group, -eelgrss.epifauna)
+
+# replace NAs with 0 
+epicomm_s[is.na(epicomm_s)] <- 0
