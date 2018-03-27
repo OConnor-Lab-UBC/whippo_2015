@@ -229,7 +229,8 @@ EpiA$site <- as.factor(EpiA$site)
 
 EpiC <- bind_rows(DCC, WIC, BEC, EIC, RPC, NBC, CBC, BIC, CCC)
 EpiC <- transform(EpiC, site = substr(sitetime, 1, 2))
-EpiC <- Epi
+EpiC <- EpiC %>%
+  select(-sitetime)
 EpiC$site <- as.factor(EpiC$site)
 
 EpiE <- bind_rows(DCE, WIE, RPE, NBE, CBE)
