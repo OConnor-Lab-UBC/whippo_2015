@@ -261,7 +261,7 @@ RBI <- rankBI[,2]
 
 
 
-
+###### CAN'T RUN THIS CHUNK UNTIL FIRST CHUNK OF "ANALYZE UNIVARIATE DIVERSITY INDICES" IS RUN BELOW
 # Compile indices into one dataframe to make FIGURE 2
 div.summary <- cbind(div.data[c(1:3, 38:39)], H, S)
 #div.summaryE <- merge(div.summary, RR.data, by.x = c("site", "Date","Sample", "alpha.p", "N"), by.y = c("site", "Date","alpha.p","N", "Sample"))
@@ -280,7 +280,7 @@ site.RR <- ddply(div.summaryT, .(site), summarise, mean(RR))
 
 
 # ANALYZE UNIVARIATE DIVERSITY INDICES ----------------------------------------------
-
+####### THIS CHUNK MUST BE RUN BEFORE 'DIV.SUMMARY' DATA FRAME IS MADE ABOVE
 # Get and plot observed site means
 ## estimate univariate diversity for each sample
 H <- diversity(div.data[,-(c(1:3))], index ="shannon") #sample-level H
