@@ -56,7 +56,7 @@ library(ggpubr) # combining plots
 library(lubridate) # manipulate data
 library(car) # normality tests
 library(lme4)
-library(multicomp) #tukey post hoc
+library(multcomp) #tukey post hoc
 
 # function to scale hellinger matrix between 0 and 1
 range01 <- function(x){(x-min(x))/(max(x)-min(x))}
@@ -1056,88 +1056,6 @@ annotate_figure(Figure3, bottom = text_grob("Figure 4: Measures of A) observed r
 
 
 ###### SCRATCH PAD
-
-
-
-
-test$site <- factor(test$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
-
-ggplot(data = test, aes(x =site, y = H, ymin = 0, ymax = 2)) + 
-  theme_bw() +
-  geom_boxplot() +
-  geom_point(x = 5, y = 1.9, pch = '*', size = 8, colour = "gray50") +
-  xlab("Site") +
-  ylab("Shannon Diversity")
-
-shancomp <- test[c(1,2,6)]
-myH <- div.summary %>%
-  filter(Time.Code2 == "C")
-
-shancomp$myH <- myH$Shannon
-
-
-############### ENS ANOVA across all sites in midsummer
-
-# test for homogeneity 
-qqnorm(ens_midsum$value)
-qqline(ens_midsum$value)
-leveneTest(value ~ site, data = ens_midsum)
-
-aovens <- aov(value ~ site, data = ens_midsum)
-summary(aovens)
-TukeyHSD(aovens)
-
-
-
-
-mods5 <- lm(div.summary2$H ~ div.summary2$site)
-mods01 <- lm(div.summary2$H ~ 1)
-anova(mods5, mods01)
-model.sel(mods5, mods01)
-summary(mods5)
-
-test2 <- div.summaryC[c(1,2,4)]
-test2$mary <- div.summary2$H
-
-test3 <- div.summaryC
-
-test3$site <- factor(test3$site, levels = c("BE", "BI", "CB", "CC", "DC", "EI", "NB", "RP", "WI"))
-
-############### Hellinger ANOVA across all sites in midsummer
-
-# test for homogeneity 
-qqnorm(hell_midsum$value)
-qqline(hell_midsum$value)
-leveneTest(value ~ site, data = hell_midsum)
-
-aovhell <- aov(value ~ site, data = hell_midsum)
-summary(aovhell)
-TukeyHSD(aovhell)
-
-
-
-
-
-# does plot level alpha diversity differ among meadows?
-mods4 <- lm(div.summary2$alpha.p ~ div.summary2$site)
-mods0 <-  lm(div.summary2$alpha.p ~ 1)
-anova(mods4, mods0)
-model.sel(mods4, mods0)
-summary(mods4)
-
-mods5 <- lm(div.summary2$H ~ div.summary2$site)
-mods01 <- lm(div.summary2$H ~ 1)
-anova(mods5, mods01)
-model.sel(mods5, mods01)
-summary(mods5)
-
-amod <- aov(ENS ~ site, data = div.summaryC)
-library(multcomp)
-tuk <- glht(amod, linfct = mcp(site = "Tukey"))
-tuk.cld <- cld(tuk)
-opar <- par(mai=c(1,1,1.5,1))
-plot(tuk.cld)
-par(opar)
 
 
 
