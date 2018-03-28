@@ -61,16 +61,8 @@ library(reshape) # manipulate data
 # READ IN AND PREPARE DATA                                                        #
 ###################################################################################
 
-# full community data
-#epicomm <- read.csv("./data/epicomm_201802.csv")
 
-
-# finish summarization for every sample by summing
-#epicomm_summ <- epicomm_summ %>%
-#  group_by(sitetime, Sample) %>%
-#  summarise_all(funs(sum))
-
-
+# read full community data ------------------------------------------------
 data <- read.csv("./data/rawcomm.csv")
 traits <- read.csv("./data/grazertraits3.csv")
 sites <- read.csv("./data/site.info.csv")
@@ -80,7 +72,7 @@ traits <- traits[,-c(3,8:10)]
 
 data$date1 <- mdy(data$date)
 
-# data preparation ---------------------------------------------------
+# data preparation --------------------------------------------------------
 ## Melt and recast so the datafile goes from long to wide (species as columns)
 data.m <- melt(data, id = c(1,2,3,4,5,52, 53))
 
@@ -90,7 +82,7 @@ levels(data.m$variable)[levels(data.m$variable)== "Bittium.spp."] <- "Lirobittiu
 levels(data.m$variable)[levels(data.m$variable)== "Olivella.sp."] <- "Callianax.sp."
 levels(data.m$variable)[levels(data.m$variable)== "Cypricercus."] <- "Cyprideis.beaconensis"
 levels(data.m$variable)[levels(data.m$variable)== "Odontosyllis"] <- "Polychaete1"
-levels(data.m$variable)[levels(data.m$variable)== "Idotea.resecata"] <- "Pentidotea.resecata"
+# Idotea.resecata is also incorrect (should be Pentidotea.resecata, however it is kept as is to maintain functionality of code)
 
 # Clean up time code labels so they are easier to model
 levels(unique(data$Time.Code2))
@@ -105,7 +97,7 @@ levels(data.m$Time.Code)
 data.s <- merge(data.m, sites, by = "site")
 
 library(plyr)
-## Sum across size classes within plots (samples)
+## Sum across size classes within plots (samples), takes several seconds to run
 data.p <- ddply(data.s, .(site, date1, Sample, Time.Code2, variable, dfw,order.dfw,area,salinity, shoot.density, fetch.jc), summarise, sum(value))
 detach(package:plyr)
 
@@ -122,7 +114,7 @@ data.tr <- merge(data.p, traits[,-1], by.x = "species", by.y = "species.names", 
 
 ## Remove all taxa that are not epifauna: 
 levels(data.tr$eelgrss.epifauna)
-epicomm_z <- data.tr %>% filter(eelgrss.epifauna == c("yes", "sometimes"))
+epicomm_z <- data.tr %>% filter(eelgrss.epifauna == "yes" | eelgrss.epifauna == "sometimes")
 epicomm_s <- epicomm_z %>%
   spread(species, abundance)
 
@@ -141,7 +133,7 @@ epicomm_s <- epicomm_s %>%
 # constrain to middle time period
 epicomm_site <- epicomm_s %>%
   select(-Sample) %>%
-  filter(Time.Code2 %in% "C") 
+  filter(Time.Code2 == "C") 
 
 # summarise entire sites with total spp abund per site
 epicomm_site <- epicomm_site %>%
@@ -155,7 +147,7 @@ epicomm_site <- epicomm_site %>%
 
 #remove missing species (present in other time periods only)
 epicomm_site <- epicomm_site %>%
-  select(-Nebalia.sp., -Margarites.helicinus, -Callianax.sp., -Nemertea)
+  select(-Nebalia.sp., -Margarites.helicinus, -Callianax.sp.)
 
 # full environmental data
 environ_full <- read.csv("./data/site.info_201801.csv")
@@ -167,7 +159,7 @@ environ_full <- read.csv("./data/site.info_201801.csv")
 
 # convert community to matrix for hellinger transformation as suggested by 
 # Legendre & Gallagher 2001
-comm_mat <- as.matrix(epicomm_site[,2:30])
+comm_mat <- as.matrix(epicomm_site[,2:32])
 # hellinger transform community data for use in RDA
 comm_hell <- decostand(comm_mat, method = "hellinger")
 comm_hell <- as.data.frame(comm_hell)
