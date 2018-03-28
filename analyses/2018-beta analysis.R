@@ -843,7 +843,7 @@ intra_raup_var <- x1 %>%
 
 # Create palette for plot
 bluepal <- c("#08519c", "#2271b5", "#4292c6", "#6baed6", "#9ecae1", "#c6dbef", "#deebf7", "#f7fbff", "#ffffff")
-
+x1$time <- factor(x1$time, levels = c("May", "June/July", "August"))
 
 # Plot all times and sites
 ggplot(x1, aes(site, distance)) + 
@@ -904,7 +904,8 @@ raup_crick.var <- leveneTest(distance ~ loc * time, data = y1)
 #---
 #  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-greens <- c("#e5f5e0", "#a1d99b", "#e5f5e0")
+greens <- c("#BBDF27FF", "#2FB47CFF", "#BBDF27FF")
+y1$time <- factor(y1$time, levels = c("May", "June/July", "August"))
 
 # Across/within site comparison by time
 ggplot(y1, aes(loc, distance)) + 
