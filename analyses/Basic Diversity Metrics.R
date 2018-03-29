@@ -48,7 +48,6 @@
 # LOAD PACKAGES                                                                   #
 ###################################################################################
 
-library(tidyverse) # manipulate data
 library(reshape2) # manipulate data
 library(vegan) # diversity analyses
 library(viridis) # color palette
@@ -57,6 +56,7 @@ library(lubridate) # manipulate data
 library(car) # normality tests
 library(lme4)
 library(multcomp) #tukey post hoc
+library(tidyverse) # manipulate data
 
 # function to scale hellinger matrix between 0 and 1
 range01 <- function(x){(x-min(x))/(max(x)-min(x))}
@@ -122,8 +122,9 @@ epicomm_s <- epicomm_z %>%
   spread(species, abundance)
 
 # remove unused columns
+drop.cols <- c('Date', 'dfw', 'order', 'area', 'salinity', 'shoot.density', 'fetch', 'TimeID', 'function.', 'taxon', 'group', 'eelgrss.epifauna')
 epicomm_s <- epicomm_s %>%
-  select(-Date, -dfw, -order, -area, -salinity, -shoot.density, -fetch, -TimeID, -function., -taxon, -group, -eelgrss.epifauna)
+  select(-one_of(drop.cols))
 
 # replace NAs with 0 
 epicomm_s[is.na(epicomm_s)] <- 0
@@ -233,6 +234,11 @@ rich.C <- obsrich %>%
   filter(Time.Code2 == "C")
 rich.C$site <- factor(rich.C$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
 
+prim_sites <- c("DC", "WI", "RP", "NB", "CB")
+rich_prim <- obsrich %>%
+  filter(site %in% prim_sites)
+rich_prim$site <- factor(rich_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"))
+  
 ############### Richness lm across all sites in midsummer, model selection and post hoc test
 
 richlm <- lm(rich.C$obsrich ~ rich.C$site)
@@ -244,6 +250,8 @@ richaov <- aov(obsrich ~ site, data = rich.C)
 richtuk <- glht(richaov, linfct = mcp(site = "Tukey"))
 richtuk.cld <- cld(richtuk)
 richtuk.cld <- print(richtuk.cld)
+
+
 
 
 ############### RAREFIED RICHNESS
@@ -379,6 +387,10 @@ div.summary$site <- factor(div.summary$site, levels = c("DC", "WI", "BE", "EI", 
 div.summaryC <- div.summary %>%
   filter(Time.Code2 == "C")
 div.summaryC$site <- factor(div.summaryC$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
+
+shan_prim <- div.summary %>%
+  filter(site %in% prim_sites)
+shan_prim$site <- factor(shan_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"))
 
 
 ############### ENS lm across all sites in midsummer, model selection and post hoc test
@@ -651,6 +663,12 @@ all_jaccard <- all_jaccard %>%
   select(-sitetime)
 # reorder factors
 all_jaccard$site <- factor(all_jaccard$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
+
+# Primary sites only
+jacc_prim <- all_jaccard %>%
+  filter(site %in% prim_sites)
+jacc_prime$site <- factor(jacc_prime$site, levels = c("DC", "WI", "RP", "NB", "CB"))
+
 
 ############### BRAY DIVERSITY
 
@@ -941,13 +959,13 @@ Figure2 <- ggarrange(ggarrange(Rich_midsum_plot, ens_midsum_plot, shannon_midsum
 
 ########### JACCARD DISTANCE THROUGH TIME
 
-jacc_plot <- ggplot(all_jaccard, aes(x = time, y = value, group = site)) + 
+jacc_plot <- ggplot(jacc_prim, aes(x = time, y = value, group = site)) + 
   geom_point(size=4, aes(colour = site)) +
   geom_line(aes(color = site)) +
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="Mean Jaccard Distance")
+  labs(x="", y="Jaccard Distance")
 
 # best size: ~600x400
 
@@ -974,12 +992,12 @@ rawbeta_plot <- ggplot(na.omit(Raw_beta), aes(x = Times, y = rawbeta, group = Si
 
 # OBSERVED RICHNESS
 
-rich_plot <- ggplot(rich_prim, aes(x = time, y = value, fill = site)) + 
+rich_plot <- ggplot(rich_prim, aes(x = Time.Code2, y = obsrich, fill = site)) + 
   geom_boxplot() + 
   fill_palette(viridis(5, begin = 0.3)) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="Richness")
+  labs(x="", y="Observed Richness")
 
 # RAREFIED RICHNESS
 
@@ -992,7 +1010,7 @@ rich_plot <- ggplot(rich_prim, aes(x = time, y = value, fill = site)) +
 
 # ENS
 
-ens_plot <- ggplot(ens_prim, aes(x = time, y = value, fill = site)) + 
+ens_plot <- ggplot(shan_prim, aes(x = Time.Code2, y = ENS, fill = site)) + 
   geom_boxplot() + 
   fill_palette(viridis(5, begin = 0.3)) +
   theme_minimal() +
@@ -1001,21 +1019,21 @@ ens_plot <- ggplot(ens_prim, aes(x = time, y = value, fill = site)) +
 
 # SHANNON DIVERSITY
 
-shannon_plot <- ggplot(shannon_prim, aes(x = time, y = value, fill = site)) + 
+shannon_plot <- ggplot(shan_prim, aes(x = Time.Code2, y = Shannon, fill = site)) + 
   geom_boxplot() + 
   fill_palette(viridis(5, begin = 0.3)) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
   labs(x=" May                  June/July                 August", y="Shannon Diversity")
 
-# EVENNESS
+# Hellinger distance
 
-even_plot <- ggplot(even_prim, aes(x = time, y = value, fill = site)) + 
+hell_plot <- ggplot(hell_prim, aes(x = time, y = value, fill = site)) + 
   geom_boxplot() + 
   fill_palette(viridis(5, begin = 0.3)) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x=" May                 June/July                 August", y="Evenness")
+  labs(x=" May                 June/July                 August", y="Hellinger Distance")
 
 # nMDS
 mds_plot <- ggplot(plot_data_tax, aes(x=MDS1, y=MDS2, pch = month, color = site)) +
@@ -1028,11 +1046,11 @@ mds_plot <- ggplot(plot_data_tax, aes(x=MDS1, y=MDS2, pch = month, color = site)
 # FULL FIGURE 4
 
 
-Figure4 <- ggarrange(ggarrange(rawbeta_plot, bray_plot,
+Figure4 <- ggarrange(ggarrange(rawbeta_plot, jacc_plot,
                                labels = c("A", "B"),
                                ncol = 2, nrow = 1,
                                legend = FALSE), 
-                     ggarrange(rich_plot, ens_plot, shannon_plot, even_plot, 
+                     ggarrange(rich_plot, ens_plot, shannon_plot, hell_plot, 
                                labels = c("C", "D", "E", "F"), 
                                ncol = 2, nrow = 2,
                                legend = FALSE),
