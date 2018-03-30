@@ -1075,5 +1075,41 @@ annotate_figure(Figure3, bottom = text_grob("Figure 4: Measures of A) observed r
 
 ###### SCRATCH PAD
 
+# Proportion of grazers total
+
+length(grep("grazer", epicomm_z$function.))
+# 5454
+length(epicomm_z$function.)
+# 10302
+5454/10302
+# 0.5294118
+
+# Proportion grazers in midsummer
+
+julgraz <- epicomm_z %>%
+  + filter(Time.Code2 == "C")
+propgraz <- julgraz %>%
+  filter(function. == "grazer")
+nograz <- propgraz %>%
+  filter(abundance != 0)
+finalgraz <- nograz %>%
+  group_by(site, species) %>%
+  summarise(unique(species))
+finalgraz$count <- 1
+calcgraz <- finalgraz %>%
+  group_by(site) %>%
+  summarise(sum(count))
+# change column name
+names(calcgraz)[names(calcgraz)=="sum(count)"] <- "total"
+mean(calcgraz$total)
 
 
+# determine proportion of grazers within size classes
+
+filtergraz <- names(epicomm_s[-c(1:3)])
+
+newgraz <- data.s %>%
+  filter(variable %in% filtergraz)
+sizegraz <- newgraz %>%
+  group_by(Sieve) %>%
+  summarise(sum(value))
