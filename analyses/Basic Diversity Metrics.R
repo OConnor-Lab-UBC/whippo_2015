@@ -1113,3 +1113,29 @@ newgraz <- data.s %>%
 sizegraz <- newgraz %>%
   group_by(Sieve) %>%
   summarise(sum(value))
+
+# determine how many spp range in all sites mid summer
+test <- EpiC %>%
+  select(-Sample) %>%
+  group_by(site, Time.Code2) %>%
+  summarise_all(sum)
+
+# replace >1 with 1 
+test[test > 0] <- 1
+ 
+range(rowSums(test[3:36]))
+
+#Average observed quadrat scale diversity
+quaddiv <- EpiC
+quaddiv %>% mutate_each(funs(replace(., . > 0, 1)))
+quaddiv <- quaddiv %>%
+  ungroup() %>%
+  select(-c(Time.Code2, Sample))
+quaddiv$spp <- rowSums(quaddiv[2:35])
+quaddiv <- quaddiv %>%
+  select(site, spp) %>%
+  group_by(site) %>%
+  summarise(meanrich = mean(spp))
+range(quaddiv$meanrich)
+
+
