@@ -567,10 +567,8 @@ epicomm_mds_points <- epiMDS$points
 epicomm_mds_points <- data.frame(epicomm_mds_points)
 plot_data_tax <- data.frame(epicomm_mds_points, epicomm_mds[,1:2])
 library(plyr)
-chulls_tax <- ddply(plot_data_tax, .(site), function(df) df[chull(df$MDS1, df$MDS2), ])
+chulls_tax <- ddply(plot_data_tax, .(month), function(df) df[chull(df$MDS1, df$MDS2), ])
 detach(package:plyr)
-
-
 
 
 
@@ -839,7 +837,7 @@ levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Pag
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Mytilus.trossulus"] <- "Mytilus trossulus"
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Monocorophium.achersicum"] <- "Monocorophium achersicum"
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Lottia.pelta"] <- "Lottia pelta"
-levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Lirobittium.spp."] <- "Lirobittium"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Lirobittium.spp."] <- "Lirobittium spp."
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Leptochelia.dubia"] <- "Leptochelia dubia"
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Lacuna.spp."] <- "Lacuna spp."
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Janua.pagastecheri"] <- "Janua pagastecheri"
@@ -847,7 +845,7 @@ levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Ido
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Haminoea.sp."] <- "Haminoea spp."
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Halacarid.mite"] <- "Halacarid mite"
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Eogammarus.confervicolus"] <- "Eogammarus confervicolus"
-levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Cyprideis.beaconensis"] <- "Cyprideis beaconensis"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Cyprideis.beaconensis"] <- "Ostracoda sp."
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Copepod"] <- "Harpacticoid copepod"
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Cirolana.harfordi"] <- "Cirolana harfordi"
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Caprella.spp."] <- "Caprella spp."
@@ -858,6 +856,10 @@ levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Amp
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Alia.carinata"] <- "Alia carinata"
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Nematode"] <- "Nematode sp. 1"
 
+# change order of checkboard species to match table 2
+checkerboard_epicomm$species <- factor(checkerboard_epicomm$species, levels = c("Caprella spp.", "Aoroides columbiae", "Pentidotea resecata", "Leptochelia dubia", "Photis brevipes", "Monocorophium achersicum", "Amphipoda sp.", "Pontogeneia rostrata", "Harpacticoid copepod", "Eogammarus confervicolus", "Amphithoe spp.", "Balanus spp.", "Cirolana harfordi", "Pugettia richii", "Pandalidae", "Pagurus quaylei", "Ostracoda sp.", "Phyllaplysia taylori", "Mytilus trossulus", "Lacuna spp.", "Lottia pelta", "Haminoea spp.", "Alia carinata", "Lirobittium spp.", "Platynereis bicanaliculata", "Janua pagastecheri", "Nematode sp. 1", "Nematode sp. 2", "Pycnogonum sp.", "Halacarid mite", "Nemertea"))
+
+checkerboard_epicomm$species <- fct_rev(checkerboard_epicomm$species)
 
 
 
@@ -974,10 +976,10 @@ jacc_plot <- ggplot(jacc_prim, aes(x = time, y = value, group = site)) +
 bray_plot <- ggplot(all_bray, aes(x = time, y = value, group = site)) + 
   geom_point(size=4, aes(colour = site)) +
   geom_line(aes(color = site)) +
-  scale_color_viridis(discrete=TRUE, begin = 0.3) +
+  scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="Mean Bray-Curtis Dist.")
+  labs(x="", y="B-C Distance")
 
 # best size: ~600x400
 
@@ -1040,7 +1042,7 @@ mds_plot <- ggplot(plot_data_tax, aes(x=MDS1, y=MDS2, pch = month, color = site)
   scale_color_viridis(discrete = TRUE, begin = 0.3) +
   theme_minimal() +
   geom_point(size = 4) + 
-  geom_polygon(data=chulls_tax, aes(x=MDS1, y=MDS2, group=site), fill=NA) 
+  geom_polygon(data=chulls_tax, aes(x=MDS1, y=MDS2, group=month), fill=NA, color = "grey") 
 
 
 # FULL FIGURE 4
@@ -1138,4 +1140,28 @@ quaddiv <- quaddiv %>%
   summarise(meanrich = mean(spp))
 range(quaddiv$meanrich)
 
+# permutation test of multivariate homogeneity of group dispersions for all midusmmer sites
+dispertest <- range01(vegdist(decostand(EpiC[,4:37], "hellinger"), "euclidean"))
+groups <- factor(EpiC$site)
+betamod <- betadisper(dispertest, groups, type = "centroid")
+permutest(betamod)
 
+# test across all time periods to determine if composition was stable.
+gammatest <- epicomm_s
+primsites <- c("DC", "WI", "RP", "NB", "CB")
+primegamma <- gammatest %>%
+  filter(site %in% primsites)
+primeplot <- primegamma %>%
+  select(-Sample) %>%
+  group_by(site, Time.Code2) %>%
+  summarise_all(sum)
+adonismod <- adonis(primeplot[,3:36] ~ Time.Code2, data = primeplot, permutations = 999, method = "bray")
+adonismod
+
+# wizard jaccard spike?
+Wizard <- epicomm_s %>%
+  filter(site == "WI")
+Wizard <- Wizard %>%
+  select(-Sample) %>%
+  group_by(site, Time.Code2) %>%
+  summarise_all(sum)

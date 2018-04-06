@@ -928,3 +928,14 @@ ggplot(y1, aes(loc, distance)) +
 
 
 #######
+
+
+##### SCRATCH PAD
+
+
+# actual mean values for Raup-Crick figure
+test <- y1
+test <- test %>%
+  select(time, distance, loc) %>%
+  group_by(time, loc) %>%
+  summarise(mean(distance))
