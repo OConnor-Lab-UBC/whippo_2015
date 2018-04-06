@@ -18,7 +18,7 @@ library(broom)
 
 ## start with data2 file:
 ## create site-level data by collapsing across plots; these names refer to datafiles created in the 'Whippo diversity analysis.R' file.
-start.data <- dataAUG # dataMAY, data.mp, dataAUG, dataJULY, data3times, dataJULY9
+start.data <- dataJULY9 # dataMAY, data.mp, dataAUG, dataJULY, data3times, dataJULY9
 data.ms <- ddply(start.data, .(TimeID, area, species), summarise, sum(abundance))
 data2 <- dcast(data.ms, TimeID ~ species, mean) #order
 
