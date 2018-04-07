@@ -1,10 +1,10 @@
 ###################################################################################
 #                                                                                ##
 # Basic Diversity Metrics                                                        ##
-# Data are current as of 2018-03-26                                              ##
+# Data are current as of 2018-03-28                                              ##
 # Data source: O'Connor Lab - UBC                                                ##
 # R code prepared by Ross Whippo                                                 ##
-# Last updated 2018-03-26                                                        ##
+# Last updated 2018-03-28                                                        ##
 #                                                                                ##
 ###################################################################################
 
@@ -37,6 +37,7 @@
 # RECENT CHANGES TO SCRIPT                                                        #
 ###################################################################################
 
+# 2018-03-28 Forked with correct rawcomm processing code, clean up fig code
 # 2018-03-26 Cleaned up for figures and added analyses from 2018-beta analysis.R
 # 2018-03-24 Added MDS analysis
 # 2018-03-05 Switched back to rawcomm dataset with treatment from Mary's script
@@ -47,7 +48,6 @@
 # LOAD PACKAGES                                                                   #
 ###################################################################################
 
-library(tidyverse) # manipulate data
 library(reshape2) # manipulate data
 library(vegan) # diversity analyses
 library(viridis) # color palette
@@ -55,6 +55,8 @@ library(ggpubr) # combining plots
 library(lubridate) # manipulate data
 library(car) # normality tests
 library(lme4)
+library(multcomp) #tukey post hoc
+library(tidyverse) # manipulate data
 
 # function to scale hellinger matrix between 0 and 1
 range01 <- function(x){(x-min(x))/(max(x)-min(x))}
@@ -63,9 +65,7 @@ range01 <- function(x){(x-min(x))/(max(x)-min(x))}
 # READ IN AND PREPARE DATA                                                        #
 ###################################################################################
 
-# full community data
-#epicomm_example <- read_csv("./data/epicomm_201802.csv")
-
+# read full community data ------------------------------------------------
 data <- read.csv("./data/rawcomm.csv")
 traits <- read.csv("./data/grazertraits3.csv")
 sites <- read.csv("./data/site.info.csv")
@@ -75,7 +75,7 @@ traits <- traits[,-c(3,8:10)]
 
 data$date1 <- mdy(data$date)
 
-# data preparation ---------------------------------------------------
+# data preparation --------------------------------------------------------
 ## Melt and recast so the datafile goes from long to wide (species as columns)
 data.m <- melt(data, id = c(1,2,3,4,5,52, 53))
 
@@ -85,7 +85,7 @@ levels(data.m$variable)[levels(data.m$variable)== "Bittium.spp."] <- "Lirobittiu
 levels(data.m$variable)[levels(data.m$variable)== "Olivella.sp."] <- "Callianax.sp."
 levels(data.m$variable)[levels(data.m$variable)== "Cypricercus."] <- "Cyprideis.beaconensis"
 levels(data.m$variable)[levels(data.m$variable)== "Odontosyllis"] <- "Polychaete1"
-#levels(data.m$variable)[levels(data.m$variable)== "Idotea.resecata"] <- "Pentidotea.resecata"
+# Idotea.resecata is also incorrect (should be Pentidotea.resecata, however it is kept as is to maintain functionality of code)
 
 # Clean up time code labels so they are easier to model
 levels(unique(data$Time.Code2))
@@ -100,7 +100,7 @@ levels(data.m$Time.Code)
 data.s <- merge(data.m, sites, by = "site")
 
 library(plyr)
-## Sum across size classes within plots (samples)
+## Sum across size classes within plots (samples), takes several seconds to run
 data.p <- ddply(data.s, .(site, date1, Sample, Time.Code2, variable, dfw,order.dfw,area,salinity, shoot.density, fetch.jc), summarise, sum(value))
 detach(package:plyr)
 
@@ -122,8 +122,9 @@ epicomm_s <- epicomm_z %>%
   spread(species, abundance)
 
 # remove unused columns
+drop.cols <- c('Date', 'dfw', 'order', 'area', 'salinity', 'shoot.density', 'fetch', 'TimeID', 'function.', 'taxon', 'group', 'eelgrss.epifauna')
 epicomm_s <- epicomm_s %>%
-  select(-Date, -dfw, -order, -area, -salinity, -shoot.density, -fetch, -TimeID, -function., -taxon, -group, -eelgrss.epifauna)
+  select(-one_of(drop.cols))
 
 # replace NAs with 0 
 epicomm_s[is.na(epicomm_s)] <- 0
@@ -133,176 +134,89 @@ epicomm_s <- epicomm_s %>%
   group_by(site, Time.Code2, Sample) %>%
   summarize_all(funs(sum))
 
-# extract July (midsummer samples) for separate analyses of alpha diversity (did not sure rarefied richness because requires subsampling of smallest species count. Per quadrat that was sometimes zero, so instead report actually observed richness)
-epicomm_midsum <- epicomm_s %>%
-  select(-Sample) %>%
-  filter(Time.Code2 == "C")
-epicomm_midsum <- epicomm_midsum[,-2]
-epicomm_midsum[epicomm_midsum > 0] <- 1 
-epicomm_midsum$richness <- richness <- rowSums(epicomm_midsum[,2:35])
-epicomm_richness <- epicomm_midsum[, c(1,36)]
-epicomm_richness$richness <- as.numeric(epicomm_richness$richness)
-#reorder factors
-epicomm_richness$site <- factor(epicomm_richness$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
 
-
-
-
-# create sitetime column for analyses
-epicomm <- epicomm_s %>%
-  select(-Sample) %>%
-  unite(sitetime, site, Time.Code2, sep = "")
-
-
-# remove redundant columns and summarise species occurrences
-# epicomm_summ <- epicomm %>%
-#  select(-date, -Sieve) %>%
-#  unite(sitetime, site, 'Time Code', sep = "", remove = TRUE)
-# fix CBC typo
-# epicomm_summ$sitetime <- gsub("CBC ", "CBC", epicomm_summ$sitetime)
-# finish summarization for every sample by summing
-# epicomm_summ <- epicomm_summ %>%
-#  group_by(sitetime, Sample) %>%
-#  summarise_all(funs(sum))
-
-# group all primary sites 
-primary <- c("DCA", "DCC", "DCE", "WIA", "WIC", "WIE", "RPA", "RPC", "RPE", "NBA", "NBC", "NBE", "CBA", "CBC", "CBE")
-epicomm_prim_full <- epicomm %>%
-  subset(sitetime %in% primary) 
-
-# separate each sitetime for analysis
-
-DCA <- epicomm_prim_full %>%
-  subset(sitetime == "DCA")
-DCC <- epicomm_prim_full %>%
-  subset(sitetime == "DCC")
-DCE <- epicomm_prim_full %>%
-  subset(sitetime == "DCE")
-
-WIA <- epicomm_prim_full %>%
-  subset(sitetime == "WIA")
-WIC <- epicomm_prim_full %>%
-  subset(sitetime == "WIC")
-WIE <- epicomm_prim_full %>%
-  subset(sitetime == "WIE")
-
-RPA <- epicomm_prim_full %>%
-  subset(sitetime == "RPA")
-RPC <- epicomm_prim_full %>%
-  subset(sitetime == "RPC")
-RPE <- epicomm_prim_full %>%
-  subset(sitetime == "RPE")
-
-NBA <- epicomm_prim_full %>%
-  subset(sitetime == "NBA")
-NBC <- epicomm_prim_full %>%
-  subset(sitetime == "NBC")
-NBE <- epicomm_prim_full %>%
-  subset(sitetime == "NBE")
-
-CBA <- epicomm_prim_full %>%
-  subset(sitetime == "CBA")
-CBC <- epicomm_prim_full %>%
-  subset(sitetime == "CBC")
-CBE <- epicomm_prim_full %>%
-  subset(sitetime == "CBE")
-
-# group all secondary sites 
-secondary <- c("BIC", "BEC", "CCC", "EIC")
-epicomm_sec_full <- epicomm %>%
-  subset(sitetime %in% secondary) 
-
-# separate each sitetime for analysis and rename time period
-
-BIC <- epicomm_sec_full %>%
-  subset(sitetime == "BIC")
-BEC <- epicomm_sec_full %>%
-  subset(sitetime == "BEC")
-EIC <- epicomm_sec_full %>%
-  subset(sitetime == "EIC")
-CCC <- epicomm_sec_full %>%
-  subset(sitetime == "CCC")
 
 # separate into time periods for shannon and ens
-EpiA <- bind_rows(DCA, WIA, RPA, NBA, CBA)
-EpiA$site <- as.factor(EpiA$site)
+EpiA <- epicomm_s %>%
+  filter(Time.Code2 == "A")
+EpiA$Time.Code2 <- "May"
+EpiA$site <- factor(EpiA$site, levels = c("DC", "WI", "RP", "NB", "CB"))
 
-EpiC <- bind_rows(DCC, WIC, BEC, EIC, RPC, NBC, CBC, BIC, CCC)
-EpiC <- transform(EpiC, site = substr(sitetime, 1, 2))
-EpiC <- EpiC %>%
-  select(-sitetime)
-EpiC$site <- as.factor(EpiC$site)
+EpiC <- epicomm_s %>%
+  filter(Time.Code2 == "C")
+EpiC$Time.Code2 <- "June/July"
+EpiC$site <- factor(EpiC$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
 
-EpiE <- bind_rows(DCE, WIE, RPE, NBE, CBE)
-EpiE$site <- as.factor(EpiE$site)
+EpiE <- epicomm_s %>%
+  filter(Time.Code2 == "E")
+EpiE$Time.Code2 <- "August"
+EpiE$site <- factor(EpiE$site, levels = c("DC", "WI", "RP", "NB", "CB"))
 
-###################################################################################
-# COMMUNITY DESCRIPTION                                                           #
-###################################################################################
 
-# this code primarily corrects abundance values in Table 2.
 
-# Overall rank abundance of taxa across all sites
-total_abundance <- colSums(epicomm[,2:35], na.rm = TRUE) 
-total_abundance <- sort(total_abundance, decreasing = TRUE)
+# separate each sitetime for analysis, have to for rarefy command and hell/bray distance
 
-# DCA rank abundance
-DCA_abundance <- colSums(DCA[,2:35])
-DCA_abundance <- sort(DCA_abundance, decreasing = TRUE)
-# DCC rank abundance
-DCC_abundance <- colSums(DCC[,2:35])
-DCC_abundance <- sort(DCC_abundance, decreasing = TRUE)
-# DCE rank abundance
-DCE_abundance <- colSums(DCE[,2:35])
-DCE_abundance <- sort(DCE_abundance, decreasing = TRUE)
-# WIA rank abundance
-WIA_abundance <- colSums(WIA[,2:35])
-WIA_abundance <- sort(WIA_abundance, decreasing = TRUE)
-# WIC rank abundance
-WIC_abundance <- colSums(WIC[,2:35])
-WIC_abundance <- sort(WIC_abundance, decreasing = TRUE)
-# WIE rank abundance
-WIE_abundance <- colSums(WIE[,2:35])
-WIE_abundance <- sort(WIE_abundance, decreasing = TRUE)
-# RPA rank abundance
-RPA_abundance <- colSums(RPA[,2:35])
-RPA_abundance <- sort(RPA_abundance, decreasing = TRUE)
-# RPC rank abundance
-RPC_abundance <- colSums(RPC[,2:35])
-RPC_abundance <- sort(RPC_abundance, decreasing = TRUE)
-# RPE rank abundance
-RPE_abundance <- colSums(RPE[,2:35])
-RPE_abundance <- sort(RPE_abundance, decreasing = TRUE)
-# NBA rank abundance
-NBA_abundance <- colSums(NBA[,2:35])
-NBA_abundance <- sort(NBA_abundance, decreasing = TRUE)
-# NBC rank abundance
-NBC_abundance <- colSums(NBC[,2:35])
-NBC_abundance <- sort(NBC_abundance, decreasing = TRUE)
-# NBE rank abundance
-NBE_abundance <- colSums(NBE[,2:35])
-NBE_abundance <- sort(NBE_abundance, decreasing = TRUE)
-# CBA rank abundance
-CBA_abundance <- colSums(CBA[,2:35])
-CBA_abundance <- sort(CBA_abundance, decreasing = TRUE)
-# CBC rank abundance
-CBC_abundance <- colSums(CBC[,2:35])
-CBC_abundance <- sort(CBC_abundance, decreasing = TRUE)
-# CBE rank abundance
-CBE_abundance <- colSums(CBE[,2:35])
-CBE_abundance <- sort(CBE_abundance, decreasing = TRUE)
-# BEC rank abundance
-BEC_abundance <- colSums(BEC[,2:35])
-BEC_abundance <- sort(BEC_abundance, decreasing = TRUE)
-# EIC rank abundance
-EIC_abundance <- colSums(EIC[,2:35])
-EIC_abundance <- sort(EIC_abundance, decreasing = TRUE)
-# BIC rank abundance
-BIC_abundance <- colSums(BIC[,2:35])
-BIC_abundance <- sort(BIC_abundance, decreasing = TRUE)
-# CCC rank abundance
-CCC_abundance <- colSums(CCC[,2:35])
-CCC_abundance <- sort(CCC_abundance, decreasing = TRUE)
+indiv_sites <- epicomm_s
+# change time labels
+
+levels(indiv_sites$Time.Code2)[levels(indiv_sites$Time.Code2)== "A"] <- "May"
+levels(indiv_sites$Time.Code2)[levels(indiv_sites$Time.Code2)== "C"] <- "June/July"
+levels(indiv_sites$Time.Code2)[levels(indiv_sites$Time.Code2)== "E"] <- "August"
+
+
+DCA <- indiv_sites %>%
+  filter(site == "DC" & Time.Code2 == "May")
+DCC <- indiv_sites %>%
+  filter(site == "DC" & Time.Code2 == "June/July")
+DCE <- indiv_sites %>%
+  filter(site == "DC" & Time.Code2 == "August")
+
+WIA <- indiv_sites %>%
+  filter(site == "WI" & Time.Code2 == "May")
+WIC <- indiv_sites %>%
+  filter(site == "WI" & Time.Code2 == "June/July")
+WIE <- indiv_sites %>%
+  filter(site == "WI" & Time.Code2 == "August")
+
+RPA <- indiv_sites %>%
+  filter(site == "RP" & Time.Code2 == "May")
+RPC <- indiv_sites %>%
+  filter(site == "RP" & Time.Code2 == "June/July")
+RPE <- indiv_sites %>%
+  filter(site == "RP" & Time.Code2 == "August")
+
+NBA <- indiv_sites %>%
+  filter(site == "NB" & Time.Code2 == "May")
+NBC <- indiv_sites %>%
+  filter(site == "NB" & Time.Code2 == "June/July")
+NBE <- indiv_sites %>%
+  filter(site == "NB" & Time.Code2 == "August")
+
+CBA <- indiv_sites %>%
+  filter(site == "CB" & Time.Code2 == "May")
+CBC <- indiv_sites %>%
+  filter(site == "CB" & Time.Code2 == "June/July")
+CBE <- indiv_sites %>%
+  filter(site == "CB" & Time.Code2 == "August")
+
+BEC <- indiv_sites %>%
+  filter(site == "BE" & Time.Code2 == "June/July")
+EIC <- indiv_sites %>%
+  filter(site == "EI" & Time.Code2 == "June/July")
+BIC <- indiv_sites %>%
+  filter(site == "BI" & Time.Code2 == "June/July")
+CCC <- indiv_sites %>%
+  filter(site == "CC" & Time.Code2 == "June/July")
+
+#######################
+#######################
+
+
+
+
+
+
+
 
 ###################################################################################
 # DIVERSITY MEASURES                                                              #
@@ -310,484 +224,88 @@ CCC_abundance <- sort(CCC_abundance, decreasing = TRUE)
 
 ############### OBSERVED RICHNESS
 
-DCA_rich <- DCA[,2:35] %>%
-  specnumber()
-DCC_rich <- DCC[,2:35] %>%
-  specnumber()
-DCE_rich <- DCE[,2:35] %>%
-  specnumber()
+Rich <- specnumber(epicomm_s[-c(1:3)])
+obsrich <- epicomm_s[c(1:3)]
+obsrich$obsrich <- Rich
+obsrich$site <- factor(obsrich$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
 
-WIA_rich <- WIA[,2:35] %>%
-  specnumber()
-WIC_rich <- WIC[,2:35] %>%
-  specnumber()
-WIE_rich <- WIE[,2:35] %>%
-  specnumber()
 
-RPA_rich <- RPA[,2:35] %>%
-  specnumber()
-RPC_rich <- RPC[,2:35] %>%
-  specnumber()
-RPE_rich <- RPE[,2:35] %>%
-  specnumber()
+rich.C <- obsrich %>%
+  filter(Time.Code2 == "C")
+rich.C$site <- factor(rich.C$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
 
-NBA_rich <- NBA[,2:35] %>%
-  specnumber()
-NBC_rich <- NBC[,2:35] %>%
-  specnumber()
-NBE_rich <- NBE[,2:35] %>%
-  specnumber()
-
-CBA_rich <- CBA[,2:35] %>%
-  specnumber()
-CBC_rich <- CBC[,2:35] %>%
-  specnumber()
-CBE_rich <- CBE[,2:35] %>%
-  specnumber()
-
-# combine into single data frame
-# make all same length
-length(DCA_rich) <- 17                      
-length(DCC_rich) <- 17  
-length(DCE_rich) <- 17 
-length(WIA_rich) <- 17 
-length(WIC_rich) <- 17  
-length(WIE_rich) <- 17  
-length(RPA_rich) <- 17  
-length(RPC_rich) <- 17  
-length(RPE_rich) <- 17  
-length(NBA_rich) <- 17  
-length(NBC_rich) <- 17  
-length(NBE_rich) <- 17  
-length(CBA_rich) <- 17  
-length(CBC_rich) <- 17  
-length(CBE_rich) <- 17 
-# combine
-rich_prim <- melt(data.frame(DCA_rich, DCC_rich, DCE_rich, WIA_rich, WIC_rich, WIE_rich, RPA_rich, RPC_rich, RPE_rich, NBA_rich, NBC_rich, NBE_rich, CBA_rich, CBC_rich, CBE_rich))
-# rename columns, reduce sitetime values, and split into site and time
-colnames(rich_prim) <- c('sitetime', 'value') 
-rich_prim$sitetime <- as.character(rich_prim$sitetime)
-rich_prim$sitetime <- substr(rich_prim$sitetime,1,3)
-rich_prim <- transform(rich_prim, site = substr(sitetime, 1, 2), time = substr(sitetime, 3, 3))
-rich_prim <- rich_prim %>%
-  select(-sitetime) %>%
-  na.omit()
-# reorder factors
+prim_sites <- c("DC", "WI", "RP", "NB", "CB")
+rich_prim <- obsrich %>%
+  filter(site %in% prim_sites)
 rich_prim$site <- factor(rich_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"))
+  
+############### Richness lm across all sites in midsummer, model selection and post hoc test
 
+richlm <- lm(rich.C$obsrich ~ rich.C$site)
+rich0 <- lm(rich.C$obsrich ~ 1)
+anova(richlm, rich0)
+model.sel(richlm, rich0)
+summary(richlm)
+richaov <- aov(obsrich ~ site, data = rich.C)
+richtuk <- glht(richaov, linfct = mcp(site = "Tukey"))
+richtuk.cld <- cld(richtuk)
+richtuk.cld <- print(richtuk.cld)
 
 
-############### Richness ANOVA across all sites in midsummer
 
-# test for homogeneity 
-qqnorm(epicomm_richness$richness)
-qqline(epicomm_richness$richness)
-leveneTest(richness ~ site, data = epicomm_richness)
 
-aovrich <- aov(richness ~ site, data = epicomm_richness)
-summary(aovrich)
-TukeyHSD(aovrich)
+############### RAREFIED RICHNESS
 
 
-
-############### ENS
-
-DCA_ens <- exp(diversity(DCA[,2:35], "shannon"))
-DCC_ens <- exp(diversity(DCC[,2:35], "shannon"))
-DCE_ens <- exp(diversity(DCE[,2:35], "shannon"))
-
-WIA_ens <- exp(diversity(WIA[,2:35], "shannon"))
-WIC_ens <- exp(diversity(WIC[,2:35], "shannon"))
-WIE_ens <- exp(diversity(WIE[,2:35], "shannon"))
-
-RPA_ens <- exp(diversity(RPA[,2:35], "shannon"))
-RPC_ens <- exp(diversity(RPC[,2:35], "shannon"))
-RPE_ens <- exp(diversity(RPE[,2:35], "shannon"))
-
-NBA_ens <- exp(diversity(NBA[,2:35], "shannon"))
-NBC_ens <- exp(diversity(NBC[,2:35], "shannon"))
-NBE_ens <- exp(diversity(NBE[,2:35], "shannon"))
-
-CBA_ens <- exp(diversity(CBA[,2:35], "shannon"))
-CBC_ens <- exp(diversity(CBC[,2:35], "shannon"))
-CBE_ens <- exp(diversity(CBE[,2:35], "shannon"))
-
-############## SECONDARY SITES TO JOIN SEPARATELY FOR FIGURE 2
-
-BEC_ens <- exp(diversity(BEC[,2:35], "shannon"))
-EIC_ens <- exp(diversity(EIC[,2:35], "shannon"))
-BIC_ens <- exp(diversity(BIC[,2:35], "shannon"))
-CCC_ens <- exp(diversity(BIC[,2:35], "shannon"))
-
-# combine into single data frame
-# make all same length
-length(DCA_ens) <- 17                      
-length(DCC_ens) <- 17  
-length(DCE_ens) <- 17 
-length(WIA_ens) <- 17 
-length(WIC_ens) <- 17  
-length(WIE_ens) <- 17  
-length(RPA_ens) <- 17  
-length(RPC_ens) <- 17  
-length(RPE_ens) <- 17  
-length(NBA_ens) <- 17  
-length(NBC_ens) <- 17  
-length(NBE_ens) <- 17  
-length(CBA_ens) <- 17  
-length(CBC_ens) <- 17  
-length(CBE_ens) <- 17 
-#secondaries
-length(BEC_ens) <- 17
-length(EIC_ens) <- 17
-length(BIC_ens) <- 17
-length(CCC_ens) <- 17
-# combine primaries
-ens_prim <- melt(data.frame(DCA_ens, DCC_ens, DCE_ens, WIA_ens, WIC_ens, WIE_ens, RPA_ens, RPC_ens, RPE_ens, NBA_ens, NBC_ens, NBE_ens, CBA_ens, CBC_ens, CBE_ens))
-# combine July all sites
-ens_midsum <-  melt(data.frame(DCC_ens, WIC_ens, BEC_ens, EIC_ens, RPC_ens, NBC_ens, CBC_ens, BIC_ens, CCC_ens))
-# rename columns, reduce sitetime values, and split into site and time PRIMARY
-colnames(ens_prim) <- c('sitetime', 'value') 
-ens_prim$sitetime <- as.character(ens_prim$sitetime)
-ens_prim$sitetime <- substr(ens_prim$sitetime,1,3)
-ens_prim <- transform(ens_prim, site = substr(sitetime, 1, 2), time = substr(sitetime, 3, 3))
-ens_prim <- ens_prim %>%
-  select(-sitetime) %>%
-  na.omit()
-ens_prim$site <- factor(ens_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"))
-# rename columns, reduce sitetime values, and split into site and time MIDSUMMER
-colnames(ens_midsum) <- c('sitetime', 'value') 
-ens_midsum$sitetime <- as.character(ens_midsum$sitetime)
-ens_midsum$sitetime <- substr(ens_midsum$sitetime,1,3)
-ens_midsum <- transform(ens_midsum, site = substr(sitetime, 1, 2), time = substr(sitetime, 3, 3))
-ens_midsum <- ens_midsum %>%
-  select(-sitetime, -time) %>%
-  na.omit()
-# reorder factors
-ens_midsum$site <- factor(ens_midsum$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
-
-# FULL TIME PERIOD SHANNON
-
-
-Shannon <- diversity(EpiC[,-c(1,36)], index ="shannon")
-# Compile indices into one dataframe to make FIGURE 2
-div.summary <- cbind(EpiC[36], Shannon)
-#div.summaryE <- merge(div.summary, RR.data, by.x = c("site", "Date","Sample", "alpha.p", "N"), by.y = c("site", "Date","alpha.p","N", "Sample"))
-div.summary2 <- merge(div.summary, sites, by.x = c("site"), by.y = c("site"))
-
-
-############### ENS ANOVA across all sites in midsummer
-
-# test for homogeneity 
-qqnorm(ens_midsum$value)
-qqline(ens_midsum$value)
-leveneTest(value ~ site, data = ens_midsum)
-
-aovens <- aov(value ~ site, data = ens_midsum)
-summary(aovens)
-TukeyHSD(aovens)
-
-
-############### SHANNON DIVERSITY
-
-DCA_shannon <- DCA[,2:35] %>%
-  diversity("shannon")
-DCC_shannon <- DCC[,2:35] %>%
-  diversity("shannon")
-DCE_shannon <- DCE[,2:35] %>%
-  diversity("shannon")
-
-WIA_shannon <- WIA[,2:35] %>%
-  diversity("shannon")
-WIC_shannon <- WIC[,2:35] %>%
-  diversity("shannon")
-WIE_shannon <- WIE[,2:35] %>%
-  diversity("shannon")
-
-RPA_shannon <- RPA[,2:35] %>%
-  diversity("shannon")
-RPC_shannon <- RPC[,2:35] %>%
-  diversity("shannon")
-RPE_shannon <- RPE[,2:35] %>%
-  diversity("shannon")
-
-NBA_shannon <- NBA[,2:35] %>%
-  diversity("shannon")
-NBC_shannon <- NBC[,2:35] %>%
-  diversity("shannon")
-NBE_shannon <- NBE[,2:35] %>%
-  diversity("shannon")
-
-CBA_shannon <- CBA[,2:35] %>%
-  diversity("shannon")
-CBC_shannon <- CBC[,2:35] %>%
-  diversity("shannon")
-CBE_shannon <- CBE[,2:35] %>%
-  diversity("shannon")
-
-############## SECONDARY SITES TO JOIN SEPARATELY FOR FIGURE 2
-
-BEC_shannon <- BEC[,2:35] %>%
-  diversity("shannon")
-EIC_shannon <- EIC[,2:35] %>%
-  diversity("shannon")
-BIC_shannon <- BIC[,2:35] %>%
-  diversity("shannon")
-CCC_shannon <- CCC[,2:35] %>%
-  diversity("shannon")
-
-
-
-# combine primary into single data frame
-# make all same length
-length(DCA_shannon) <- 17                      
-length(DCC_shannon) <- 17  
-length(DCE_shannon) <- 17 
-length(WIA_shannon) <- 17 
-length(WIC_shannon) <- 17  
-length(WIE_shannon) <- 17  
-length(RPA_shannon) <- 17  
-length(RPC_shannon) <- 17  
-length(RPE_shannon) <- 17  
-length(NBA_shannon) <- 17  
-length(NBC_shannon) <- 17  
-length(NBE_shannon) <- 17  
-length(CBA_shannon) <- 17  
-length(CBC_shannon) <- 17  
-length(CBE_shannon) <- 17 
-#secondaries
-length(BEC_shannon) <- 17
-length(EIC_shannon) <- 17
-length(BIC_shannon) <- 17
-length(CCC_shannon) <- 17
-# combine primaries
-shannon_prim <- melt(data.frame(DCA_shannon, DCC_shannon, DCE_shannon, WIA_shannon, WIC_shannon, WIE_shannon, RPA_shannon, RPC_shannon, RPE_shannon, NBA_shannon, NBC_shannon, NBE_shannon, CBA_shannon, CBC_shannon, CBE_shannon))
-# combine July all sites
-shannon_midsum <-  melt(data.frame(DCC_shannon, WIC_shannon, BEC_shannon, EIC_shannon, RPC_shannon, NBC_shannon, CBC_shannon, BIC_shannon, CCC_shannon))
-# rename columns, reduce sitetime values, and split into site and time PRIMARY
-colnames(shannon_prim) <- c('sitetime', 'value') 
-shannon_prim$sitetime <- as.character(shannon_prim$sitetime)
-shannon_prim$sitetime <- substr(shannon_prim$sitetime,1,3)
-shannon_prim <- transform(shannon_prim, site = substr(sitetime, 1, 2), time = substr(sitetime, 3, 3))
-shannon_prim <- shannon_prim %>%
-  select(-sitetime) %>%
-  na.omit()
-shannon_prim$site <- factor(shannon_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"))
-# rename columns, reduce sitetime values, and split into site and time MIDSUMMER
-colnames(shannon_midsum) <- c('sitetime', 'value') 
-shannon_midsum$sitetime <- as.character(shannon_midsum$sitetime)
-shannon_midsum$sitetime <- substr(shannon_midsum$sitetime,1,3)
-shannon_midsum <- transform(shannon_midsum, site = substr(sitetime, 1, 2), time = substr(sitetime, 3, 3))
-shannon_midsum <- shannon_midsum %>%
-  select(-sitetime, -time) %>%
-  na.omit()
-# reorder factors
-shannon_midsum$site <- factor(shannon_midsum$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
-
-
-
-
-############### Shannon diversity ANOVA across all sites in midsummer
-
-# test for homogeneity 
-qqnorm(shannon_midsum$value)
-qqline(shannon_midsum$value)
-leveneTest(value ~ site, data = shannon_midsum)
-
-aovrich <- aov(value ~ site, data = shannon_midsum)
-summary(aovrich)
-TukeyHSD(aovrich)
-
-
-############### HELLINGER DISTANCE
-
-DCA_hell <- range01(vegdist(decostand(DCA[,2:35], "hellinger"), "euclidean"))
-DCC_hell <- range01(vegdist(decostand(DCC[,2:35], "hellinger"), "euclidean"))
-DCE_hell <- range01(vegdist(decostand(DCE[,2:35], "hellinger"), "euclidean"))
-
-WIA_hell <- range01(vegdist(decostand(WIA[,2:35], "hellinger"), "euclidean"))
-WIC_hell <- range01(vegdist(decostand(WIC[,2:35], "hellinger"), "euclidean"))
-WIE_hell <- range01(vegdist(decostand(WIE[,2:35], "hellinger"), "euclidean"))
-
-RPA_hell <- range01(vegdist(decostand(RPA[,2:35], "hellinger"), "euclidean"))
-RPC_hell <- range01(vegdist(decostand(RPC[,2:35], "hellinger"), "euclidean"))
-RPE_hell <- range01(vegdist(decostand(RPE[,2:35], "hellinger"), "euclidean"))
-
-NBA_hell <- range01(vegdist(decostand(NBA[,2:35], "hellinger"), "euclidean"))
-NBC_hell <- range01(vegdist(decostand(NBC[,2:35], "hellinger"), "euclidean"))
-NBE_hell <- range01(vegdist(decostand(NBE[,2:35], "hellinger"), "euclidean"))
-
-CBA_hell <- range01(vegdist(decostand(CBA[,2:35], "hellinger"), "euclidean"))
-CBC_hell <- range01(vegdist(decostand(CBC[,2:35], "hellinger"), "euclidean"))
-CBE_hell <- range01(vegdist(decostand(CBE[,2:35], "hellinger"), "euclidean"))
-
-############## SECONDARY SITES TO JOIN SEPARATELY FOR FIGURE 2
-
-BEC_hell <- range01(vegdist(decostand(BEC[,2:35], "hellinger"), "euclidean"))
-EIC_hell <- range01(vegdist(decostand(EIC[,2:35], "hellinger"), "euclidean"))
-BIC_hell <- range01(vegdist(decostand(BIC[,2:35], "hellinger"), "euclidean"))
-CCC_hell <- range01(vegdist(decostand(CCC[,2:35], "hellinger"), "euclidean"))
-
-
-
-# combine primary into single data frame
-# make all same length
-length(DCA_hell) <- 17                      
-length(DCC_hell) <- 17  
-length(DCE_hell) <- 17 
-length(WIA_hell) <- 17 
-length(WIC_hell) <- 17  
-length(WIE_hell) <- 17  
-length(RPA_hell) <- 17  
-length(RPC_hell) <- 17  
-length(RPE_hell) <- 17  
-length(NBA_hell) <- 17  
-length(NBC_hell) <- 17  
-length(NBE_hell) <- 17  
-length(CBA_hell) <- 17  
-length(CBC_hell) <- 17  
-length(CBE_hell) <- 17 
-#secondaries
-length(BEC_hell) <- 17
-length(EIC_hell) <- 17
-length(BIC_hell) <- 17
-length(CCC_hell) <- 17
-# combine primaries
-hell_prim <- melt(data.frame(DCA_hell, DCC_hell, DCE_hell, WIA_hell, WIC_hell, WIE_hell, RPA_hell, RPC_hell, RPE_hell, NBA_hell, NBC_hell, NBE_hell, CBA_hell, CBC_hell, CBE_hell))
-# combine July all sites
-hell_midsum <-  melt(data.frame(DCC_hell, WIC_hell, BEC_hell, EIC_hell, RPC_hell, NBC_hell, CBC_hell, BIC_hell, CCC_hell))
-# rename columns, reduce sitetime values, and split into site and time PRIMARY
-colnames(hell_prim) <- c('sitetime', 'value') 
-hell_prim$sitetime <- as.character(hell_prim$sitetime)
-hell_prim$sitetime <- substr(hell_prim$sitetime,1,3)
-hell_prim <- transform(hell_prim, site = substr(sitetime, 1, 2), time = substr(sitetime, 3, 3))
-hell_prim <- hell_prim %>%
-  select(-sitetime) %>%
-  na.omit()
-hell_prim$site <- factor(hell_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"))
-# rename columns, reduce sitetime values, and split into site and time MIDSUMMER
-colnames(hell_midsum) <- c('sitetime', 'value') 
-hell_midsum$sitetime <- as.character(hell_midsum$sitetime)
-hell_midsum$sitetime <- substr(hell_midsum$sitetime,1,3)
-hell_midsum <- transform(hell_midsum, site = substr(sitetime, 1, 2), time = substr(sitetime, 3, 3))
-hell_midsum <- hell_midsum %>%
-  select(-sitetime, -time) %>%
-  na.omit()
-# reorder factors
-hell_midsum$site <- factor(hell_midsum$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
-
-
-
-
-############### Hellinger ANOVA across all sites in midsummer
-
-# test for homogeneity 
-qqnorm(hell_midsum$value)
-qqline(hell_midsum$value)
-leveneTest(value ~ site, data = hell_midsum)
-
-aovhell <- aov(value ~ site, data = hell_midsum)
-summary(aovhell)
-TukeyHSD(aovhell)
-
-
-
-############### EVENNESS
-
-DCA_even <- diversity(DCA[,2:35])/log(specnumber(DCA[,2:35]))
-DCC_even <- diversity(DCC[,2:35])/log(specnumber(DCC[,2:35]))
-DCE_even <- diversity(DCE[,2:35])/log(specnumber(DCE[,2:35]))
-
-WIA_even <- diversity(WIA[,2:35])/log(specnumber(WIA[,2:35]))
-WIC_even <- diversity(WIC[,2:35])/log(specnumber(WIC[,2:35]))
-WIE_even <- diversity(WIE[,2:35])/log(specnumber(WIE[,2:35]))
-
-RPA_even <- diversity(RPA[,2:35])/log(specnumber(RPA[,2:35]))
-RPC_even <- diversity(RPC[,2:35])/log(specnumber(RPC[,2:35]))
-RPE_even <- diversity(RPE[,2:35])/log(specnumber(RPE[,2:35]))
-
-NBA_even <- diversity(NBA[,2:35])/log(specnumber(NBA[,2:35]))
-NBC_even <- diversity(NBC[,2:35])/log(specnumber(NBC[,2:35]))
-NBE_even <- diversity(NBE[,2:35])/log(specnumber(NBE[,2:35]))
-
-CBA_even <- diversity(CBA[,2:35])/log(specnumber(CBA[,2:35]))
-CBC_even <- diversity(CBC[,2:35])/log(specnumber(CBC[,2:35]))
-CBE_even <- diversity(CBE[,2:35])/log(specnumber(CBE[,2:35]))
-
-# combine into single data frame
-# make all same length
-length(DCA_even) <- 17                      
-length(DCC_even) <- 17  
-length(DCE_even) <- 17 
-length(WIA_even) <- 17 
-length(WIC_even) <- 17  
-length(WIE_even) <- 17  
-length(RPA_even) <- 17  
-length(RPC_even) <- 17  
-length(RPE_even) <- 17  
-length(NBA_even) <- 17  
-length(NBC_even) <- 17  
-length(NBE_even) <- 17  
-length(CBA_even) <- 17  
-length(CBC_even) <- 17  
-length(CBE_even) <- 17 
-# combine
-even_prim <- melt(data.frame(DCA_even, DCC_even, DCE_even, WIA_even, WIC_even, WIE_even, RPA_even, RPC_even, RPE_even, NBA_even, NBC_even, NBE_even, CBA_even, CBC_even, CBE_even))
-# rename columns, reduce sitetime values, and split into site and time
-colnames(even_prim) <- c('sitetime', 'value') 
-even_prim$sitetime <- as.character(even_prim$sitetime)
-even_prim$sitetime <- substr(even_prim$sitetime,1,3)
-even_prim <- transform(even_prim, site = substr(sitetime, 1, 2), time = substr(sitetime, 3, 3))
-even_prim <- even_prim %>%
-  filter(!is.na(value)) %>%
-  select(-sitetime)
-# reorder factors
-even_prim$site <- factor(even_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"))
-
-
-
-
-############### RARIFIED RICHNESS
-
-
-DCA_rare <- DCA[,2:35] %>%
+DCA_rare <- DCA[,4:37] %>%
   rarefy(5)
 
-DCA_rare <- DCA[,2:35] %>%
+DCA_rare <- DCA[,4:37] %>%
   rarefy(5)
-DCC_rare <- DCC[,2:35] %>%
+DCC_rare <- DCC[,4:37] %>%
   rarefy(5)
-DCE_rare <- DCE[,2:35] %>%
-  rarefy(5)
-
-WIA_rare <- WIA[,2:35] %>%
-  rarefy(5)
-WIC_rare <- WIC[,2:35] %>%
-  rarefy(5)
-WIE_rare <- WIE[,2:35] %>%
+DCE_rare <- DCE[,4:37] %>%
   rarefy(5)
 
-RPA_rare <- RPA[,2:35] %>%
+WIA_rare <- WIA[,4:37] %>%
   rarefy(5)
-RPC_rare <- RPC[,2:35] %>%
+WIC_rare <- WIC[,4:37] %>%
   rarefy(5)
-RPE_rare <- RPE[,2:35] %>%
-  rarefy(5)
-
-NBA_rare <- NBA[,2:35] %>%
-  rarefy(5)
-NBC_rare <- NBC[,2:35] %>%
-  rarefy(5)
-NBE_rare <- NBE[,2:35] %>%
+WIE_rare <- WIE[,4:37] %>%
   rarefy(5)
 
-CBA_rare <- CBA[,2:35] %>%
+RPA_rare <- RPA[,4:37] %>%
   rarefy(5)
-CBC_rare <- CBC[,2:35] %>%
+RPC_rare <- RPC[,4:37] %>%
   rarefy(5)
-CBE_rare <- CBE[,2:35] %>%
+RPE_rare <- RPE[,4:37] %>%
   rarefy(5)
 
-# combine into single data frame
+NBA_rare <- NBA[,4:37] %>%
+  rarefy(5)
+NBC_rare <- NBC[,4:37] %>%
+  rarefy(5)
+NBE_rare <- NBE[,4:37] %>%
+  rarefy(5)
+
+CBA_rare <- CBA[,4:37] %>%
+  rarefy(5)
+CBC_rare <- CBC[,4:37] %>%
+  rarefy(5)
+CBE_rare <- CBE[,4:37] %>%
+  rarefy(5)
+
+BEC_rare <- BEC[,4:37] %>%
+  rarefy(5)
+EIC_rare <- EIC[,4:37] %>%
+  rarefy(5)
+BIC_rare <- BIC[,4:37] %>%
+  rarefy(5)
+CCC_rare <- CCC[,4:37] %>%
+  rarefy(5)
+
+
+# combine into single data frame FIGURE 4
 # make all same length
 length(DCA_rare) <- 17                      
 length(DCC_rare) <- 17  
@@ -815,20 +333,207 @@ rare_prim <- rare_prim %>%
   select(-sitetime)
 # reorder factors
 rare_prim$site <- factor(rare_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"))
+# remove NA
+rare_prim <- rare_prim %>%
+  filter(!is.na(value))
 
 
-############### MORISITAS INDEX
+# combine into single data frame FIGURE 2
+# make all same length
+length(DCC_rare) <- 17  
+length(WIC_rare) <- 17  
+length(BEC_rare) <- 17  
+length(EIC_rare) <- 17  
+length(RPC_rare) <- 17  
+length(NBC_rare) <- 17  
+length(CBC_rare) <- 17  
+length(BIC_rare) <- 17 
+length(CCC_rare) <- 17
+# combine
+rare_C <- melt(data.frame(DCC_rare, WIC_rare, BEC_rare, EIC_rare, RPC_rare, NBC_rare, NBE_rare, CBC_rare, BIC_rare, CCC_rare))
+# rename columns, reduce sitetime values, and split into site and time
+colnames(rare_C) <- c('sitetime', 'value') 
+rare_C$sitetime <- as.character(rare_C$sitetime)
+rare_C$sitetime <- substr(rare_C$sitetime,1,3)
+rare_C <- transform(rare_C, site = substr(sitetime, 1, 2), time = substr(sitetime, 3, 3))
+rare_C <- rare_C %>%
+  select(-sitetime)
+# reorder factors
+rare_C$site <- factor(rare_C$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
+# remove NA
+rare_C <- rare_C %>%
+  filter(!is.na(value))
 
-# Calculates the Morisita index of dispersion, standardized index values, and the 
-# so called clumpedness and uniform indices. crit = two-sided p-value used to 
-# calculate critical Chi-squared values. Used for bold values in Table 2.
 
-I.DCA <- dispindmorisita(DCA[,-1], unique.rm = TRUE, na.rm = TRUE)
-I.DCC <- dispindmorisita(DCC[,-1], unique.rm = TRUE, na.rm = TRUE)
-I.DCE <- dispindmorisita(DCE[,-1], unique.rm = TRUE, na.rm = TRUE)
-I.WIA <- dispindmorisita(WIA[,-1], unique.rm = TRUE, na.rm = TRUE)
-I.WIC <- dispindmorisita(WIC[,-1], unique.rm = TRUE, na.rm = TRUE)
 
+############### SHANNON DIVERSITY & ENS
+
+
+###### Figure 2
+
+H_all <- diversity(epicomm_s[-(c(1:3))], index ="shannon")
+
+
+
+#combine metrics
+div.summary <- epicomm_s[c(1:3)]
+div.summary$Shannon <- H_all
+div.summary$ENS <- exp(div.summary$Shannon)
+
+
+# reorder factors
+div.summary$site <- factor(div.summary$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
+
+div.summaryC <- div.summary %>%
+  filter(Time.Code2 == "C")
+div.summaryC$site <- factor(div.summaryC$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
+
+shan_prim <- div.summary %>%
+  filter(site %in% prim_sites)
+shan_prim$site <- factor(shan_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"))
+
+
+############### ENS lm across all sites in midsummer, model selection and post hoc test
+
+enslm <- lm(div.summaryC$ENS ~ div.summaryC$site)
+ens0 <- lm(div.summaryC$ENS ~ 1)
+anova(enslm, ens0)
+model.sel(enslm, ens0)
+summary(enslm)
+ensaov <- aov(ENS ~ site, data = div.summaryC)
+enstuk <- glht(ensaov, linfct = mcp(site = "Tukey"))
+enstuk.cld <- cld(enstuk)
+enstuk.cld <- print(enstuk.cld)
+
+############### Shannon lm across all sites in midsummer, model selection and post hoc test
+
+shanlm <- lm(div.summaryC$Shannon ~ div.summaryC$site)
+shan0 <- lm(div.summaryC$Shannon ~ 1)
+anova(shanlm, shan0)
+model.sel(shanlm, shan0)
+summary(shanlm)
+shanaov <- aov(Shannon ~ site, data = div.summaryC)
+shantuk <- glht(shanaov, linfct = mcp(site = "Tukey"))
+shantuk.cld <- cld(shantuk)
+shantuk.cld <- print(shantuk.cld)
+
+
+
+
+
+############### HELLINGER DISTANCE
+
+DCA_hell <- range01(vegdist(decostand(DCA[,4:37], "hellinger"), "euclidean"))
+DCC_hell <- range01(vegdist(decostand(DCC[,4:37], "hellinger"), "euclidean"))
+DCE_hell <- range01(vegdist(decostand(DCE[,4:37], "hellinger"), "euclidean"))
+
+WIA_hell <- range01(vegdist(decostand(WIA[,4:37], "hellinger"), "euclidean"))
+WIC_hell <- range01(vegdist(decostand(WIC[,4:37], "hellinger"), "euclidean"))
+WIE_hell <- range01(vegdist(decostand(WIE[,4:37], "hellinger"), "euclidean"))
+
+RPA_hell <- range01(vegdist(decostand(RPA[,4:37], "hellinger"), "euclidean"))
+RPC_hell <- range01(vegdist(decostand(RPC[,4:37], "hellinger"), "euclidean"))
+RPE_hell <- range01(vegdist(decostand(RPE[,4:37], "hellinger"), "euclidean"))
+
+NBA_hell <- range01(vegdist(decostand(NBA[,4:37], "hellinger"), "euclidean"))
+NBC_hell <- range01(vegdist(decostand(NBC[,4:37], "hellinger"), "euclidean"))
+NBE_hell <- range01(vegdist(decostand(NBE[,4:37], "hellinger"), "euclidean"))
+
+CBA_hell <- range01(vegdist(decostand(CBA[,4:37], "hellinger"), "euclidean"))
+CBC_hell <- range01(vegdist(decostand(CBC[,4:37], "hellinger"), "euclidean"))
+CBE_hell <- range01(vegdist(decostand(CBE[,4:37], "hellinger"), "euclidean"))
+
+BEC_hell <- range01(vegdist(decostand(BEC[,4:37], "hellinger"), "euclidean"))
+EIC_hell <- range01(vegdist(decostand(EIC[,4:37], "hellinger"), "euclidean"))
+BIC_hell <- range01(vegdist(decostand(BIC[,4:37], "hellinger"), "euclidean"))
+CCC_hell <- range01(vegdist(decostand(CCC[,4:37], "hellinger"), "euclidean"))
+
+
+# combine into single data frame Figure 4
+# make all same length
+length(DCA_hell) <- 137                      
+length(DCC_hell) <- 137
+length(DCE_hell) <- 137 
+length(WIA_hell) <- 137 
+length(WIC_hell) <- 137  
+length(WIE_hell) <- 137  
+length(RPA_hell) <- 137  
+length(RPC_hell) <- 137  
+length(RPE_hell) <- 137  
+length(NBA_hell) <- 137  
+length(NBC_hell) <- 137  
+length(NBE_hell) <- 137  
+length(CBA_hell) <- 137  
+length(CBC_hell) <- 137  
+length(CBE_hell) <- 137
+DCA_hell <- as.data.frame(DCA_hell)
+DCC_hell <- as.data.frame(DCC_hell)
+DCE_hell <- as.data.frame(DCE_hell)
+WIA_hell <- as.data.frame(WIA_hell)
+WIC_hell <- as.data.frame(WIC_hell)
+WIE_hell <- as.data.frame(WIE_hell)
+RPA_hell <- as.data.frame(RPA_hell)
+RPC_hell <- as.data.frame(RPC_hell)
+RPE_hell <- as.data.frame(RPE_hell)
+NBA_hell <- as.data.frame(NBA_hell)
+NBC_hell <- as.data.frame(NBC_hell)
+NBE_hell <- as.data.frame(NBE_hell)
+CBA_hell <- as.data.frame(CBA_hell)
+CBC_hell <- as.data.frame(CBC_hell)
+CBE_hell <- as.data.frame(CBE_hell)
+
+# combine primaries
+hell_prim <- melt(data.frame(DCA_hell, DCC_hell, DCE_hell, WIA_hell, WIC_hell, WIE_hell, RPA_hell, RPC_hell, RPE_hell, NBA_hell, NBC_hell, NBE_hell, CBA_hell, CBC_hell, CBE_hell))
+# rename columns, reduce sitetime values, and split into site and time PRIMARY
+colnames(hell_prim) <- c('sitetime', 'value') 
+hell_prim$sitetime <- as.character(hell_prim$sitetime)
+hell_prim$sitetime <- substr(hell_prim$sitetime,1,3)
+hell_prim <- transform(hell_prim, site = substr(sitetime, 1, 2), time = substr(sitetime, 3, 3))
+hell_prim <- hell_prim %>%
+  select(-sitetime) %>%
+  filter(!is.na(value))
+hell_prim$site <- factor(hell_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"))
+
+
+
+
+
+# combine into single data frame Figure 2
+# make all same length 
+length(BEC_hell) <- 137
+length(EIC_hell) <- 137
+length(BIC_hell) <- 137
+length(CCC_hell) <- 137
+
+BEC_hell <- as.data.frame(BEC_hell)
+EIC_hell <- as.data.frame(EIC_hell)
+BIC_hell <- as.data.frame(BIC_hell)
+CCC_hell <- as.data.frame(CCC_hell)
+
+# combine primaries
+hell_C <- melt(data.frame(DCC_hell, WIC_hell, BEC_hell, EIC_hell, RPC_hell, NBC_hell, CBC_hell, BIC_hell, CCC_hell))
+# rename columns, reduce sitetime values, and split into site and time PRIMARY
+colnames(hell_C) <- c('sitetime', 'value') 
+hell_C$sitetime <- as.character(hell_C$sitetime)
+hell_C$sitetime <- substr(hell_C$sitetime,1,3)
+hell_C <- transform(hell_C, site = substr(sitetime, 1, 2), time = substr(sitetime, 3, 3))
+hell_C <- hell_C %>%
+  select(-sitetime) %>%
+  filter(!is.na(value))
+hell_C$site <- factor(hell_C$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
+
+
+############### Hellinger lm across all sites in midsummer, model selection and post hoc test
+
+helllm <- lm(hell_C$value ~ hell_C$site)
+hell0 <- lm(hell_C$value ~ 1)
+anova(helllm, hell0)
+model.sel(helllm, hell0)
+summary(helllm)
+hellaov <- aov(value ~ site, data = hell_C)
+helltuk <- glht(hellaov, linfct = mcp(site = "Tukey"))
+helltuk.cld <- cld(helltuk)
+helltuk.cld <- print(helltuk.cld)
 
 
 
@@ -862,8 +567,10 @@ epicomm_mds_points <- epiMDS$points
 epicomm_mds_points <- data.frame(epicomm_mds_points)
 plot_data_tax <- data.frame(epicomm_mds_points, epicomm_mds[,1:2])
 library(plyr)
-chulls_tax <- ddply(plot_data_tax, .(site), function(df) df[chull(df$MDS1, df$MDS2), ])
+chulls_tax <- ddply(plot_data_tax, .(month), function(df) df[chull(df$MDS1, df$MDS2), ])
 detach(package:plyr)
+
+
 
 ###################################################################################
 # TIME SERIES BETA FIGURES                                                        #
@@ -871,48 +578,48 @@ detach(package:plyr)
 
 ############### JACCARD DIVERSITY
 
-DCA_jaccard <- DCA[,2:35] %>%
+DCA_jaccard <- DCA[,4:37] %>%
   vegdist(method = "jaccard")
-DCC_jaccard <- DCC[,2:35] %>%
+DCC_jaccard <- DCC[,4:37] %>%
   vegdist(method = "jaccard")
-DCE_jaccard <- DCE[,2:35] %>%
-  vegdist(method = "jaccard")
-
-WIA_jaccard <- WIA[,2:35] %>%
-  vegdist(method = "jaccard")
-WIC_jaccard <- WIC[,2:35] %>%
-  vegdist(method = "jaccard")
-WIE_jaccard <- WIE[,2:35] %>%
+DCE_jaccard <- DCE[,4:37] %>%
   vegdist(method = "jaccard")
 
-RPA_jaccard <- RPA[,2:35] %>%
+WIA_jaccard <- WIA[,4:37] %>%
   vegdist(method = "jaccard")
-RPC_jaccard <- RPC[,2:35] %>%
+WIC_jaccard <- WIC[,4:37] %>%
   vegdist(method = "jaccard")
-RPE_jaccard <- RPE[,2:35] %>%
-  vegdist(method = "jaccard")
-
-NBA_jaccard <- NBA[,2:35] %>%
-  vegdist(method = "jaccard")
-NBC_jaccard <- NBC[,2:35] %>%
-  vegdist(method = "jaccard")
-NBE_jaccard <- NBE[,2:35] %>%
+WIE_jaccard <- WIE[,4:37] %>%
   vegdist(method = "jaccard")
 
-CBA_jaccard <- CBA[,2:35] %>%
+RPA_jaccard <- RPA[,4:37] %>%
   vegdist(method = "jaccard")
-CBC_jaccard <- CBC[,2:35] %>%
+RPC_jaccard <- RPC[,4:37] %>%
   vegdist(method = "jaccard")
-CBE_jaccard <- CBE[,2:35] %>%
+RPE_jaccard <- RPE[,4:37] %>%
   vegdist(method = "jaccard")
 
-BEC_jaccard <- BEC[,2:35] %>%
+NBA_jaccard <- NBA[,4:37] %>%
   vegdist(method = "jaccard")
-BIC_jaccard <- BIC[,2:35] %>%
+NBC_jaccard <- NBC[,4:37] %>%
   vegdist(method = "jaccard")
-CCC_jaccard <- CCC[,2:35] %>%
+NBE_jaccard <- NBE[,4:37] %>%
   vegdist(method = "jaccard")
-EIC_jaccard <- EIC[,2:35] %>%
+
+CBA_jaccard <- CBA[,4:37] %>%
+  vegdist(method = "jaccard")
+CBC_jaccard <- CBC[,4:37] %>%
+  vegdist(method = "jaccard")
+CBE_jaccard <- CBE[,4:37] %>%
+  vegdist(method = "jaccard")
+
+BEC_jaccard <- BEC[,4:37] %>%
+  vegdist(method = "jaccard")
+BIC_jaccard <- BIC[,4:37] %>%
+  vegdist(method = "jaccard")
+CCC_jaccard <- CCC[,4:37] %>%
+  vegdist(method = "jaccard")
+EIC_jaccard <- EIC[,4:37] %>%
   vegdist(method = "jaccard")
 
 
@@ -955,50 +662,56 @@ all_jaccard <- all_jaccard %>%
 # reorder factors
 all_jaccard$site <- factor(all_jaccard$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
 
+# Primary sites only
+jacc_prim <- all_jaccard %>%
+  filter(site %in% prim_sites)
+jacc_prime$site <- factor(jacc_prime$site, levels = c("DC", "WI", "RP", "NB", "CB"))
+
+
 ############### BRAY DIVERSITY
 
-DCA_bray <- DCA[,2:35] %>%
+DCA_bray <- DCA[,4:37] %>%
   vegdist(method = "bray")
-DCC_bray <- DCC[,2:35] %>%
+DCC_bray <- DCC[,4:37] %>%
   vegdist(method = "bray")
-DCE_bray <- DCE[,2:35] %>%
-  vegdist(method = "bray")
-
-WIA_bray <- WIA[,2:35] %>%
-  vegdist(method = "bray")
-WIC_bray <- WIC[,2:35] %>%
-  vegdist(method = "bray")
-WIE_bray <- WIE[,2:35] %>%
+DCE_bray <- DCE[,4:37] %>%
   vegdist(method = "bray")
 
-RPA_bray <- RPA[,2:35] %>%
+WIA_bray <- WIA[,4:37] %>%
   vegdist(method = "bray")
-RPC_bray <- RPC[,2:35] %>%
+WIC_bray <- WIC[,4:37] %>%
   vegdist(method = "bray")
-RPE_bray <- RPE[,2:35] %>%
-  vegdist(method = "bray")
-
-NBA_bray <- NBA[,2:35] %>%
-  vegdist(method = "bray")
-NBC_bray <- NBC[,2:35] %>%
-  vegdist(method = "bray")
-NBE_bray <- NBE[,2:35] %>%
+WIE_bray <- WIE[,4:37] %>%
   vegdist(method = "bray")
 
-CBA_bray <- CBA[,2:35] %>%
+RPA_bray <- RPA[,4:37] %>%
   vegdist(method = "bray")
-CBC_bray <- CBC[,2:35] %>%
+RPC_bray <- RPC[,4:37] %>%
   vegdist(method = "bray")
-CBE_bray <- CBE[,2:35] %>%
+RPE_bray <- RPE[,4:37] %>%
   vegdist(method = "bray")
 
-BEC_bray <- BEC[,2:35] %>%
+NBA_bray <- NBA[,4:37] %>%
   vegdist(method = "bray")
-BIC_bray <- BIC[,2:35] %>%
+NBC_bray <- NBC[,4:37] %>%
   vegdist(method = "bray")
-CCC_bray <- CCC[,2:35] %>%
+NBE_bray <- NBE[,4:37] %>%
   vegdist(method = "bray")
-EIC_bray <- EIC[,2:35] %>%
+
+CBA_bray <- CBA[,4:37] %>%
+  vegdist(method = "bray")
+CBC_bray <- CBC[,4:37] %>%
+  vegdist(method = "bray")
+CBE_bray <- CBE[,4:37] %>%
+  vegdist(method = "bray")
+
+BEC_bray <- BEC[,4:37] %>%
+  vegdist(method = "bray")
+BIC_bray <- BIC[,4:37] %>%
+  vegdist(method = "bray")
+CCC_bray <- CCC[,4:37] %>%
+  vegdist(method = "bray")
+EIC_bray <- EIC[,4:37] %>%
   vegdist(method = "bray")
 
 
@@ -1049,33 +762,33 @@ all_bray <- all_bray %>%
 
 # Beta as raw alpha/gamma
 
-DCA_rawbeta <- ncol(DCA[,2:35])/mean(specnumber(DCA[,2:35])) - 1
-DCC_rawbeta <- ncol(DCC[,2:35])/mean(specnumber(DCC[,2:35])) - 1
-DCE_rawbeta <- ncol(DCE[,2:35])/mean(specnumber(DCE[,2:35])) - 1
+DCA_rawbeta <- ncol(DCA[,4:37])/mean(specnumber(DCA[,4:37])) - 1
+DCC_rawbeta <- ncol(DCC[,4:37])/mean(specnumber(DCC[,4:37])) - 1
+DCE_rawbeta <- ncol(DCE[,4:37])/mean(specnumber(DCE[,4:37])) - 1
 
-WIA_rawbeta <- ncol(WIA[,2:35])/mean(specnumber(WIA[,2:35])) - 1
-WIC_rawbeta <- ncol(WIC[,2:35])/mean(specnumber(WIC[,2:35])) - 1
-WIE_rawbeta <- ncol(WIE[,2:35])/mean(specnumber(WIE[,2:35])) - 1
+WIA_rawbeta <- ncol(WIA[,4:37])/mean(specnumber(WIA[,4:37])) - 1
+WIC_rawbeta <- ncol(WIC[,4:37])/mean(specnumber(WIC[,4:37])) - 1
+WIE_rawbeta <- ncol(WIE[,4:37])/mean(specnumber(WIE[,4:37])) - 1
 
-RPA_rawbeta <- ncol(RPA[,2:35])/mean(specnumber(RPA[,2:35])) - 1
-RPC_rawbeta <- ncol(RPC[,2:35])/mean(specnumber(RPC[,2:35])) - 1
-RPE_rawbeta <- ncol(RPE[,2:35])/mean(specnumber(RPE[,2:35])) - 1
+RPA_rawbeta <- ncol(RPA[,4:37])/mean(specnumber(RPA[,4:37])) - 1
+RPC_rawbeta <- ncol(RPC[,4:37])/mean(specnumber(RPC[,4:37])) - 1
+RPE_rawbeta <- ncol(RPE[,4:37])/mean(specnumber(RPE[,4:37])) - 1
 
-NBA_rawbeta <- ncol(NBA[,2:35])/mean(specnumber(NBA[,2:35])) - 1
-NBC_rawbeta <- ncol(NBC[,2:35])/mean(specnumber(NBC[,2:35])) - 1
-NBE_rawbeta <- ncol(NBE[,2:35])/mean(specnumber(NBE[,2:35])) - 1
+NBA_rawbeta <- ncol(NBA[,4:37])/mean(specnumber(NBA[,4:37])) - 1
+NBC_rawbeta <- ncol(NBC[,4:37])/mean(specnumber(NBC[,4:37])) - 1
+NBE_rawbeta <- ncol(NBE[,4:37])/mean(specnumber(NBE[,4:37])) - 1
 
-CBA_rawbeta <- ncol(CBA[,2:35])/mean(specnumber(CBA[,2:35])) - 1
-CBC_rawbeta <- ncol(CBC[,2:35])/mean(specnumber(CBC[,2:35])) - 1
-CBE_rawbeta <- ncol(CBE[,2:35])/mean(specnumber(CBE[,2:35])) - 1
+CBA_rawbeta <- ncol(CBA[,4:37])/mean(specnumber(CBA[,4:37])) - 1
+CBC_rawbeta <- ncol(CBC[,4:37])/mean(specnumber(CBC[,4:37])) - 1
+CBE_rawbeta <- ncol(CBE[,4:37])/mean(specnumber(CBE[,4:37])) - 1
 
-BIC_rawbeta <- ncol(BIC[,2:35])/mean(specnumber(BIC[,2:35])) - 1
+BIC_rawbeta <- ncol(BIC[,4:37])/mean(specnumber(BIC[,4:37])) - 1
 
-BEC_rawbeta <- ncol(BEC[,2:35])/mean(specnumber(BEC[,2:35])) - 1
+BEC_rawbeta <- ncol(BEC[,4:37])/mean(specnumber(BEC[,4:37])) - 1
 
-EIC_rawbeta <- ncol(EIC[,2:35])/mean(specnumber(EIC[,2:35])) - 1
+EIC_rawbeta <- ncol(EIC[,4:37])/mean(specnumber(EIC[,4:37])) - 1
 
-CCC_rawbeta <- ncol(CCC[,2:35])/mean(specnumber(CCC[,2:35])) - 1
+CCC_rawbeta <- ncol(CCC[,4:37])/mean(specnumber(CCC[,4:37])) - 1
 
 Sites <- rep(c("DC", "WI", "RP", "NB", "CB"),3)
 Times <- c(rep("May", 5), rep("June/July",5), rep("August",5))
@@ -1124,7 +837,7 @@ levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Pag
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Mytilus.trossulus"] <- "Mytilus trossulus"
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Monocorophium.achersicum"] <- "Monocorophium achersicum"
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Lottia.pelta"] <- "Lottia pelta"
-levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Lirobittium.spp."] <- "Lirobittium"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Lirobittium.spp."] <- "Lirobittium spp."
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Leptochelia.dubia"] <- "Leptochelia dubia"
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Lacuna.spp."] <- "Lacuna spp."
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Janua.pagastecheri"] <- "Janua pagastecheri"
@@ -1132,7 +845,7 @@ levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Ido
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Haminoea.sp."] <- "Haminoea spp."
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Halacarid.mite"] <- "Halacarid mite"
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Eogammarus.confervicolus"] <- "Eogammarus confervicolus"
-levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Cyprideis.beaconensis"] <- "Cyprideis beaconensis"
+levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Cyprideis.beaconensis"] <- "Ostracoda sp."
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Copepod"] <- "Harpacticoid copepod"
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Cirolana.harfordi"] <- "Cirolana harfordi"
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Caprella.spp."] <- "Caprella spp."
@@ -1143,6 +856,22 @@ levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Amp
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Alia.carinata"] <- "Alia carinata"
 levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Nematode"] <- "Nematode sp. 1"
 
+# change order of checkboard species to match table 2
+checkerboard_epicomm$species <- factor(checkerboard_epicomm$species, levels = c("Caprella spp.", "Aoroides columbiae", "Pentidotea resecata", "Leptochelia dubia", "Photis brevipes", "Monocorophium achersicum", "Amphipoda sp.", "Pontogeneia rostrata", "Harpacticoid copepod", "Eogammarus confervicolus", "Amphithoe spp.", "Balanus spp.", "Cirolana harfordi", "Pugettia richii", "Pandalidae", "Pagurus quaylei", "Ostracoda sp.", "Phyllaplysia taylori", "Mytilus trossulus", "Lacuna spp.", "Lottia pelta", "Haminoea spp.", "Alia carinata", "Lirobittium spp.", "Platynereis bicanaliculata", "Janua pagastecheri", "Nematode sp. 1", "Nematode sp. 2", "Pycnogonum sp.", "Halacarid mite", "Nemertea"))
+
+checkerboard_epicomm$species <- fct_rev(checkerboard_epicomm$species)
+
+
+
+
+
+
+
+
+
+
+
+
 ###################################################################################
 # FIGURES                                                                         #
 ###################################################################################
@@ -1151,115 +880,57 @@ levels(checkerboard_epicomm$species)[levels(checkerboard_epicomm$species)== "Nem
 ########### FIGURE 2 - Diversity metrics for 9 sites in midsummer
 
 
+# Observed Richness (ANOVA and TUKEY stats are above)
 
-
-####### MARY'S CODE FOR TABLE 2
-
-
-
-
-
-H.plot <- ggplot(data = div.summary2, aes(reorder(site, -order.dfw), y = H, ymin = 0, ymax = 2)) + 
-  theme_bw() +
-  geom_boxplot() +
-  geom_point(x = 5, y = 1.9, pch = '*', size = 8, colour = "gray50") +
-  xlab("Site") +
-  ylab("Shannon Diversity")
-
-H.plot
-ggsave("Jan2017Hplot.png", device = "png", width = 4, height = 2.5)
-
-S.plot <- ggplot(data = div.summary2, aes(reorder(site, -order.dfw), y = S, ymin = 0, ymax = 1)) + 
-  theme_bw() +
-  geom_boxplot() +
-  geom_point(x = 5, y = 1, pch = '*', size = 8, colour = "gray50") +
-  geom_point(x = 1, y = 1, pch = '*', size = 8, colour = "gray50") +
-  xlab("Site") +
-  ylab("Simpson Evenness")
-
-S.plot
-ggsave("Jan2017Splot.png", device = "png", width = 4, height = 2.5)
-
-
-RR.plot <- ggplot(data = div.summary2, aes(reorder(site, -order.dfw), y = RR, ymin = 0, ymax = 4)) + 
-  theme_bw() +
-  geom_boxplot() +
-  geom_point(x = 6, y = 3.5, pch = '*', size = 8, colour = "gray50") +
-  geom_point(x = 4, y = 3.5, pch = '*', size = 8, colour = "gray50") +
-  geom_point(x = 1, y = 3.5, pch = '*', size = 8, colour = "gray50") +
-  xlab("Site") +
-  ylab("RR") 
-
-RR.plot
-ggsave("Jan2017RRplot.png", device = "png", width = 4, height = 2.5)
-
-
-ggsave("histogram", device = "png", width = 4, height = 4)
-
-# factor levels
-div.summary2$site <- factor(div.summary2$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
-
-div.plot <- ggplot(data = div.summary2, aes(x= site, y = alpha.p, ymin = 0, ymax = 12, fill = site)) +
+Rich_midsum_plot <- ggplot(data = rich.C, aes(x=site, y = obsrich, fill = site)) +
   geom_boxplot() +
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
-  annotate("text", x = 4, y = 18.5, label = "*", size = 8) +
-  annotate("text", x = 5, y = 18.5, label = "*") +
-  annotate("text", x = 7, y = 18.5, label = "*") +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y = "Richness")
+  labs(x="", y = "Observed Richness") +
+  annotate("text", x = 1:9, y = 18.7, label = richtuk.cld)
 
-# Richness (ANOVA and TUKEY stats are above)
-
-#rich_midsum_plot <- ggplot(epicomm_richness, aes(x = site, y = richness, fill = site)) +
+#RR_midsum_plot <- ggplot(data = rare_C, aes(x=site, y = value, fill = site)) +
 #  geom_boxplot() +
 #  fill_palette(viridis(9, option = "viridis")) +
 #  theme_minimal() +
 #  theme(axis.text.x=element_blank()) +
-#  labs(x="", y = "Richness") +
-#  annotate("text", x = 1:9, y = 11.9, label = c("ac", "ac", "ac", "a", "b", "ac", "ac", "a", "c"))
-
+#  labs(x="", y = "Rarefied Richness")
 
 
 # ENS (ANOVA and TUKEY stats are above)
 
-ens_midsum_plot <- ggplot(ens_midsum, aes(x = site, y = value, fill = site)) + 
+ens_midsum_plot <- ggplot(div.summaryC, aes(x = site, y = ENS, fill = site)) + 
   geom_boxplot() + 
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="ENS") +
-  annotate("text", x = 1:9, y = 6.3, label = c("a", "ab", "a", "ab", "b", "a", "a", "ab", "ab"))
+  labs(x="", y="ENS")+
+  annotate("text", x = 1:9, y = 8.7, label = enstuk.cld)
 
 # SHANNON DIVERSITY (ANOVA and TUKEY stats are above)
 
-shannon_midsum_plot <- ggplot(shannon_midsum, aes(x = site, y = value, fill = site)) + 
+shannon_midsum_plot <- ggplot(div.summaryC, aes(x = site, y = Shannon, fill = site)) + 
   geom_boxplot() + 
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x ="", y="Shannon Diversity") +
-  annotate("text", x = 1:9, y = 1.9, label = c("ac", "abc", "ac", "ab", "b", "abc", "ac", "ab", "c"))
+  labs(x ="", y="Shannon Diversity")  +
+  annotate("text", x = 1:9, y = 2.2, label = shantuk.cld)
 
-
-
-ggplot(div.summary, aes(x = site, y = Shannon, fill = site)) + 
-  geom_boxplot() + 
-  fill_palette(viridis(9, option = "viridis")) +
-  theme_minimal() +
-  theme(axis.text.x=element_blank()) +
-  labs(x ="", y="Shannon Diversity") +
-  annotate("text", x = 1:9, y = 1.9, label = c("ac", "abc", "ac", "ab", "b", "abc", "ac", "ab", "c"))
 
 # HELLINGER DISTANCE (ANOVA and TUKEY stats are above)
 
-hell_midsum_plot <- ggplot(hell_midsum, aes(x = site, y = value, fill = site)) + 
+hell_midsum_plot <- ggplot(hell_C, aes(x = site, y = value, fill = site)) + 
   geom_boxplot() + 
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
   labs(x ="", y="Hellinger Distance") +
-  annotate("text", x = 1:9, y = 1.1, label = c("a", "a", "a", "b", "a", "ab", "a", "a", "a"))
+  annotate("text", x = 1:9, y = 1.1, label = helltuk.cld)
+
+
+# CHECKERBOARD PLOT
 
 checkerboard_plot <- ggplot(checkerboard_epicomm, aes(site, species, fill = abun)) +
   geom_tile(colour = "gray30", stat = "identity") +
@@ -1269,7 +940,7 @@ checkerboard_plot <- ggplot(checkerboard_epicomm, aes(site, species, fill = abun
 
 # FULL FIGURE 2
 
-Figure2 <- ggarrange(ggarrange(rich_midsum_plot, ens_midsum_plot, shannon_midsum_plot, hell_midsum_plot,
+Figure2 <- ggarrange(ggarrange(Rich_midsum_plot, ens_midsum_plot, shannon_midsum_plot, hell_midsum_plot,
                      labels = c("A", "B", "C", "D"),
                      ncol = 2, nrow = 2,
                      common.legend = TRUE, legend = "right"),
@@ -1290,13 +961,13 @@ Figure2 <- ggarrange(ggarrange(rich_midsum_plot, ens_midsum_plot, shannon_midsum
 
 ########### JACCARD DISTANCE THROUGH TIME
 
-jacc_plot <- ggplot(all_jaccard, aes(x = time, y = value, group = site)) + 
+jacc_plot <- ggplot(jacc_prim, aes(x = time, y = value, group = site)) + 
   geom_point(size=4, aes(colour = site)) +
   geom_line(aes(color = site)) +
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="Mean Jaccard Distance")
+  labs(x="", y="Jaccard Distance")
 
 # best size: ~600x400
 
@@ -1305,10 +976,10 @@ jacc_plot <- ggplot(all_jaccard, aes(x = time, y = value, group = site)) +
 bray_plot <- ggplot(all_bray, aes(x = time, y = value, group = site)) + 
   geom_point(size=4, aes(colour = site)) +
   geom_line(aes(color = site)) +
-  scale_color_viridis(discrete=TRUE, begin = 0.3) +
+  scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="Mean Bray-Curtis Dist.")
+  labs(x="", y="B-C Distance")
 
 # best size: ~600x400
 
@@ -1323,12 +994,12 @@ rawbeta_plot <- ggplot(na.omit(Raw_beta), aes(x = Times, y = rawbeta, group = Si
 
 # OBSERVED RICHNESS
 
-rich_plot <- ggplot(rich_prim, aes(x = time, y = value, fill = site)) + 
+rich_plot <- ggplot(rich_prim, aes(x = Time.Code2, y = obsrich, fill = site)) + 
   geom_boxplot() + 
   fill_palette(viridis(5, begin = 0.3)) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="Richness")
+  labs(x="", y="Observed Richness")
 
 # RAREFIED RICHNESS
 
@@ -1341,7 +1012,7 @@ rich_plot <- ggplot(rich_prim, aes(x = time, y = value, fill = site)) +
 
 # ENS
 
-ens_plot <- ggplot(ens_prim, aes(x = time, y = value, fill = site)) + 
+ens_plot <- ggplot(shan_prim, aes(x = Time.Code2, y = ENS, fill = site)) + 
   geom_boxplot() + 
   fill_palette(viridis(5, begin = 0.3)) +
   theme_minimal() +
@@ -1350,38 +1021,38 @@ ens_plot <- ggplot(ens_prim, aes(x = time, y = value, fill = site)) +
 
 # SHANNON DIVERSITY
 
-shannon_plot <- ggplot(shannon_prim, aes(x = time, y = value, fill = site)) + 
+shannon_plot <- ggplot(shan_prim, aes(x = Time.Code2, y = Shannon, fill = site)) + 
   geom_boxplot() + 
   fill_palette(viridis(5, begin = 0.3)) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
   labs(x=" May                  June/July                 August", y="Shannon Diversity")
 
-# EVENNESS
+# Hellinger distance
 
-even_plot <- ggplot(even_prim, aes(x = time, y = value, fill = site)) + 
+hell_plot <- ggplot(hell_prim, aes(x = time, y = value, fill = site)) + 
   geom_boxplot() + 
   fill_palette(viridis(5, begin = 0.3)) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x=" May                 June/July                 August", y="Evenness")
+  labs(x=" May                 June/July                 August", y="Hellinger Distance")
 
 # nMDS
 mds_plot <- ggplot(plot_data_tax, aes(x=MDS1, y=MDS2, pch = month, color = site)) +
   scale_color_viridis(discrete = TRUE, begin = 0.3) +
   theme_minimal() +
   geom_point(size = 4) + 
-  geom_polygon(data=chulls_tax, aes(x=MDS1, y=MDS2, group=site), fill=NA) 
+  geom_polygon(data=chulls_tax, aes(x=MDS1, y=MDS2, group=month), fill=NA, color = "grey") 
 
 
 # FULL FIGURE 4
 
 
-Figure4 <- ggarrange(ggarrange(rawbeta_plot, bray_plot,
+Figure4 <- ggarrange(ggarrange(rawbeta_plot, jacc_plot,
                                labels = c("A", "B"),
                                ncol = 2, nrow = 1,
                                legend = FALSE), 
-                     ggarrange(rich_plot, ens_plot, shannon_plot, even_plot, 
+                     ggarrange(rich_plot, ens_plot, shannon_plot, hell_plot, 
                                labels = c("C", "D", "E", "F"), 
                                ncol = 2, nrow = 2,
                                legend = FALSE),
@@ -1403,95 +1074,94 @@ annotate_figure(Figure3, bottom = text_grob("Figure 4: Measures of A) observed r
 #<<<<<<<<<<<<<<<<<<<<<<<<<<END OF SCRIPT>>>>>>>>>>>>>>>>>>>>>>>>#
 
 
-##### SCRATCH PAD
 
+###### SCRATCH PAD
 
-test1 <- div.summary2 %>%
+# Proportion of grazers total
+
+length(grep("grazer", epicomm_z$function.))
+# 5454
+length(epicomm_z$function.)
+# 10302
+5454/10302
+# 0.5294118
+
+# Proportion grazers in midsummer
+
+julgraz <- epicomm_z %>%
+  + filter(Time.Code2 == "C")
+propgraz <- julgraz %>%
+  filter(function. == "grazer")
+nograz <- propgraz %>%
+  filter(abundance != 0)
+finalgraz <- nograz %>%
+  group_by(site, species) %>%
+  summarise(unique(species))
+finalgraz$count <- 1
+calcgraz <- finalgraz %>%
   group_by(site) %>%
-  summarise(mean(H))
-test2 <- div.summary %>%
+  summarise(sum(count))
+# change column name
+names(calcgraz)[names(calcgraz)=="sum(count)"] <- "total"
+mean(calcgraz$total)
+
+
+# determine proportion of grazers within size classes
+
+filtergraz <- names(epicomm_s[-c(1:3)])
+
+newgraz <- data.s %>%
+  filter(variable %in% filtergraz)
+sizegraz <- newgraz %>%
+  group_by(Sieve) %>%
+  summarise(sum(value))
+
+# determine how many spp range in all sites mid summer
+test <- EpiC %>%
+  select(-Sample) %>%
+  group_by(site, Time.Code2) %>%
+  summarise_all(sum)
+
+# replace >1 with 1 
+test[test > 0] <- 1
+ 
+range(rowSums(test[3:36]))
+
+#Average observed quadrat scale diversity
+quaddiv <- EpiC
+quaddiv %>% mutate_each(funs(replace(., . > 0, 1)))
+quaddiv <- quaddiv %>%
+  ungroup() %>%
+  select(-c(Time.Code2, Sample))
+quaddiv$spp <- rowSums(quaddiv[2:35])
+quaddiv <- quaddiv %>%
+  select(site, spp) %>%
   group_by(site) %>%
-  summarise(mean(Shannon))
+  summarise(meanrich = mean(spp))
+range(quaddiv$meanrich)
 
-div.data$site <- factor(epicomm_richness$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
-div.data <- div.data %>%
-  group_by(site)
-levels(div.data$site)
-levels(EpiC$sitetime)
-EpiC$sitetime <- as.factor(EpiC$sitetime)
-EpiC <- EpiC %>%
-  group_by(site)
+# permutation test of multivariate homogeneity of group dispersions for all midusmmer sites
+dispertest <- range01(vegdist(decostand(EpiC[,4:37], "hellinger"), "euclidean"))
+groups <- factor(EpiC$site)
+betamod <- betadisper(dispertest, groups, type = "centroid")
+permutest(betamod)
 
+# test across all time periods to determine if composition was stable.
+gammatest <- epicomm_s
+primsites <- c("DC", "WI", "RP", "NB", "CB")
+primegamma <- gammatest %>%
+  filter(site %in% primsites)
+primeplot <- primegamma %>%
+  select(-Sample) %>%
+  group_by(site, Time.Code2) %>%
+  summarise_all(sum)
+adonismod <- adonis(primeplot[,3:36] ~ Time.Code2, data = primeplot, permutations = 999, method = "bray")
+adonismod
 
-
-Captest <- epicomm_z %>%
-  filter(TimeID == "DC.C")
-
-
-
-filtertest <- data.tr %>%
-  group_by(species, eelgrss.epifauna) %>%
-  filter(species == "Caprella.spp.")
-
-
-data <- read.csv("./data/rawcomm.csv")
-traits <- read.csv("./data/grazertraits3.csv")
-sites <- read.csv("./data/site.info.csv")
-
-# delete, add and redefine columns ----------------------------------------
-traits <- traits[,-c(3,8:10)]
-
-data$date1 <- mdy(data$date)
-
-# data preparation ---------------------------------------------------
-## Melt and recast so the datafile goes from long to wide (species as columns)
-data.m <- melt(data, id = c(1,2,3,4,5,52, 53))
-
-## Clean and correct species names. 
-## in the data file, some names we initially used for taxa needed updating based on improvements in our ability to identify them. So these replacements reflect those updates. 
-levels(data.m$variable)[levels(data.m$variable)== "Bittium.spp."] <- "Lirobittium.spp."
-levels(data.m$variable)[levels(data.m$variable)== "Olivella.sp."] <- "Callianax.sp."
-levels(data.m$variable)[levels(data.m$variable)== "Cypricercus."] <- "Cyprideis.beaconensis"
-levels(data.m$variable)[levels(data.m$variable)== "Odontosyllis"] <- "Polychaete1"
-#levels(data.m$variable)[levels(data.m$variable)== "Idotea.resecata"] <- "Pentidotea.resecata"
-
-# Clean up time code labels so they are easier to model
-levels(unique(data$Time.Code2))
-levels(data.m$Time.Code)
-data.m$Time.Code <- as.character(data.m$Time.Code)
-data.m$Time.Code[data.m$Time.Code == "C "] <- "C"
-data.m$Time.Code <- as.factor(data.m$Time.Code)
-data.m$value <- as.numeric(data.m$value)
-levels(data.m$Time.Code)
-
-## Merge diversity file with site metadata
-data.s <- merge(data.m, sites, by = "site")
-
-library(plyr)
-## Sum across size classes within plots (samples)
-data.p <- ddply(data.s, .(site, date1, Sample, Time.Code2, variable, dfw,order.dfw,area,salinity, shoot.density, fetch.jc), summarise, sum(value))
-detach(package:plyr)
-
-data.p$time.ID <- paste(data.p$site, data.p$Time.Code2, sep = '.') #could look at finer time resolution by using Time.Code here
-names(data.p) <- c("site", "Date", "Sample", "Time.Code2", "species", "dfw","order","area","salinity","shoot.density","fetch","abundance", "TimeID")
-
-## Merge with traits and sort by taxa or functional groups
-data.tr <- merge(data.p, traits[,-1], by.x = "species", by.y = "species.names", all.x = TRUE, all.y = FALSE)
-
-## create datafile to be posted with paper: 
-# write.csv(data.tr, "Whippodata.csv")
-
-# Create datafiles for taxa and times -------------------------------------
-
-## Remove all taxa that are not epifauna: 
-levels(data.tr$eelgrss.epifauna)
-epicomm_z <- data.tr %>% filter(eelgrss.epifauna == c("yes", "sometimes"))
-epicomm_s <- epicomm_z %>%
-  spread(species, abundance)
-
-# remove unused columns
-epicomm_s <- epicomm_s %>%
-  select(-Date, -dfw, -order, -area, -salinity, -shoot.density, -fetch, -TimeID, -function., -taxon, -group, -eelgrss.epifauna)
-
-# replace NAs with 0 
-epicomm_s[is.na(epicomm_s)] <- 0
+# wizard jaccard spike?
+Wizard <- epicomm_s %>%
+  filter(site == "WI")
+Wizard <- Wizard %>%
+  select(-Sample) %>%
+  group_by(site, Time.Code2) %>%
+  summarise_all(sum)
