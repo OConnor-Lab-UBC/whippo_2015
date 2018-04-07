@@ -557,6 +557,7 @@ div.summary <- div.data[(div.data$N!=0),] %>%
   full_join(site.alpha, by = "site") %>%
   full_join(results, by = "site")
 
+#write.csv(div.summary, "div.summary.csv")
 ```
 
 #####grazers only
@@ -629,8 +630,8 @@ summary(mods3)
 #####Does plot level R' differ among meadows? [results in text]
 ```{r}
 # does plot level R' differ among meadows?
-mods3 <- lm(div.summary$qD ~ div.summary$site)
-mods0 <-  lm(div.summary$qD ~ 1)
+mods3 <- lm(div.summary$R2 ~ div.summary$site)
+mods0 <-  lm(div.summary$R2 ~ 1)
 anova(mods3, mods0)
 model.sel(mods3, mods0)
 summary(mods3)
@@ -643,37 +644,37 @@ summary(mods3)
 mod1a <- lm(div.summary$H ~ div.summary$fetch.meters)
 mod2a <- lm(div.summary$N ~ div.summary$fetch.meters)
 mod3a <- lm(div.summary$alpha.p ~ div.summary$fetch.meters)
-mod4a <- lm(div.summary$qD ~ div.summary$fetch.meters)
+mod4a <- lm(div.summary$R2 ~ div.summary$fetch.meters)
 
 mod1b <- lm(div.summary$H ~ div.summary$dfw)
 mod2b <- lm(div.summary$N ~ div.summary$dfw)
 mod3b <- lm(div.summary$alpha.p ~ div.summary$dfw)
-mod4b <- lm(div.summary$qD ~ div.summary$dfw)
+mod4b <- lm(div.summary$R2 ~ div.summary$dfw)
 
 mod1c <- lm(div.summary$H ~ div.summary$dfw * div.summary$fetch.meters)
 mod2c <- lm(div.summary$N ~ div.summary$dfw * div.summary$fetch.meters)
 mod3c <- lm(div.summary$alpha.p ~ div.summary$dfw * div.summary$fetch.meters)
-mod4c <- lm(div.summary$qD ~ div.summary$dfw * div.summary$fetch.meters)
+mod4c <- lm(div.summary$R2 ~ div.summary$dfw * div.summary$fetch.meters)
 
 mod1f <- lm(div.summary$H ~ div.summary$area * div.summary$fetch.meters)
 mod2f <- lm(div.summary$N ~ div.summary$area * div.summary$fetch.meters)
 mod3f <- lm(div.summary$alpha.p ~ div.summary$area * div.summary$fetch.meters)
-mod4f <- lm(div.summary$qD ~ div.summary$area * div.summary$fetch.meters)
+mod4f <- lm(div.summary$R2 ~ div.summary$area * div.summary$fetch.meters)
 
 mod1d <- lm(div.summary$H ~ 1)
 mod2d <- lm(div.summary$N ~ 1)
 mod3d <- lm(div.summary$alpha.p ~ 1)
-mod4d <- lm(div.summary$qD ~ 1)
+mod4d <- lm(div.summary$R2 ~ 1)
 
 mod1g <- lm(div.summary$H ~ div.summary$site)
 mod2g <- lm(div.summary$N ~ div.summary$site)
 mod3g <- lm(div.summary$alpha.p ~ div.summary$site)
-mod4g <- lm(div.summary$qD ~ div.summary$site)
+mod4g <- lm(div.summary$R2 ~ div.summary$site)
 
 mod1h <- lm(div.summary$H ~ div.summary$area)
 mod2h <- lm(div.summary$N ~ div.summary$area)
 mod3h <- lm(div.summary$alpha.p ~ div.summary$area)
-mod4h <- lm(div.summary$qD ~ div.summary$area)
+mod4h <- lm(div.summary$R2 ~ div.summary$area)
 ```
 
 Model comparison results for Shannon Diversity in Table S6
@@ -705,11 +706,15 @@ div.data$alpha.p <- specnumber(div.data[,5:38])
 div.data$N <- rowSums(div.data[,(5:38)])
 
 ## estimate univariate diversity for each sample
-div.summary <- div.data[c(1:4, 39:40)] %>%
-  mutate(., H = diversity(div.data[,-(c(1:4))], index ="shannon")) %>%
-  mutate(., S = diversity(div.data[,-(c(1:4))], index ="simpson")) %>%
-  full_join(sites, by = "site") 
+div.summary <- div.data[(div.data$N!=0),] %>%
+  mutate(., H = diversity(div.data[(div.data$N!=0),-(c(1:4, 38:39))], index ="shannon")) %>%
+  mutate(., R2 = rarefy(div.data[(div.data$N!=0),-(c(1:4, 38:39))], min(div.data[(div.data$N!=0),]$N))) %>%
+  full_join(sites, by = "site") %>%
+  full_join(I.means, by = c("site" = "Site")) %>%
+  full_join(site.alpha, by = "site") %>%
+  full_join(results, by = "site")
   
+write.csv(div.summary, "div.summary3times.csv")
 
 #models
 modS <- lm(div.summary$alpha.p ~ div.summary$site*div.summary$Time.Code2)
@@ -721,6 +726,8 @@ anova(modN)
 modH <- lm(div.summary$H ~ div.summary$site*div.summary$Time.Code2)
 anova(modH)
 
+modR2 <- lm(div.summary$R2 ~ div.summary$site*div.summary$Time.Code2)
+anova(modR2)
 
 ```
 

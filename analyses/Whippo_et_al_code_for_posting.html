@@ -367,64 +367,64 @@ dataJULY9 &lt;- data.tr[(data.tr$Time.Code2==&quot;C&quot;),]</code></pre>
 <tr class="odd">
 <td>RBE</td>
 <td align="right">18.656</td>
-<td align="right">14.512</td>
-<td align="right">22.800</td>
+<td align="right">14.058</td>
+<td align="right">23.254</td>
 <td align="left">BE</td>
 </tr>
 <tr class="even">
 <td>RRP</td>
 <td align="right">26.189</td>
-<td align="right">21.522</td>
-<td align="right">30.857</td>
+<td align="right">20.594</td>
+<td align="right">31.785</td>
 <td align="left">RP</td>
 </tr>
 <tr class="odd">
 <td>RDC</td>
 <td align="right">16.432</td>
-<td align="right">13.120</td>
-<td align="right">19.744</td>
+<td align="right">13.701</td>
+<td align="right">19.164</td>
 <td align="left">DC</td>
 </tr>
 <tr class="even">
 <td>RWI</td>
 <td align="right">22.864</td>
-<td align="right">20.367</td>
-<td align="right">25.361</td>
+<td align="right">19.994</td>
+<td align="right">25.734</td>
 <td align="left">WI</td>
 </tr>
 <tr class="odd">
 <td>RCC</td>
 <td align="right">11.000</td>
-<td align="right">9.640</td>
-<td align="right">12.360</td>
+<td align="right">9.805</td>
+<td align="right">12.195</td>
 <td align="left">CC</td>
 </tr>
 <tr class="even">
 <td>RCB</td>
 <td align="right">17.245</td>
-<td align="right">14.471</td>
-<td align="right">20.019</td>
+<td align="right">14.601</td>
+<td align="right">19.890</td>
 <td align="left">CB</td>
 </tr>
 <tr class="odd">
 <td>RNB</td>
 <td align="right">18.633</td>
-<td align="right">15.462</td>
-<td align="right">21.805</td>
+<td align="right">14.894</td>
+<td align="right">22.373</td>
 <td align="left">NB</td>
 </tr>
 <tr class="even">
 <td>REI</td>
 <td align="right">19.397</td>
-<td align="right">15.613</td>
-<td align="right">23.182</td>
+<td align="right">14.919</td>
+<td align="right">23.876</td>
 <td align="left">EI</td>
 </tr>
 <tr class="odd">
 <td>RBI</td>
 <td align="right">19.397</td>
-<td align="right">15.613</td>
-<td align="right">23.182</td>
+<td align="right">14.919</td>
+<td align="right">23.876</td>
 <td align="left">BI</td>
 </tr>
 </tbody>
@@ -1842,14 +1842,14 @@ dataJULY9 &lt;- data.tr[(data.tr$Time.Code2==&quot;C&quot;),]</code></pre>
 ## Model 1: div.summary$alpha.p ~ 1 + div.summary$site
 ## Model 2: div.summary$alpha.p ~ 1
 ##   Res.Df     RSS Df Sum of Sq      F    Pr(&gt;F)    
-## 1    136  783.89                                  
-## 2    144 1599.97 -8   -816.08 17.698 &lt; 2.2e-16 ***
+## 1    135  713.87                                  
+## 2    143 1535.31 -8   -821.43 19.418 &lt; 2.2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <pre><code>## Model selection table 
 ##       (Int) div.smm$sit df   logLik  AICc delta weight
-## mods4 6.562           + 10 -328.092 677.8   0.0      1
-## mods0 8.014              2 -379.819 763.7  85.9      0
+## mods4 6.563           + 10 -319.592 660.8   0.0      1
+## mods0 8.069              2 -374.727 753.5  92.7      0
 ## Models ranked by AICc(x)</code></pre>
 <pre><code>## 
 ## Call:
@@ -1857,41 +1857,41 @@ dataJULY9 &lt;- data.tr[(data.tr$Time.Code2==&quot;C&quot;),]</code></pre>
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
-## -8.1176 -1.2500  0.1875  1.4375  4.8824 
+## -8.0625 -1.3281  0.1875  1.4375  4.4375 
 ## 
 ## Coefficients:
 ##                    Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)          6.5625     0.6002  10.934  &lt; 2e-16 ***
-## div.summary$siteBI   2.2500     0.8488   2.651  0.00898 ** 
-## div.summary$siteCB   0.6250     0.8488   0.736  0.46280    
-## div.summary$siteCC  -1.3125     0.8488  -1.546  0.12436    
-## div.summary$siteDC   0.2500     0.8488   0.295  0.76880    
-## div.summary$siteEI   2.0000     0.8488   2.356  0.01989 *  
-## div.summary$siteNB   0.1875     0.8488   0.221  0.82550    
-## div.summary$siteRP   7.5000     0.8488   8.836 4.47e-15 ***
-## div.summary$siteWI   1.5551     0.8362   1.860  0.06509 .  
+## (Intercept)          6.5625     0.5749  11.415  &lt; 2e-16 ***
+## div.summary$siteBI   2.2500     0.8130   2.767  0.00644 ** 
+## div.summary$siteCB   0.6250     0.8130   0.769  0.44339    
+## div.summary$siteCC  -1.3125     0.8130  -1.614  0.10878    
+## div.summary$siteDC   0.2500     0.8130   0.307  0.75894    
+## div.summary$siteEI   2.0000     0.8130   2.460  0.01516 *  
+## div.summary$siteNB   0.1875     0.8130   0.231  0.81796    
+## div.summary$siteRP   7.5000     0.8130   9.225 5.11e-16 ***
+## div.summary$siteWI   2.0625     0.8130   2.537  0.01232 *  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 2.401 on 136 degrees of freedom
-## Multiple R-squared:  0.5101, Adjusted R-squared:  0.4812 
-## F-statistic:  17.7 on 8 and 136 DF,  p-value: &lt; 2.2e-16</code></pre>
-<pre><code>##                          2.5 %    97.5 %
-## (Intercept)         5.37556244 7.7494376
-## div.summary$siteBI  0.57141680 3.9285832
-## div.summary$siteCB -1.05358320 2.3035832
-## div.summary$siteCC -2.99108320 0.3660832
-## div.summary$siteDC -1.42858320 1.9285832
-## div.summary$siteEI  0.32141680 3.6785832
-## div.summary$siteNB -1.49108320 1.8660832
-## div.summary$siteRP  5.82141680 9.1785832
-## div.summary$siteWI -0.09856687 3.2088610</code></pre>
+## Residual standard error: 2.3 on 135 degrees of freedom
+## Multiple R-squared:  0.535,  Adjusted R-squared:  0.5075 
+## F-statistic: 19.42 on 8 and 135 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre><code>##                         2.5 %    97.5 %
+## (Intercept)         5.4255459 7.6994541
+## div.summary$siteBI  0.6421041 3.8578959
+## div.summary$siteCB -0.9828959 2.2328959
+## div.summary$siteCC -2.9203959 0.2953959
+## div.summary$siteDC -1.3578959 1.8578959
+## div.summary$siteEI  0.3921041 3.6078959
+## div.summary$siteNB -1.4203959 1.7953959
+## div.summary$siteRP  5.8921041 9.1078959
+## div.summary$siteWI  0.4546041 3.6703959</code></pre>
 <pre><code>##        (Intercept) div.summary$siteBI div.summary$siteCB 
-##           6.562500           2.250000           0.625000 
+##             6.5625             2.2500             0.6250 
 ## div.summary$siteCC div.summary$siteDC div.summary$siteEI 
-##          -1.312500           0.250000           2.000000 
+##            -1.3125             0.2500             2.0000 
 ## div.summary$siteNB div.summary$siteRP div.summary$siteWI 
-##           0.187500           7.500000           1.555147</code></pre>
+##             0.1875             7.5000             2.0625</code></pre>
 </div>
 <div id="does-plot-level-shannon-diversity-differ-among-meadows-results-in-text" class="section level5">
 <h5>Does plot level Shannon diversity differ among meadows? [results in text]</h5>
@@ -1899,195 +1899,258 @@ dataJULY9 &lt;- data.tr[(data.tr$Time.Code2==&quot;C&quot;),]</code></pre>
 ## 
 ## Model 1: div.summary$H ~ div.summary$site
 ## Model 2: div.summary$H ~ 1
-##   Res.Df     RSS Df Sum of Sq      F    Pr(&gt;F)    
-## 1    136  5.8107                                  
-## 2    144 10.9415 -8   -5.1308 15.011 1.265e-15 ***
+##   Res.Df    RSS Df Sum of Sq     F    Pr(&gt;F)    
+## 1    135 12.970                                 
+## 2    143 33.215 -8   -20.245 26.34 &lt; 2.2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <pre><code>## Model selection table 
-##       (Int) div.smm$sit df  logLik  AICc delta weight
-## mods3 1.115           + 10  27.489 -33.3  0.00      1
-## mods0 1.348              2 -18.394  40.9 74.21      0
+##        (Int) div.smm$sit df  logLik  AICc  delta weight
+## mods3 0.6188           + 10 -31.011  83.7   0.00      1
+## mods0 1.1160              2 -98.716 201.5 117.84      0
 ## Models ranked by AICc(x)</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = div.summary$H ~ div.summary$site)
 ## 
 ## Residuals:
-##      Min       1Q   Median       3Q      Max 
-## -1.39430 -0.11495 -0.01801  0.07716  0.51674 
+##     Min      1Q  Median      3Q     Max 
+## -0.6072 -0.2024 -0.0299  0.1417  0.9287 
 ## 
 ## Coefficients:
 ##                    Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)         1.11531    0.05168  21.583  &lt; 2e-16 ***
-## div.summary$siteBI  0.43414    0.07308   5.941 2.25e-08 ***
-## div.summary$siteCB  0.19308    0.07308   2.642 0.009208 ** 
-## div.summary$siteCC  0.21571    0.07308   2.952 0.003723 ** 
-## div.summary$siteDC -0.14342    0.07308  -1.963 0.051740 .  
-## div.summary$siteEI  0.38538    0.07308   5.273 5.14e-07 ***
-## div.summary$siteNB  0.25315    0.07308   3.464 0.000712 ***
-## div.summary$siteRP  0.47065    0.07308   6.440 1.90e-09 ***
-## div.summary$siteWI  0.27899    0.07200   3.875 0.000165 ***
+## (Intercept)         0.61881    0.07749   7.986 5.43e-13 ***
+## div.summary$siteBI  0.82634    0.10959   7.541 6.15e-12 ***
+## div.summary$siteCB  0.38601    0.10959   3.522 0.000584 ***
+## div.summary$siteCC  0.31974    0.10959   2.918 0.004132 ** 
+## div.summary$siteDC -0.14767    0.10959  -1.348 0.180075    
+## div.summary$siteEI  0.91236    0.10959   8.325 8.27e-14 ***
+## div.summary$siteNB  0.51320    0.10959   4.683 6.80e-06 ***
+## div.summary$siteRP  0.99273    0.10959   9.059 1.32e-15 ***
+## div.summary$siteWI  0.67577    0.10959   6.167 7.57e-09 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.2067 on 136 degrees of freedom
-## Multiple R-squared:  0.4689, Adjusted R-squared:  0.4377 
-## F-statistic: 15.01 on 8 and 136 DF,  p-value: 1.265e-15</code></pre>
+## Residual standard error: 0.31 on 135 degrees of freedom
+## Multiple R-squared:  0.6095, Adjusted R-squared:  0.5864 
+## F-statistic: 26.34 on 8 and 135 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 <div id="does-plot-level-r-differ-among-meadows-results-in-text" class="section level5">
 <h5>Does plot level R’ differ among meadows? [results in text]</h5>
 <pre><code>## Analysis of Variance Table
 ## 
-## Model 1: div.summary$qD ~ div.summary$site
-## Model 2: div.summary$qD ~ 1
-##   Res.Df  RSS Df Sum of Sq          F    Pr(&gt;F)    
-## 1    136    0                                      
-## 2    144 2267 -8     -2267 2.3552e+29 &lt; 2.2e-16 ***
+## Model 1: div.summary$R2 ~ div.summary$site
+## Model 2: div.summary$R2 ~ 1
+##   Res.Df    RSS Df Sum of Sq      F    Pr(&gt;F)    
+## 1    135 30.851                                  
+## 2    143 71.610 -8   -40.759 22.295 &lt; 2.2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <pre><code>## Model selection table 
-##       (Int) div.smm$sit df   logLik    AICc   delta weight
-## mods3 18.66           + 10 4292.799 -8564.0    0.00      1
-## mods0 18.90              2 -405.084   814.3 9378.21      0
+##       (Int) div.smm$sit df   logLik  AICc  delta weight
+## mods3 1.685           + 10  -93.400 208.5   0.00      1
+## mods0 2.447              2 -154.029 312.1 103.69      0
 ## Models ranked by AICc(x)</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = div.summary$qD ~ div.summary$site)
+## lm(formula = div.summary$R2 ~ div.summary$site)
 ## 
 ## Residuals:
-##        Min         1Q     Median         3Q        Max 
-## -4.915e-14  0.000e+00  0.000e+00  0.000e+00  3.747e-13 
+##      Min       1Q   Median       3Q      Max 
+## -0.99793 -0.31825 -0.06404  0.20284  1.32628 
 ## 
 ## Coefficients:
-##                      Estimate Std. Error    t value Pr(&gt;|t|)    
-## (Intercept)         1.866e+01  8.672e-15  2.151e+15   &lt;2e-16 ***
-## div.summary$siteBI  7.410e-01  1.226e-14  6.042e+13   &lt;2e-16 ***
-## div.summary$siteCB -1.411e+00  1.226e-14 -1.151e+14   &lt;2e-16 ***
-## div.summary$siteCC -7.656e+00  1.226e-14 -6.243e+14   &lt;2e-16 ***
-## div.summary$siteDC -2.224e+00  1.226e-14 -1.813e+14   &lt;2e-16 ***
-## div.summary$siteEI  7.410e-01  1.226e-14  6.042e+13   &lt;2e-16 ***
-## div.summary$siteNB -2.300e-02  1.226e-14 -1.875e+12   &lt;2e-16 ***
-## div.summary$siteRP  7.533e+00  1.226e-14  6.142e+14   &lt;2e-16 ***
-## div.summary$siteWI  4.208e+00  1.208e-14  3.483e+14   &lt;2e-16 ***
+##                    Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)          1.6850     0.1195  14.099  &lt; 2e-16 ***
+## div.summary$siteBI   1.2481     0.1690   7.385 1.42e-11 ***
+## div.summary$siteCB   0.5897     0.1690   3.489 0.000655 ***
+## div.summary$siteCC   0.5978     0.1690   3.537 0.000555 ***
+## div.summary$siteDC  -0.1691     0.1690  -1.001 0.318743    
+## div.summary$siteEI   1.4325     0.1690   8.476 3.57e-14 ***
+## div.summary$siteNB   0.8480     0.1690   5.018 1.62e-06 ***
+## div.summary$siteRP   1.2943     0.1690   7.658 3.26e-12 ***
+## div.summary$siteWI   1.0199     0.1690   6.034 1.45e-08 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 3.469e-14 on 136 degrees of freedom
-## Multiple R-squared:      1,  Adjusted R-squared:      1 
-## F-statistic: 2.355e+29 on 8 and 136 DF,  p-value: &lt; 2.2e-16</code></pre>
+## Residual standard error: 0.478 on 135 degrees of freedom
+## Multiple R-squared:  0.5692, Adjusted R-squared:  0.5437 
+## F-statistic: 22.29 on 8 and 135 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
 <div id="model-selection-table-s5" class="section level3">
 <h3>Model selection: Table S5</h3>
 <p>Model comparison results for Shannon Diversity in Table S6</p>
 <pre><code>## Model selection table 
-##       (Int) div.smm$ftc.mtr div.smm$dfw div.smm$dfw:div.smm$ftc.mtr
-## mod1g 1.115                                                        
-## mod1c 1.480       1.091e-06    -0.03412                   5.949e-08
-## mod1f 1.482      -1.200e-06                                        
-## mod1b 1.523                    -0.02502                            
-## mod1h 1.408                                                        
-## mod1a 1.283       9.433e-07                                        
-## mod1d 1.348                                                        
+##        (Int) div.smm$ftc.mtr div.smm$dfw div.smm$dfw:div.smm$ftc.mtr
+## mod1g 0.6188                                                        
+## mod1c 1.1000       5.850e-06    -0.03980                  -1.888e-07
+## mod1f 1.2370      -5.434e-07                                        
+## mod1b 1.3600                    -0.03497                            
+## mod1a 0.9296       2.780e-06                                        
+## mod1h 1.2220                                                        
+## mod1d 1.1160                                                        
 ##       div.smm$are div.smm$are:div.smm$ftc.mtr div.smm$sit df  logLik  AICc
-## mod1g                                                   + 10  27.489 -33.3
-## mod1c                                                      5  -0.482  11.4
-## mod1f    -0.36030                   5.293e-06              5  -2.122  14.7
-## mod1b                                                      3  -8.041  22.3
-## mod1h    -0.07336                                          3 -13.975  34.1
-## mod1a                                                      3 -16.256  38.7
-## mod1d                                                      2 -18.394  40.9
-##       delta weight
-## mod1g  0.00      1
-## mod1c 44.73      0
-## mod1f 48.01      0
-## mod1b 55.59      0
-## mod1h 67.46      0
-## mod1a 72.02      0
-## mod1d 74.21      0
+## mod1g                                                   + 10 -31.011  83.7
+## mod1c                                                      5 -79.609 169.7
+## mod1f     -0.5546                   8.156e-06              5 -81.416 173.3
+## mod1b                                                      3 -92.309 190.8
+## mod1a                                                      3 -92.744 191.7
+## mod1h     -0.1273                                          3 -94.376 194.9
+## mod1d                                                      2 -98.716 201.5
+##        delta weight
+## mod1g   0.00      1
+## mod1c  85.98      0
+## mod1f  89.59      0
+## mod1b 107.11      0
+## mod1a 107.98      0
+## mod1h 111.25      0
+## mod1d 117.84      0
 ## Models ranked by AICc(x)</code></pre>
 <p>Model comparison results for Abundance in Table S6</p>
 <pre><code>## Model selection table 
 ##         (Int) div.smm$ftc.mtr div.smm$dfw div.smm$dfw:div.smm$ftc.mtr
 ## mod2g  102.30                                                        
-## mod2c -294.70       0.0070750       66.39                  -0.0008024
-## mod2f   65.45       0.0016510                                        
-## mod2b   53.31                       24.06                            
-## mod2h  175.40                                                        
-## mod2d  221.80                                                        
-## mod2a  248.20      -0.0003882                                        
+## mod2c -293.50        0.007044       66.06                  -0.0007946
+## mod2f   60.90        0.001742                                        
+## mod2b   52.08                       24.55                            
+## mod2h  177.50                                                        
+## mod2d  223.40                                                        
+## mod2a  245.20       -0.000325                                        
 ##       div.smm$are div.smm$are:div.smm$ftc.mtr div.smm$sit df    logLik
-## mod2g                                                   + 10  -973.305
-## mod2c                                                      5  -998.613
-## mod2f      339.90                   -0.005126              5 -1005.767
-## mod2b                                                      3 -1008.544
-## mod2h       56.07                                          3 -1015.697
-## mod2d                                                      2 -1018.308
-## mod2a                                                      3 -1017.942
+## mod2g                                                   + 10  -967.009
+## mod2c                                                      5  -992.054
+## mod2f      341.90                   -0.005165              5  -998.939
+## mod2b                                                      3 -1001.340
+## mod2h       55.17                                          3 -1008.935
+## mod2d                                                      2 -1011.449
+## mod2a                                                      3 -1011.204
 ##         AICc delta weight
-## mod2g 1968.3  0.00      1
-## mod2c 2007.7 39.41      0
-## mod2f 2022.0 53.71      0
-## mod2b 2023.3 55.01      0
-## mod2h 2037.6 69.31      0
-## mod2d 2040.7 72.45      0
-## mod2a 2042.1 73.80      0
+## mod2g 1955.7  0.00      1
+## mod2c 1994.5 38.87      0
+## mod2f 2008.3 52.64      0
+## mod2b 2008.9 53.18      0
+## mod2h 2024.0 68.37      0
+## mod2d 2027.0 71.31      0
+## mod2a 2028.6 72.91      0
 ## Models ranked by AICc(x)</code></pre>
 <p>Model comparison results for Alpha Diversity in Table S6</p>
 <pre><code>## Model selection table 
 ##       (Int) div.smm$ftc.mtr div.smm$dfw div.smm$dfw:div.smm$ftc.mtr
-## mod3g 6.562                                                        
-## mod3d 8.014                                                        
-## mod3h 8.298                                                        
-## mod3a 7.683       4.864e-06                                        
-## mod3b 8.029                   -0.002153                            
-## mod3c 6.165       3.928e-05    0.138000                  -3.343e-06
-## mod3f 8.005       3.779e-06                                        
+## mod3g 6.563                                                        
+## mod3d 8.069                                                        
+## mod3a 7.532       7.993e-06                                        
+## mod3h 8.388                                                        
+## mod3b 7.997                     0.01039                            
+## mod3c 6.241       3.737e-05     0.11750                   -2.86e-06
+## mod3f 7.821       7.458e-06                                        
 ##       div.smm$are div.smm$are:div.smm$ftc.mtr div.smm$sit df   logLik
-## mod3g                                                   + 10 -328.092
-## mod3d                                                      2 -379.819
-## mod3h     -0.3439                                          3 -379.172
-## mod3a                                                      3 -379.435
-## mod3b                                                      3 -379.819
-## mod3c                                                      5 -378.729
-## mod3f     -0.2785                  -3.816e-07              5 -378.965
+## mod3g                                                   + 10 -319.592
+## mod3d                                                      2 -374.727
+## mod3a                                                      3 -373.695
+## mod3h     -0.3830                                          3 -373.898
+## mod3b                                                      3 -374.716
+## mod3c                                                      5 -373.156
+## mod3f     -0.1958                  -1.956e-06              5 -373.179
 ##        AICc delta weight
-## mod3g 677.8  0.00      1
-## mod3d 763.7 85.90      0
-## mod3h 764.5 86.69      0
-## mod3a 765.0 87.21      0
-## mod3b 765.8 87.98      0
-## mod3c 767.9 90.06      0
-## mod3f 768.4 90.54      0
+## mod3g 660.8  0.00      1
+## mod3d 753.5 92.70      0
+## mod3a 753.6 92.72      0
+## mod3h 754.0 93.13      0
+## mod3b 755.6 94.77      0
+## mod3c 756.7 95.91      0
+## mod3f 756.8 95.96      0
 ## Models ranked by AICc(x)</code></pre>
 <p>Model comparison results for rarefied Diversity in Table S5</p>
 <pre><code>## Model selection table 
 ##       (Int) div.smm$ftc.mtr div.smm$dfw div.smm$dfw:div.smm$ftc.mtr
-## mod4g 18.66                                                        
-## mod4c 10.24       1.579e-04      0.6077                  -1.185e-05
-## mod4a 16.26       3.877e-05                                        
-## mod4f 16.27       3.694e-05                                        
-## mod4b 17.64                      0.1800                            
-## mod4d 18.90                                                        
-## mod4h 19.17                                                        
+## mod4g 1.685                                                        
+## mod4c 2.432       8.805e-06    -0.06099                  -2.866e-07
+## mod4f 2.618      -8.822e-07                                        
+## mod4b 2.824                    -0.05394                            
+## mod4a 2.170       4.131e-06                                        
+## mod4h 2.592                                                        
+## mod4d 2.447                                                        
 ##       div.smm$are div.smm$are:div.smm$ftc.mtr div.smm$sit df   logLik
-## mod4g                                                   + 10 4292.799
-## mod4c                                                      5 -377.310
-## mod4a                                                      3 -385.478
-## mod4f     -0.2374                   6.773e-06              5 -385.287
-## mod4b                                                      3 -402.634
-## mod4d                                                      2 -405.084
-## mod4h     -0.3361                                          3 -404.649
-##          AICc   delta weight
-## mod4g -8564.0    0.00      1
-## mod4c   765.1 9329.01      0
-## mod4a   777.1 9341.08      0
-## mod4f   781.0 9344.96      0
-## mod4b   811.4 9375.39      0
-## mod4d   814.3 9378.21      0
-## mod4h   815.5 9379.42      0
+## mod4g                                                   + 10  -93.400
+## mod4c                                                      5 -133.494
+## mod4f     -0.8297                   1.251e-05              5 -136.305
+## mod4b                                                      3 -146.926
+## mod4a                                                      3 -147.908
+## mod4h     -0.1739                                          3 -150.289
+## mod4d                                                      2 -154.029
+##        AICc  delta weight
+## mod4g 208.5   0.00      1
+## mod4c 277.4  68.97      0
+## mod4f 283.0  74.59      0
+## mod4b 300.0  91.57      0
+## mod4a 302.0  93.53      0
+## mod4h 306.7  98.30      0
+## mod4d 312.1 103.69      0
 ## Models ranked by AICc(x)</code></pre>
+</div>
+<div id="variation-in-univariate-diversity-with-site-and-time-table-3" class="section level3">
+<h3>Variation in univariate diversity with site and time: Table 3</h3>
+<pre><code>## Analysis of Variance Table
+## 
+## Response: div.summary$alpha.p
+##                                          Df  Sum Sq Mean Sq F value
+## div.summary$site                          4  415.33 103.833  18.897
+## div.summary$Time.Code2                    2  615.71 307.857  56.028
+## div.summary$site:div.summary$Time.Code2   8  543.50  67.938  12.364
+## Residuals                               222 1219.82   5.495        
+##                                            Pr(&gt;F)    
+## div.summary$site                        2.184e-13 ***
+## div.summary$Time.Code2                  &lt; 2.2e-16 ***
+## div.summary$site:div.summary$Time.Code2 1.288e-14 ***
+## Residuals                                            
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Response: log(div.summary$N + 1)
+##                                          Df  Sum Sq Mean Sq F value
+## div.summary$site                          4 108.178  27.044  51.953
+## div.summary$Time.Code2                    2 185.369  92.684 178.048
+## div.summary$site:div.summary$Time.Code2   8  45.804   5.725  10.999
+## Residuals                               222 115.564   0.521        
+##                                            Pr(&gt;F)    
+## div.summary$site                        &lt; 2.2e-16 ***
+## div.summary$Time.Code2                  &lt; 2.2e-16 ***
+## div.summary$site:div.summary$Time.Code2 4.737e-13 ***
+## Residuals                                            
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Response: div.summary$H
+##                                          Df Sum Sq Mean Sq F value
+## div.summary$site                          4 2.4019 0.60048 22.1887
+## div.summary$Time.Code2                    2 0.2901 0.14505  5.3601
+## div.summary$site:div.summary$Time.Code2   8 2.6962 0.33702 12.4536
+## Residuals                               222 6.0078 0.02706        
+##                                            Pr(&gt;F)    
+## div.summary$site                        2.001e-15 ***
+## div.summary$Time.Code2                   0.005329 ** 
+## div.summary$site:div.summary$Time.Code2 1.021e-14 ***
+## Residuals                                            
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Response: div.summary$R2
+##                                          Df  Sum Sq  Mean Sq F value
+## div.summary$site                          4 0.65609 0.164023  21.306
+## div.summary$Time.Code2                    2 0.19784 0.098922  12.850
+## div.summary$site:div.summary$Time.Code2   8 0.79543 0.099429  12.915
+## Residuals                               222 1.70906 0.007698        
+##                                            Pr(&gt;F)    
+## div.summary$site                        6.918e-15 ***
+## div.summary$Time.Code2                  5.243e-06 ***
+## div.summary$site:div.summary$Time.Code2 3.091e-15 ***
+## Residuals                                            
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 <div id="elements-of-metacommunity-structure" class="section level3">
 <h3>Elements of Metacommunity Structure</h3>
@@ -2097,26 +2160,11 @@ dataJULY9 &lt;- data.tr[(data.tr$Time.Code2==&quot;C&quot;),]</code></pre>
 <pre><code>## $Coherence
 ##          name        stat
 ## 1      embAbs 104.0000000
-## 2           z   0.1883371
-## 3           p   0.8506124
-## 4     simMean 104.8070000
-## 5 simVariance   4.2848700
-## 6 method = r1          NA
-## 
-## $Turnover
-##           name        stat
-## 1     turnover  65.0000000
-## 2            z   1.4559665
-## 3            p   0.1454019
-## 4      simMean 124.7010000
-## 5  simVariance  41.0043773
-## 6 method = EMS          NA
-## 
-## $Boundary
-##    name         stat
-## 1 index 1.8814229249
-## 2     p 0.0002889302
-## 3    df 6.0000000000</code></pre>
+## 2           z   0.2151239
+## 3           p   0.8296707
+## 4     simMean 104.9080000
+## 5 simVariance   4.2208235
+## 6 method = r1          NA</code></pre>
 </div>
 </div>
 
