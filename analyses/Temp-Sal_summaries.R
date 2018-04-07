@@ -191,16 +191,11 @@ WIC_tempsal %>%
 #<<<<<<<<<<<<<<<<<<<<<<<<<<END OF SCRIPT>>>>>>>>>>>>>>>>>>>>>>>>#
 
 
+# overall salinity means
+
+overallsal <- tempsal_used %>%
+  group_by(Site, Unit) %>%
+  summarise(mean(Value))
 
 
 
-
-stocks <- tibble(
-  time = as.Date('2009-01-01') + 0:9,
-  X = rnorm(10, 0, 1),
-  Y = rnorm(10, 0, 2),
-  Z = rnorm(10, 0, 4)
-)
-
-gather(stocks, stock, price, -time)
-stocks %>% gather(stock, price, -time)

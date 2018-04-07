@@ -428,15 +428,20 @@ colnames(shan_time)[which(names(shan_time) == "mean(Shannon)")] <- "Shannon"
 
 ############### abundance lm across all sites in midsummer, model selection and post hoc test
 
-abunlm <- lm(abund_C$abundance ~ abund_C$site)
-abun0 <- lm(abund_C$abundance ~ 1)
+leveneTest(abund_C$abundance ~ abund_C$site)
+abund_C$logabund <- log10(abund_C$abundance + 1)
+leveneTest(abund_C$logabund ~ abund_C$site)
+
+abunlm <- lm(abund_C$logabund ~ abund_C$site)
+abun0 <- lm(abund_C$logabund ~ 1)
 anova(abunlm, abun0)
 model.sel(abunlm, abun0)
 summary(abunlm)
-abunaov <- aov(abundance ~ site, data = abund_C)
+abunaov <- aov(logabund ~ site, data = abund_C)
 abuntuk <- glht(abunaov, linfct = mcp(site = "Tukey"))
 abuntuk.cld <- cld(abuntuk)
 abuntuk.cld <- print(abuntuk.cld)
+
 
 
 ############### ENS lm across all sites in midsummer, model selection and post hoc test
@@ -462,6 +467,47 @@ shanaov <- aov(Shannon ~ site, data = div.summaryC)
 shantuk <- glht(shanaov, linfct = mcp(site = "Tukey"))
 shantuk.cld <- cld(shantuk)
 shantuk.cld <- print(shantuk.cld)
+
+
+
+
+
+############### STOPGAP RAREFIED ANALYSES FROM MARY
+
+rarefied <- read.csv("./data/div.summary.csv")
+rarefied <- rarefied %>%
+  select(site, site.time, R2)
+rarefied <- transform(rarefied, time = substr(site.time, 4, 4))
+
+rareC <- rarefied %>%
+  filter(time == "C")
+rareC$site <- factor(rareC$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
+
+rare3 <- read.csv("./data/div.summary3times.csv")
+
+new_rare_prim <- rare3 %>%
+  filter(site %in% prim_sites)
+new_rare_prim <- new_rare_prim %>%
+  select(site, Time.Code2, R2)
+new_rare_prim$site <- factor(new_rare_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"))
+new_rare_prim <- new_rare_prim %>%
+  group_by(site, Time.Code2) %>%
+  summarise(mean(R2))
+colnames(new_rare_prim)[which(names(new_rare_prim) == "mean(R2)")] <- "R2"
+
+############### RAREFIED lm across all sites in midsummer, model selection and post hoc test
+
+rarelm <- lm(rareC$R2 ~ rareC$site)
+rare0 <- lm(rareC$R2 ~ 1)
+anova(rarelm, rare0)
+model.sel(rarelm, rare0)
+summary(rarelm)
+rareaov <- aov(R2 ~ site, data = rareC)
+raretuk <- glht(rareaov, linfct = mcp(site = "Tukey"))
+raretuk.cld <- cld(raretuk)
+raretuk.cld <- print(raretuk.cld)
+
+
 
 
 
@@ -1043,23 +1089,24 @@ Rich_midsum_plot <- ggplot(data = rich.C, aes(x=site, y = obsrich, fill = site))
   labs(x="", y = "Observed Richness") +
   annotate("text", x = 1:9, y = 18.7, label = richtuk.cld)
 
-#RR_midsum_plot <- ggplot(data = rare_C, aes(x=site, y = value, fill = site)) +
-#  geom_boxplot() +
-#  fill_palette(viridis(9, option = "viridis")) +
-#  theme_minimal() +
-#  theme(axis.text.x=element_blank()) +
-#  labs(x="", y = "Rarefied Richness")
+R2_midsum_plot <- ggplot(data = rareC, aes(x=site, y = R2, fill = site)) +
+  geom_boxplot() +
+  fill_palette(viridis(9, option = "viridis")) +
+  theme_minimal() +
+  theme(axis.text.x=element_blank()) +
+  labs(x="", y = "Rarefied Richness") +
+  annotate("text", x = 1:9, y = 4.1, label = raretuk.cld)
 
 
 # ENS (ANOVA and TUKEY stats are above)
 
-ens_midsum_plot <- ggplot(div.summaryC, aes(x = site, y = ENS, fill = site)) + 
-  geom_boxplot() + 
-  fill_palette(viridis(9, option = "viridis")) +
-  theme_minimal() +
-  theme(axis.text.x=element_blank()) +
-  labs(x="", y="ENS")+
-  annotate("text", x = 1:9, y = 8.7, label = enstuk.cld)
+#ens_midsum_plot <- ggplot(div.summaryC, aes(x = site, y = R2, fill = site)) + 
+#  geom_boxplot() + 
+#  fill_palette(viridis(9, option = "viridis")) +
+#  theme_minimal() +
+#  theme(axis.text.x=element_blank()) +
+#  labs(x="", y="ENS")+
+#  annotate("text", x = 1:9, y = 8.7, label = enstuk.cld)
 
 # SHANNON DIVERSITY (ANOVA and TUKEY stats are above)
 
@@ -1078,7 +1125,7 @@ abund_midsum_plot <- ggplot(abund_C, aes(x = site, y = log10(abundance + 1), fil
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x ="", y="Abundance")  +
+  labs(x ="", y="Log Abundance")  +
   annotate("text", x = 1:9, y = 3.3, label = abuntuk.cld)
 
 # HELLINGER DISTANCE (ANOVA and TUKEY stats are above)
@@ -1120,7 +1167,7 @@ checkerboard_plot <- ggplot(checkerboard_epicomm, aes(site, species, fill = abun
 
 # FULL FIGURE 2
 
-Figure2 <- ggarrange(ggarrange(Rich_midsum_plot, ens_midsum_plot, shannon_midsum_plot, abund_midsum_plot, bray_midsum_plot, jaccard_midsum_plot,
+Figure2 <- ggarrange(ggarrange(Rich_midsum_plot, R2_midsum_plot, shannon_midsum_plot, abund_midsum_plot, bray_midsum_plot, jaccard_midsum_plot,
                      labels = c("A", "B", "C", "D", "E", "F"),
                      ncol = 2, nrow = 3,
                      common.legend = TRUE, legend = "right"),
@@ -1132,7 +1179,7 @@ Figure2 <- ggarrange(ggarrange(Rich_midsum_plot, ens_midsum_plot, shannon_midsum
                      heights = c(2.1,1.5))
 # annotate_figure(Figure2, bottom = text_grob("Figure 2: Measures of A) observed richness, B) shannon diversity, C) effective number of species (ENS), and  \n D) Hellinger distance across nine seagrass habitats types sampled in midsummer.", size = 10))
 
-# best size: ~700x800
+# best size: ~800x1100
 
 
 
@@ -1187,12 +1234,13 @@ rich_plot <- ggplot(rich_prim, aes(x = Time.Code2, y = obsrich, group = site)) +
 
 # RAREFIED RICHNESS
 
-#rare_plot <- ggplot(rare_prim, aes(x = time, y = value, fill = site)) + 
-#  geom_boxplot() + 
-#  fill_palette(viridis(5, begin = 0.3)) +
-#  theme_minimal() +
-#  theme(axis.text.x=element_blank()) +
-#  labs(x="", y="Rarefied Richness")
+rare_plot <- ggplot(new_rare_prim, aes(x = Time.Code2, y = R2, group = site)) + 
+  geom_point(size=4, aes(colour = site, pch = Time.Code2)) +
+  geom_line(aes(color = site)) +
+  scale_color_viridis(discrete=TRUE) +
+  theme_minimal() +
+  theme(axis.text.x=element_blank()) +
+  labs(x="", y="Rarefied Richness")
 
 # ENS
 
@@ -1238,14 +1286,15 @@ mds_plot <- ggplot(plot_data_tax, aes(x=MDS1, y=MDS2, pch = month, color = site)
   scale_color_viridis(discrete = TRUE, begin = 0.3) +
   theme_minimal() +
   geom_polygon(data=chulls_tax, aes(x=MDS1, y=MDS2, group=month), fill=NA, color = "grey") +
-  geom_point(size = 4)  
+  geom_point(size = 4) +
+  geom_vline(xintercept= -0.15, lty = 2, color = "light blue")
   
 
 
 # FULL FIGURE 4
 
 
-Figure4 <- ggarrange(ggarrange(rich_plot, ens_plot, shannon_plot, abun_plot, bray_plot, jacc_plot, 
+Figure4 <- ggarrange(ggarrange(rich_plot, rare_plot, shannon_plot, abun_plot, bray_plot, jacc_plot, 
                                labels = c("A", "B", "C", "D", "E", "F"), 
                                ncol = 2, nrow = 3,
                                legend = FALSE),
