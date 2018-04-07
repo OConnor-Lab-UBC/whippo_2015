@@ -548,14 +548,14 @@ div.data$alpha.p <- specnumber(div.data[,4:37])
 div.data$N <- rowSums(div.data[,(4:37)])
 
 ## estimate univariate diversity for each sample
-div.summary <- div.data[c(1:3, 38:39)] %>%
-  mutate(., H = diversity(div.data[,-(c(1:3))], index ="shannon")) %>%
-  mutate(., S = diversity(div.data[,-(c(1:3))], index ="simpson")) %>%
+## also get rid of the one sample with nothing in it
+div.summary <- div.data[(div.data$N!=0),] %>%
+  mutate(., H = diversity(div.data[(div.data$N!=0),-(c(1:3, 38:39))], index ="shannon")) %>%
+  mutate(., R2 = rarefy(div.data[(div.data$N!=0),-(c(1:3, 38:39))], min(div.data[(div.data$N!=0),]$N))) %>%
   full_join(sites, by = "site") %>%
   full_join(I.means, by = c("site" = "Site")) %>%
   full_join(site.alpha, by = "site") %>%
   full_join(results, by = "site")
-  #mutate(., apB = as.numeric(as.character(alpha) - as.numeric(as.character(alpha.p))))
 
 ```
 
