@@ -23,13 +23,15 @@ library(MuMIn)
 library(lubridate)
 library(knitr)
 library(tidyverse)
+library(metacom)
+library(broom)
 ```
 
 #####Load data
 ```{r, echo = TRUE}
 data.tr <- read.csv("../data/Whippodata.csv")
 data.tr <- data.tr[,-1]
-sites <- read.csv("../data/site.info.csv")
+sites <- read.csv("../data/site.info_201801.csv")
 tempsal <- read_csv("../data/TempSalData.csv")
 ```
 
@@ -89,15 +91,23 @@ tempsal_used <- tempsal_used %>%
 
 #Results
 
-### Site abiotic attributes
+### Site biotic attributes: Table S2 and main text
+### [note to ross: this requires the raw data for shoots and density that i don't have]
+##### 1. Shoot density
 ```{r}
 View(sites)
+mod.shoots <- lm(sites$shoot.density ~ sites$dfw)
+summary(mod.shoots)
+```
+##### 2. Epiphytes
+```{r}
 
 ```
 
+### Epifauna species for in text results are below after Table 2 
 
 ### Table 1
-##### 1. Diversity (Gamma) Observed number of species per site for month identified in start.data: 
+##### 1. Diversity (Gamma) Observed number of species per site for month identified in start.data:
 ```{r}
 # dim(data2)
 data.alpha <- data2
@@ -508,6 +518,7 @@ kable(RanksAug, col.names = c("Species", "DC.rank", "DC.aggregated", "WI.rank","
 
 
 ###Estimation of univariate diversity indices and rank abundance distributions
+
 #####Results for main text
 ```{r}
 start.data <- dataJULY9
@@ -527,12 +538,55 @@ div.summary <- div.data[c(1:3, 38:39)] %>%
 
 ```
 
+#####grazers only
+```{r}
+grazers <- dataJULY9[(dataJULY9$function. == 'grazer'),]
+grazers <- dcast(grazers[,c(1:4,12)], site + Date + Sample ~ species, sum) 
+grazers$alpha.g <- specnumber(grazers[,4:21])
+grazers$N <- rowSums(div.data[,(4:21)])
+mean(grazers$N)
+mean(grazers$alpha.g)
+sum(grazers$N)
+sum(grazers$N) / sum(div.summary$N)
+
+gr.alpha <- grazers %>%
+  group_by(site) %>%
+  select(.,-c(2:3, 22:23)) %>%
+  summarise_each(., funs(sum))
+
+gr.alpha$alpha = specnumber(gr.alpha[,2:19])
+range(gr.alpha$alpha)
+mean(gr.alpha$alpha)
+```
+
+
+### invert summaries for in text results
+```{r}
+# number of total invertebrate taxa:
+length(levels(data.e$species))
+#number of total epifanual taxa
+length(unique(data.e$species))
+# range of observed abundances
+range(div.data$N)
+#number of total grazer taxa
+length(unique(data.e[(data.e$function.=='grazer'),]$species))
+```
+
+### abundance trends for in text results
+```{r}
+modN <- lm(log(div.data$N+1) ~ 1 + div.data$site)
+mod0 <- lm(log(div.data$N+1) ~ 1)
+anova(modN, mod0)
+model.sel(modN, mod0)
+```
+
 ###Statistical analysis: Spatial diversity patterns
+
 #####Does plot level alpha diversity differ among meadows? [stats in text]
 ```{r}
 # does plot level alpha diversity differ among meadows?
 mods4 <- lm(div.summary$alpha.p ~ 1 + div.summary$site)
-mods0 <-  lm(div.summary$alpha.p ~ 1)
+mods0 <- lm(div.summary$alpha.p ~ 1)
 anova(mods4, mods0)
 model.sel(mods4, mods0)
 summary(mods4)
@@ -551,11 +605,11 @@ model.sel(mods3, mods0)
 summary(mods3)
 ```
 
-#####Does plot level ENS differ among meadows? [results in text]
+#####Does plot level R' differ among meadows? [results in text]
 ```{r}
-# does plot level ENS differ among meadows?
-mods3 <- lm(div.summary$H ~ div.summary$site)
-mods0 <-  lm(div.summary$H ~ 1)
+# does plot level R' differ among meadows?
+mods3 <- lm(div.summary$qD ~ div.summary$site)
+mods0 <-  lm(div.summary$qD ~ 1)
 anova(mods3, mods0)
 model.sel(mods3, mods0)
 summary(mods3)
@@ -565,38 +619,38 @@ summary(mods3)
 ###Model selection: Table S5
 ```{r}
 #candidate models
-mod1a <- lm(div.summary$H ~ div.summary$fetch.jc)
-mod2a <- lm(div.summary$S ~ div.summary$fetch.jc)
-mod3a <- lm(div.summary$alpha.p ~ div.summary$fetch.jc)
-mod4a <- lm(div.summary$qD ~ div.summary$fetch.jc)
+mod1a <- lm(div.summary$H ~ div.summary$fetch.meters)
+mod2a <- lm(div.summary$N ~ div.summary$fetch.meters)
+mod3a <- lm(div.summary$alpha.p ~ div.summary$fetch.meters)
+mod4a <- lm(div.summary$qD ~ div.summary$fetch.meters)
 
 mod1b <- lm(div.summary$H ~ div.summary$dfw)
-mod2b <- lm(div.summary$S ~ div.summary$dfw)
+mod2b <- lm(div.summary$N ~ div.summary$dfw)
 mod3b <- lm(div.summary$alpha.p ~ div.summary$dfw)
 mod4b <- lm(div.summary$qD ~ div.summary$dfw)
 
-mod1c <- lm(div.summary$H ~ div.summary$dfw * div.summary$fetch.jc)
-mod2c <- lm(div.summary$S ~ div.summary$dfw * div.summary$fetch.jc)
-mod3c <- lm(div.summary$alpha.p ~ div.summary$dfw * div.summary$fetch.jc)
-mod4c <- lm(div.summary$qD ~ div.summary$dfw * div.summary$fetch.jc)
+mod1c <- lm(div.summary$H ~ div.summary$dfw * div.summary$fetch.meters)
+mod2c <- lm(div.summary$N ~ div.summary$dfw * div.summary$fetch.meters)
+mod3c <- lm(div.summary$alpha.p ~ div.summary$dfw * div.summary$fetch.meters)
+mod4c <- lm(div.summary$qD ~ div.summary$dfw * div.summary$fetch.meters)
 
-mod1f <- lm(div.summary$H ~ div.summary$area * div.summary$fetch.jc)
-mod2f <- lm(div.summary$S ~ div.summary$area * div.summary$fetch.jc)
-mod3f <- lm(div.summary$alpha.p ~ div.summary$area * div.summary$fetch.jc)
-mod4f <- lm(div.summary$qD ~ div.summary$area * div.summary$fetch.jc)
+mod1f <- lm(div.summary$H ~ div.summary$area * div.summary$fetch.meters)
+mod2f <- lm(div.summary$N ~ div.summary$area * div.summary$fetch.meters)
+mod3f <- lm(div.summary$alpha.p ~ div.summary$area * div.summary$fetch.meters)
+mod4f <- lm(div.summary$qD ~ div.summary$area * div.summary$fetch.meters)
 
 mod1d <- lm(div.summary$H ~ 1)
-mod2d <- lm(div.summary$S ~ 1)
+mod2d <- lm(div.summary$N ~ 1)
 mod3d <- lm(div.summary$alpha.p ~ 1)
 mod4d <- lm(div.summary$qD ~ 1)
 
 mod1g <- lm(div.summary$H ~ div.summary$site)
-mod2g <- lm(div.summary$S ~ div.summary$site)
+mod2g <- lm(div.summary$N ~ div.summary$site)
 mod3g <- lm(div.summary$alpha.p ~ div.summary$site)
 mod4g <- lm(div.summary$qD ~ div.summary$site)
 
 mod1h <- lm(div.summary$H ~ div.summary$area)
-mod2h <- lm(div.summary$S ~ div.summary$area)
+mod2h <- lm(div.summary$N ~ div.summary$area)
 mod3h <- lm(div.summary$alpha.p ~ div.summary$area)
 mod4h <- lm(div.summary$qD ~ div.summary$area)
 ```
@@ -606,7 +660,7 @@ Model comparison results for Shannon Diversity in Table S6
 model.sel(mod1a, mod1b, mod1c, mod1d, mod1f, mod1g, mod1h)
 ```
 
-Model comparison results for ENS? in Table S6
+Model comparison results for Abundance in Table S6
 ```{r}
 model.sel(mod2a, mod2b, mod2c, mod2d, mod2f, mod2g, mod2h)
 ```
@@ -621,3 +675,34 @@ Model comparison results for rarefied Diversity in Table S5
 model.sel(mod4a, mod4b, mod4c, mod4d, mod4f, mod4g, mod4h)
 ```
 
+### Elements of Metacommunity Structure
+
+```{r}
+start.data <- dataJULY9 # dataMAY, data.mp, dataAUG, dataJULY, data3times, dataJULY9
+data.ms <- ddply(start.data, .(TimeID, area, species), summarise, sum(abundance))
+data2 <- dcast(data.ms, TimeID ~ species, mean) #order
+
+## clean out any empty species or empty sites
+rowSums(data2[-1]) -> data2$totals
+data2 <- data2[which(data2$totals != "0"),] 
+rownames(data2) <- data2[,1]
+data3 <- data2[, -c(1, ncol(data2))]
+data3[data3 > 0] <- 1
+cols.to.delete <- which(colSums(data3) == '0')
+data4 <- data3[, -(cols.to.delete)]
+
+#remove NaN and Nas. 
+is.nan.data.frame <- function(x)
+  do.call(cbind, lapply(x, is.nan))
+data4[is.nan.data.frame(data4)] <- 0
+data4[is.na(data4)] <- 0
+data5 <- data4[,-ncol(data4)]
+```
+
+### run metacommunity analysis 
+```{r}
+Metacommunity(data4, verbose = TRUE, order = FALSE, method = "r1") -> meta
+meta[2:4]
+
+a <- as.data.frame(meta[1])
+```
