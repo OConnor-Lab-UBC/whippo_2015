@@ -1,0 +1,844 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={Whippo et al Code for Posting},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\usepackage{longtable,booktabs}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\newcommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+  \title{Whippo et al Code for Posting}
+  \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+  \author{}
+  \preauthor{}\postauthor{}
+  \date{}
+  \predate{}\postdate{}
+
+
+\begin{document}
+\maketitle
+
+Libraries
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(vegan)}
+\CommentTok{#library(Rcmdr)}
+\CommentTok{#library(BiodiversityR)}
+\KeywordTok{library}\NormalTok{(plyr)}
+\KeywordTok{library}\NormalTok{(reshape2)}
+\KeywordTok{library}\NormalTok{(dplyr)}
+\KeywordTok{library}\NormalTok{(MuMIn)}
+\KeywordTok{library}\NormalTok{(lubridate)}
+\KeywordTok{library}\NormalTok{(ggplot2)}
+\KeywordTok{library}\NormalTok{(purrr)}
+\KeywordTok{library}\NormalTok{(knitr)}
+\end{Highlighting}
+\end{Shaded}
+
+Load data
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data.tr <-}\StringTok{ }\KeywordTok{read.csv}\NormalTok{(}\StringTok{"../data/Whippodata.csv"}\NormalTok{)}
+\NormalTok{data.tr <-}\StringTok{ }\NormalTok{data.tr[,}\OperatorTok{-}\DecValTok{1}\NormalTok{]}
+\NormalTok{sites <-}\StringTok{ }\KeywordTok{read.csv}\NormalTok{(}\StringTok{"../data/site.info.csv"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+From full datasets of all sites, species and sampling dates, subset
+data:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Remove all taxa that are not epifauna:
+\item
+  Create data subsets for different sampling times
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# 5 sites were sampled in May, June and July}
+\NormalTok{dataMAY <-}\StringTok{ }\NormalTok{data.tr[(data.tr}\OperatorTok{$}\NormalTok{Time.Code2}\OperatorTok{==}\StringTok{"A"}\NormalTok{),]}
+\NormalTok{dataJULY <-}\StringTok{ }\NormalTok{data.tr[(data.tr}\OperatorTok{$}\NormalTok{Time.Code2}\OperatorTok{==}\StringTok{"C"} \OperatorTok{&}\StringTok{ }\NormalTok{data.tr}\OperatorTok{$}\NormalTok{site}\OperatorTok{!=}\StringTok{"BE"} \OperatorTok{&}\StringTok{ }\NormalTok{data.tr}\OperatorTok{$}\NormalTok{site}\OperatorTok{!=}\StringTok{"EI"} \OperatorTok{&}\StringTok{ }\NormalTok{data.tr}\OperatorTok{$}\NormalTok{site}\OperatorTok{!=}\StringTok{"CC"} \OperatorTok{&}\StringTok{ }\NormalTok{data.tr}\OperatorTok{$}\NormalTok{site}\OperatorTok{!=}\StringTok{"BI"}\NormalTok{),]}
+\NormalTok{dataAUG <-}\StringTok{ }\NormalTok{data.tr[(data.tr}\OperatorTok{$}\NormalTok{Time.Code2}\OperatorTok{==}\StringTok{"E"}\NormalTok{),]}
+
+\CommentTok{# this set has all three sampling times for the 5 sites sampled 3 times}
+\NormalTok{data3times <-}\StringTok{ }\NormalTok{data.tr[(data.tr}\OperatorTok{$}\NormalTok{site}\OperatorTok{!=}\StringTok{"BE"} \OperatorTok{&}\StringTok{ }\NormalTok{data.tr}\OperatorTok{$}\NormalTok{site}\OperatorTok{!=}\StringTok{"EI"} \OperatorTok{&}\StringTok{ }\NormalTok{data.tr}\OperatorTok{$}\NormalTok{site}\OperatorTok{!=}\StringTok{"CC"} \OperatorTok{&}\StringTok{ }\NormalTok{data.tr}\OperatorTok{$}\NormalTok{site}\OperatorTok{!=}\StringTok{"BI"}\NormalTok{),]}
+
+\CommentTok{# this set has the 9 sites sampled in July}
+\NormalTok{dataJULY9 <-}\StringTok{ }\NormalTok{data.tr[(data.tr}\OperatorTok{$}\NormalTok{Time.Code2}\OperatorTok{==}\StringTok{"C"}\NormalTok{),]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Create site-level data by collapsing across plots. Change the data
+  used in start data to consider other temporal subsets.
+\end{enumerate}
+
+Table 1: Site-level results for July
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Diversity (Gamma) Observed number of species per site for month
+  identified in start.data:
+\end{enumerate}
+
+\begin{longtable}[]{@{}lll@{}}
+\caption{Observed Number of Species at each site on sample date
+indicated in column site.time. This information is in the `Diversity'
+column in Table 1.}\tabularnewline
+\toprule
+site.time & alpha & site\tabularnewline
+\midrule
+\endfirsthead
+\toprule
+site.time & alpha & site\tabularnewline
+\midrule
+\endhead
+BE.C & 17 & BE\tabularnewline
+BI.C & 20 & BI\tabularnewline
+CB.C & 17 & CB\tabularnewline
+CC.C & 11 & CC\tabularnewline
+DC.C & 16 & DC\tabularnewline
+EI.C & 19 & EI\tabularnewline
+NB.C & 18 & NB\tabularnewline
+RP.C & 24 & RP\tabularnewline
+WI.C & 22 & WI\tabularnewline
+\bottomrule
+\end{longtable}
+
+Create the data file we will use for univariate diversity indices and
+ranks:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Morisita's index (aggregation)
+\end{enumerate}
+
+\begin{longtable}[]{@{}lllll@{}}
+\toprule
+Aggregation (I.m) & CI.lower & CI.upper & Proportion species with
+significant I.m & Site\tabularnewline
+\midrule
+\endhead
+0.438751899699304 & 0.344283533717326 & 0.533220265681283 &
+0.666666666666667 & DC\tabularnewline
+0.339644343303565 & 0.203406476118848 & 0.475882210488282 &
+0.526315789473684 & WI\tabularnewline
+0.440178087571884 & 0.29365139421322 & 0.586704780930547 &
+0.615384615384615 & BE\tabularnewline
+0.227153013832138 & 0.071589957920741 & 0.382716069743534 & 0.5 &
+EI\tabularnewline
+0.46059728138394 & 0.351136763851047 & 0.570057798916832 & 0.75 &
+RP\tabularnewline
+0.376808909910861 & 0.251526972272675 & 0.502090847549047 &
+0.466666666666667 & NB\tabularnewline
+0.351069119095654 & 0.213624773164587 & 0.488513465026721 & 0.4375 &
+CB\tabularnewline
+0.253963918783698 & 0.0709019194109852 & 0.43702591815641 & 0.4375 &
+BI\tabularnewline
+0.200895420442068 & 0.0180322343463955 & 0.383758606537741 & 0.4 &
+CC\tabularnewline
+\bottomrule
+\end{longtable}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Rarified richness estimates for estimated species richess at the
+  meadow scale, extrapolated to 2x the observed abundance for one sample
+  within each meadow.
+\end{enumerate}
+
+\begin{longtable}[]{@{}lrrrl@{}}
+\toprule
+& Extrapolated Richness & CI.Lower & CI.Upper & site\tabularnewline
+\midrule
+\endhead
+RBE & 18.656 & 14.169 & 23.143 & BE\tabularnewline
+RRP & 26.189 & 21.007 & 31.371 & RP\tabularnewline
+RDC & 16.432 & 14.144 & 18.720 & DC\tabularnewline
+RWI & 22.864 & 20.031 & 25.697 & WI\tabularnewline
+RCC & 11.000 & 9.794 & 12.206 & CC\tabularnewline
+RCB & 17.245 & 14.453 & 20.037 & CB\tabularnewline
+RNB & 18.633 & 15.047 & 22.219 & NB\tabularnewline
+REI & 19.397 & 15.132 & 23.663 & EI\tabularnewline
+RBI & 19.397 & 15.132 & 23.663 & BI\tabularnewline
+\bottomrule
+\end{longtable}
+
+TABLE 2. Table 2 presents each species rank within each site and time.
+It allows us to see whether similar species were abundant across sites
+and times.
+
+First for July:
+
+\begin{longtable}[]{@{}lrrrrrrrrr@{}}
+\caption{Ranks for July species abundances (N)}\tabularnewline
+\toprule
+Species & DC & WI & BE & EI & RP & NB & CB & BI & CC\tabularnewline
+\midrule
+\endfirsthead
+\toprule
+Species & DC & WI & BE & EI & RP & NB & CB & BI & CC\tabularnewline
+\midrule
+\endhead
+Caprella.spp. & 1 & 2 & 1 & 4 & 1 & 13 & 8 & 14 & 5\tabularnewline
+Aoroides.columbiae & 2 & 19 & 8 & 6 & 8 & 12 & 6 & 11 &
+11\tabularnewline
+Photis.brevipes & 3 & 8 & 4 & 7 & 6 & 6 & 9 & 17 & 12\tabularnewline
+Idotea.resecata & 4 & 3 & 5 & 11 & 10 & 3 & 5 & 5 & 4\tabularnewline
+Platynereis.bicanaliculata & 5 & 6 & 3 & 5 & 4 & 6 & 15 & 9 &
+12\tabularnewline
+Monocorophium.achersicum & 6 & 13 & 18 & 20 & 22 & 10 & 11 & 8 &
+7\tabularnewline
+Leptochelia.dubia & 7 & 23 & 11 & 20 & 5 & 5 & 3 & 4 & 9\tabularnewline
+Pontogeneia.rostrata & 8 & 15 & 11 & 11 & 18 & 8 & 12 & 10 &
+12\tabularnewline
+Lacuna.spp. & 9 & 5 & 7 & 13 & 14 & 14 & 12 & 7 & 12\tabularnewline
+Mytilus.trossulus & 10 & 1 & 6 & 3 & 2 & 2 & 1 & 3 & 1\tabularnewline
+Phyllaplysia.taylori & 11 & 10 & 10 & 2 & 3 & 14 & 18 & 21 &
+12\tabularnewline
+Amph.E..dorsal.teeth. & 12 & 15 & 2 & 18 & 25 & 19 & 18 & 6 &
+3\tabularnewline
+Pugettia.richii & 13 & 21 & 18 & 20 & 25 & 19 & 18 & 21 &
+12\tabularnewline
+Copepod & 14 & 13 & 18 & 13 & 11 & 17 & 15 & 21 & 12\tabularnewline
+Eogammarus.confervicolus & 15 & 9 & 9 & 9 & 25 & 8 & 18 & 15 &
+10\tabularnewline
+Cirolana.harfordi & 16 & 17 & 15 & 20 & 21 & 19 & 18 & 21 &
+12\tabularnewline
+Alia.carinata & 17 & 23 & 18 & 20 & 25 & 19 & 18 & 11 &
+12\tabularnewline
+Amphithoe.spp. & 17 & 11 & 18 & 13 & 20 & 10 & 18 & 17 &
+12\tabularnewline
+Balanus.spp. & 17 & 23 & 18 & 10 & 15 & 17 & 18 & 21 & 12\tabularnewline
+Callianax.sp. & 17 & 23 & 18 & 20 & 25 & 19 & 18 & 21 &
+12\tabularnewline
+Cyprideis.beaconensis & 17 & 4 & 15 & 13 & 16 & 14 & 7 & 15 &
+12\tabularnewline
+Halacarid.mite & 17 & 17 & 13 & 8 & 12 & 4 & 4 & 1 & 2\tabularnewline
+Haminoea.sp. & 17 & 23 & 18 & 20 & 22 & 19 & 18 & 21 & 12\tabularnewline
+Janua.pagastecheri & 17 & 11 & 13 & 20 & 7 & 19 & 18 & 21 &
+12\tabularnewline
+Lirobittium.spp. & 17 & 23 & 18 & 13 & 25 & 19 & 18 & 21 &
+12\tabularnewline
+Lottia.pelta & 17 & 19 & 18 & 20 & 25 & 19 & 17 & 13 & 12\tabularnewline
+Margarites.helicinus & 17 & 23 & 18 & 20 & 25 & 19 & 18 & 21 &
+12\tabularnewline
+Nebalia.sp. & 17 & 23 & 18 & 20 & 25 & 19 & 18 & 21 & 12\tabularnewline
+Nematode & 17 & 21 & 18 & 18 & 9 & 1 & 2 & 2 & 5\tabularnewline
+Nemertea & 17 & 23 & 18 & 20 & 22 & 19 & 18 & 21 & 12\tabularnewline
+Pagurus.quaylei & 17 & 23 & 18 & 20 & 25 & 19 & 18 & 17 &
+12\tabularnewline
+Pandalidae & 17 & 23 & 18 & 20 & 18 & 19 & 18 & 21 & 12\tabularnewline
+Pycnogonum.sp. & 17 & 7 & 15 & 1 & 12 & 19 & 12 & 17 & 7\tabularnewline
+Thick.nematode. & 17 & 23 & 18 & 20 & 17 & 19 & 10 & 21 &
+12\tabularnewline
+\bottomrule
+\end{longtable}
+
+Then for May:
+
+\begin{longtable}[]{@{}lrlrlrlrlrl@{}}
+\caption{Ranks for May species abundances (N). Aggregated column
+indicates signficant (P \textless{} 0.05) spatial aggregation within
+species across plots within each meadow, based on chi-squared tests on
+Morisita's index I}\tabularnewline
+\toprule
+Species & DC.rank & DC.aggregated & WI.rank & WI.aggregated & RP.rank &
+RP.aggregated & NB.rank & NB.aggregated & CB.rank &
+CB.aggregated\tabularnewline
+\midrule
+\endfirsthead
+\toprule
+Species & DC.rank & DC.aggregated & WI.rank & WI.aggregated & RP.rank &
+RP.aggregated & NB.rank & NB.aggregated & CB.rank &
+CB.aggregated\tabularnewline
+\midrule
+\endhead
+Caprella.spp. & 1 & Yes & 13 & No & 1 & Yes & 7 & Yes & 3 &
+Yes\tabularnewline
+Aoroides.columbiae & 2 & Yes & 5 & Yes & 3 & Yes & 11 & No & 18 &
+NA\tabularnewline
+Idotea.resecata & 3 & Yes & 8 & No & 6 & Yes & 1 & Yes & 2 &
+Yes\tabularnewline
+Photis.brevipes & 4 & Yes & 6 & Yes & 9 & No & 5 & No & 11 &
+No\tabularnewline
+Phyllaplysia.taylori & 4 & No & 19 & NA & 4 & Yes & 20 & NA & 18 &
+NA\tabularnewline
+Monocorophium.achersicum & 6 & Yes & 14 & No & 12 & NA & 12 & No & 15 &
+NA\tabularnewline
+Platynereis.bicanaliculata & 7 & Yes & 2 & Yes & 2 & Yes & 7 & Yes & 4 &
+Yes\tabularnewline
+Eogammarus.confervicolus & 8 & Yes & 9 & Yes & 12 & NA & 15 & NA & 11 &
+NA\tabularnewline
+Lacuna.spp. & 9 & No & 10 & Yes & 8 & No & 9 & No & 15 &
+NA\tabularnewline
+Pontogeneia.rostrata & 9 & No & 3 & Yes & 10 & NA & 10 & No & 11 &
+No\tabularnewline
+Amphithoe.spp. & 11 & Yes & 4 & Yes & 10 & No & 15 & NA & 9 &
+No\tabularnewline
+Leptochelia.dubia & 12 & No & 7 & Yes & 7 & Yes & 5 & Yes & 5 &
+No\tabularnewline
+Pugettia.richii & 13 & No & 24 & NA & 16 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Copepod & 14 & NA & 12 & No & 16 & NA & 2 & Yes & 6 & Yes\tabularnewline
+Pagurus.quaylei & 14 & NA & 18 & No & 12 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Alia.carinata & 16 & NA & 24 & NA & 16 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Amph.E..dorsal.teeth. & 16 & NA & 19 & NA & 12 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Balanus.spp. & 16 & NA & 24 & NA & 16 & NA & 15 & NA & 18 &
+NA\tabularnewline
+Callianax.sp. & 16 & NA & 24 & NA & 16 & NA & 20 & NA & 11 &
+NA\tabularnewline
+Cirolana.harfordi & 16 & NA & 11 & No & 16 & NA & 13 & No & 18 &
+NA\tabularnewline
+Cyprideis.beaconensis & 16 & NA & 16 & No & 16 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Halacarid.mite & 16 & NA & 16 & No & 16 & NA & 3 & Yes & 8 &
+No\tabularnewline
+Haminoea.sp. & 16 & NA & 24 & NA & 16 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Janua.pagastecheri & 16 & NA & 24 & NA & 4 & Yes & 20 & NA & 7 &
+Yes\tabularnewline
+Lirobittium.spp. & 16 & NA & 24 & NA & 16 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Lottia.pelta & 16 & NA & 19 & NA & 16 & NA & 20 & NA & 10 &
+No\tabularnewline
+Margarites.helicinus & 16 & NA & 24 & NA & 16 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Mytilus.trossulus & 16 & NA & 15 & No & 16 & NA & 4 & Yes & 15 &
+NA\tabularnewline
+Nebalia.sp. & 16 & NA & 19 & NA & 16 & NA & 15 & NA & 18 &
+NA\tabularnewline
+Nematode & 16 & NA & 1 & Yes & 16 & NA & 13 & No & 18 &
+NA\tabularnewline
+Nemertea & 16 & NA & 24 & NA & 16 & NA & 15 & NA & 18 &
+NA\tabularnewline
+Pandalidae & 16 & NA & 24 & NA & 16 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Pycnogonum.sp. & 16 & NA & 19 & NA & 16 & NA & 20 & NA & 1 &
+Yes\tabularnewline
+Thick.nematode. & 16 & NA & 24 & NA & 16 & NA & 20 & NA & 18 &
+NA\tabularnewline
+\bottomrule
+\end{longtable}
+
+Then for August:
+
+\begin{longtable}[]{@{}lrlrlrlrlrl@{}}
+\caption{Ranks for May species abundances (N). Aggregated column
+indicates signficant (P \textless{} 0.05) spatial aggregation within
+species across plots within each meadow, based on chi-squared tests on
+Morisita's index I}\tabularnewline
+\toprule
+Species & DC.rank & DC.aggregated & WI.rank & WI.aggregated & RP.rank &
+RP.aggregated & NB.rank & NB.aggregated & CB.rank &
+CB.aggregated\tabularnewline
+\midrule
+\endfirsthead
+\toprule
+Species & DC.rank & DC.aggregated & WI.rank & WI.aggregated & RP.rank &
+RP.aggregated & NB.rank & NB.aggregated & CB.rank &
+CB.aggregated\tabularnewline
+\midrule
+\endhead
+Caprella.spp. & 1 & Yes & 13 & No & 1 & Yes & 7 & Yes & 3 &
+Yes\tabularnewline
+Aoroides.columbiae & 2 & Yes & 5 & Yes & 3 & Yes & 11 & No & 18 &
+NA\tabularnewline
+Idotea.resecata & 3 & Yes & 8 & No & 6 & Yes & 1 & Yes & 2 &
+Yes\tabularnewline
+Photis.brevipes & 4 & Yes & 6 & Yes & 9 & No & 5 & No & 11 &
+No\tabularnewline
+Phyllaplysia.taylori & 4 & No & 19 & NA & 4 & Yes & 20 & NA & 18 &
+NA\tabularnewline
+Monocorophium.achersicum & 6 & Yes & 14 & No & 12 & NA & 12 & No & 15 &
+NA\tabularnewline
+Platynereis.bicanaliculata & 7 & Yes & 2 & Yes & 2 & Yes & 7 & Yes & 4 &
+Yes\tabularnewline
+Eogammarus.confervicolus & 8 & Yes & 9 & Yes & 12 & NA & 15 & NA & 11 &
+NA\tabularnewline
+Lacuna.spp. & 9 & No & 10 & Yes & 8 & No & 9 & No & 15 &
+NA\tabularnewline
+Pontogeneia.rostrata & 9 & No & 3 & Yes & 10 & NA & 10 & No & 11 &
+No\tabularnewline
+Amphithoe.spp. & 11 & Yes & 4 & Yes & 10 & No & 15 & NA & 9 &
+No\tabularnewline
+Leptochelia.dubia & 12 & No & 7 & Yes & 7 & Yes & 5 & Yes & 5 &
+No\tabularnewline
+Pugettia.richii & 13 & No & 24 & NA & 16 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Copepod & 14 & NA & 12 & No & 16 & NA & 2 & Yes & 6 & Yes\tabularnewline
+Pagurus.quaylei & 14 & NA & 18 & No & 12 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Alia.carinata & 16 & NA & 24 & NA & 16 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Amph.E..dorsal.teeth. & 16 & NA & 19 & NA & 12 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Balanus.spp. & 16 & NA & 24 & NA & 16 & NA & 15 & NA & 18 &
+NA\tabularnewline
+Callianax.sp. & 16 & NA & 24 & NA & 16 & NA & 20 & NA & 11 &
+NA\tabularnewline
+Cirolana.harfordi & 16 & NA & 11 & No & 16 & NA & 13 & No & 18 &
+NA\tabularnewline
+Cyprideis.beaconensis & 16 & NA & 16 & No & 16 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Halacarid.mite & 16 & NA & 16 & No & 16 & NA & 3 & Yes & 8 &
+No\tabularnewline
+Haminoea.sp. & 16 & NA & 24 & NA & 16 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Janua.pagastecheri & 16 & NA & 24 & NA & 4 & Yes & 20 & NA & 7 &
+Yes\tabularnewline
+Lirobittium.spp. & 16 & NA & 24 & NA & 16 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Lottia.pelta & 16 & NA & 19 & NA & 16 & NA & 20 & NA & 10 &
+No\tabularnewline
+Margarites.helicinus & 16 & NA & 24 & NA & 16 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Mytilus.trossulus & 16 & NA & 15 & No & 16 & NA & 4 & Yes & 15 &
+NA\tabularnewline
+Nebalia.sp. & 16 & NA & 19 & NA & 16 & NA & 15 & NA & 18 &
+NA\tabularnewline
+Nematode & 16 & NA & 1 & Yes & 16 & NA & 13 & No & 18 &
+NA\tabularnewline
+Nemertea & 16 & NA & 24 & NA & 16 & NA & 15 & NA & 18 &
+NA\tabularnewline
+Pandalidae & 16 & NA & 24 & NA & 16 & NA & 20 & NA & 18 &
+NA\tabularnewline
+Pycnogonum.sp. & 16 & NA & 19 & NA & 16 & NA & 20 & NA & 1 &
+Yes\tabularnewline
+Thick.nematode. & 16 & NA & 24 & NA & 16 & NA & 20 & NA & 18 &
+NA\tabularnewline
+\bottomrule
+\end{longtable}
+
+Estimation of univariate diversity indices and rank abundance
+distributions Results for main text
+
+Statistical analysis: Spatial diversity patterns Does plot level alpha
+diversity differ among meadows? {[}stats in text{]}
+
+\begin{verbatim}
+## Analysis of Variance Table
+## 
+## Model 1: div.summary$alpha.p ~ 1 + div.summary$site
+## Model 2: div.summary$alpha.p ~ 1
+##   Res.Df     RSS Df Sum of Sq      F    Pr(>F)    
+## 1    136  783.89                                  
+## 2    144 1599.97 -8   -816.08 17.698 < 2.2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{verbatim}
+## Model selection table 
+##       (Int) div.smm$sit df   logLik  AICc delta weight
+## mods4 6.562           + 10 -328.092 677.8   0.0      1
+## mods0 8.014              2 -379.819 763.7  85.9      0
+## Models ranked by AICc(x)
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = div.summary$alpha.p ~ 1 + div.summary$site)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -8.1176 -1.2500  0.1875  1.4375  4.8824 
+## 
+## Coefficients:
+##                    Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)          6.5625     0.6002  10.934  < 2e-16 ***
+## div.summary$siteBI   2.2500     0.8488   2.651  0.00898 ** 
+## div.summary$siteCB   0.6250     0.8488   0.736  0.46280    
+## div.summary$siteCC  -1.3125     0.8488  -1.546  0.12436    
+## div.summary$siteDC   0.2500     0.8488   0.295  0.76880    
+## div.summary$siteEI   2.0000     0.8488   2.356  0.01989 *  
+## div.summary$siteNB   0.1875     0.8488   0.221  0.82550    
+## div.summary$siteRP   7.5000     0.8488   8.836 4.47e-15 ***
+## div.summary$siteWI   1.5551     0.8362   1.860  0.06509 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 2.401 on 136 degrees of freedom
+## Multiple R-squared:  0.5101, Adjusted R-squared:  0.4812 
+## F-statistic:  17.7 on 8 and 136 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+\begin{verbatim}
+##                          2.5 %    97.5 %
+## (Intercept)         5.37556244 7.7494376
+## div.summary$siteBI  0.57141680 3.9285832
+## div.summary$siteCB -1.05358320 2.3035832
+## div.summary$siteCC -2.99108320 0.3660832
+## div.summary$siteDC -1.42858320 1.9285832
+## div.summary$siteEI  0.32141680 3.6785832
+## div.summary$siteNB -1.49108320 1.8660832
+## div.summary$siteRP  5.82141680 9.1785832
+## div.summary$siteWI -0.09856687 3.2088610
+\end{verbatim}
+
+\begin{verbatim}
+##        (Intercept) div.summary$siteBI div.summary$siteCB 
+##           6.562500           2.250000           0.625000 
+## div.summary$siteCC div.summary$siteDC div.summary$siteEI 
+##          -1.312500           0.250000           2.000000 
+## div.summary$siteNB div.summary$siteRP div.summary$siteWI 
+##           0.187500           7.500000           1.555147
+\end{verbatim}
+
+Does plot level Shannon diversity differ among meadows? {[}results in
+text{]}
+
+\begin{verbatim}
+## Analysis of Variance Table
+## 
+## Model 1: div.summary$H ~ div.summary$site
+## Model 2: div.summary$H ~ 1
+##   Res.Df     RSS Df Sum of Sq      F    Pr(>F)    
+## 1    136  5.8107                                  
+## 2    144 10.9415 -8   -5.1308 15.011 1.265e-15 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{verbatim}
+## Model selection table 
+##       (Int) div.smm$sit df  logLik  AICc delta weight
+## mods3 1.115           + 10  27.489 -33.3  0.00      1
+## mods0 1.348              2 -18.394  40.9 74.21      0
+## Models ranked by AICc(x)
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = div.summary$H ~ div.summary$site)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.39430 -0.11495 -0.01801  0.07716  0.51674 
+## 
+## Coefficients:
+##                    Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)         1.11531    0.05168  21.583  < 2e-16 ***
+## div.summary$siteBI  0.43414    0.07308   5.941 2.25e-08 ***
+## div.summary$siteCB  0.19308    0.07308   2.642 0.009208 ** 
+## div.summary$siteCC  0.21571    0.07308   2.952 0.003723 ** 
+## div.summary$siteDC -0.14342    0.07308  -1.963 0.051740 .  
+## div.summary$siteEI  0.38538    0.07308   5.273 5.14e-07 ***
+## div.summary$siteNB  0.25315    0.07308   3.464 0.000712 ***
+## div.summary$siteRP  0.47065    0.07308   6.440 1.90e-09 ***
+## div.summary$siteWI  0.27899    0.07200   3.875 0.000165 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.2067 on 136 degrees of freedom
+## Multiple R-squared:  0.4689, Adjusted R-squared:  0.4377 
+## F-statistic: 15.01 on 8 and 136 DF,  p-value: 1.265e-15
+\end{verbatim}
+
+Does plot level ENS differ among meadows? {[}results in text{]}
+
+\begin{verbatim}
+## Analysis of Variance Table
+## 
+## Model 1: div.summary$H ~ div.summary$site
+## Model 2: div.summary$H ~ 1
+##   Res.Df     RSS Df Sum of Sq      F    Pr(>F)    
+## 1    136  5.8107                                  
+## 2    144 10.9415 -8   -5.1308 15.011 1.265e-15 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{verbatim}
+## Model selection table 
+##       (Int) div.smm$sit df  logLik  AICc delta weight
+## mods3 1.115           + 10  27.489 -33.3  0.00      1
+## mods0 1.348              2 -18.394  40.9 74.21      0
+## Models ranked by AICc(x)
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = div.summary$H ~ div.summary$site)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.39430 -0.11495 -0.01801  0.07716  0.51674 
+## 
+## Coefficients:
+##                    Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)         1.11531    0.05168  21.583  < 2e-16 ***
+## div.summary$siteBI  0.43414    0.07308   5.941 2.25e-08 ***
+## div.summary$siteCB  0.19308    0.07308   2.642 0.009208 ** 
+## div.summary$siteCC  0.21571    0.07308   2.952 0.003723 ** 
+## div.summary$siteDC -0.14342    0.07308  -1.963 0.051740 .  
+## div.summary$siteEI  0.38538    0.07308   5.273 5.14e-07 ***
+## div.summary$siteNB  0.25315    0.07308   3.464 0.000712 ***
+## div.summary$siteRP  0.47065    0.07308   6.440 1.90e-09 ***
+## div.summary$siteWI  0.27899    0.07200   3.875 0.000165 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.2067 on 136 degrees of freedom
+## Multiple R-squared:  0.4689, Adjusted R-squared:  0.4377 
+## F-statistic: 15.01 on 8 and 136 DF,  p-value: 1.265e-15
+\end{verbatim}
+
+\section{Model selection - presented in Table
+S5}\label{model-selection---presented-in-table-s5}
+
+Model comparison results for Shannon Diversity in Table S6
+
+\begin{verbatim}
+## Model selection table 
+##       (Int) div.smm$ftc.jc div.smm$dfw div.smm$dfw:div.smm$ftc.jc
+## mod1g 1.115                                                      
+## mod1c 1.480      1.091e-06    -0.03412                  5.949e-08
+## mod1f 1.509     -1.536e-06                                       
+## mod1b 1.523                   -0.02502                           
+## mod1a 1.283      9.433e-07                                       
+## mod1d 1.348                                                      
+## mod1h 1.363                                                      
+##       div.smm$are div.smm$are:div.smm$ftc.jc div.smm$sit df  logLik  AICc
+## mod1g                                                  + 10  27.489 -33.3
+## mod1c                                                     5  -0.482  11.4
+## mod1f   -0.182800                   2.66e-06              5  -4.487  19.4
+## mod1b                                                     3  -8.041  22.3
+## mod1a                                                     3 -16.256  38.7
+## mod1d                                                     2 -18.394  40.9
+## mod1h   -0.006208                                         3 -17.976  42.1
+##       delta weight
+## mod1g  0.00      1
+## mod1c 44.73      0
+## mod1f 52.74      0
+## mod1b 55.59      0
+## mod1a 72.02      0
+## mod1d 74.21      0
+## mod1h 75.46      0
+## Models ranked by AICc(x)
+\end{verbatim}
+
+Model comparison results for ENS? in Table S6
+
+\begin{verbatim}
+## Model selection table 
+##        (Int) div.smm$ftc.jc div.smm$dfw div.smm$dfw:div.smm$ftc.jc
+## mod2g 0.5931                                                      
+## mod2c 0.7109     -1.150e-07   -0.012050                  7.357e-08
+## mod2f 0.6860     -2.071e-07                                       
+## mod2b 0.7015                  -0.006203                           
+## mod2a 0.6291      4.261e-07                                       
+## mod2d 0.6581                                                      
+## mod2h 0.6621                                                      
+##       div.smm$are div.smm$are:div.smm$ftc.jc div.smm$sit df  logLik   AICc
+## mod2g                                                  + 10 239.614 -457.6
+## mod2c                                                     5 219.660 -428.9
+## mod2f   -0.046580                  6.818e-07              5 210.146 -409.9
+## mod2b                                                     3 198.822 -391.5
+## mod2a                                                     3 195.634 -385.1
+## mod2d                                                     2 187.837 -371.6
+## mod2h   -0.001659                                         3 188.350 -370.5
+##       delta weight
+## mod2g  0.00      1
+## mod2c 28.70      0
+## mod2f 47.73      0
+## mod2b 66.11      0
+## mod2a 72.49      0
+## mod2d 86.00      0
+## mod2h 87.06      0
+## Models ranked by AICc(x)
+\end{verbatim}
+
+Model comparison results for Alpha Diversity in Table S6
+
+\begin{verbatim}
+## Model selection table 
+##       (Int) div.smm$ftc.jc div.smm$dfw div.smm$dfw:div.smm$ftc.jc
+## mod3g 6.562                                                      
+## mod3d 8.014                                                      
+## mod3h 8.197                                                      
+## mod3a 7.683      4.864e-06                                       
+## mod3b 8.029                  -0.002153                           
+## mod3c 6.165      3.928e-05    0.138000                 -3.343e-06
+## mod3f 7.694      6.525e-06                                       
+##       div.smm$are div.smm$are:div.smm$ftc.jc div.smm$sit df   logLik  AICc
+## mod3g                                                  + 10 -328.092 677.8
+## mod3d                                                     2 -379.819 763.7
+## mod3h    -0.07481                                         3 -379.404 765.0
+## mod3a                                                     3 -379.435 765.0
+## mod3b                                                     3 -379.819 765.8
+## mod3c                                                     5 -378.729 767.9
+## mod3f     0.09294                 -2.392e-06              5 -379.045 768.5
+##       delta weight
+## mod3g  0.00      1
+## mod3d 85.90      0
+## mod3h 87.15      0
+## mod3a 87.21      0
+## mod3b 87.98      0
+## mod3c 90.06      0
+## mod3f 90.70      0
+## Models ranked by AICc(x)
+\end{verbatim}
+
+Model comparison results for rarefied Diversity in Table S5
+
+\begin{verbatim}
+## Model selection table 
+##       (Int) div.smm$ftc.jc div.smm$dfw div.smm$dfw:div.smm$ftc.jc
+## mod4g 18.66                                                      
+## mod4c 10.24      1.579e-04      0.6077                 -1.185e-05
+## mod4a 16.26      3.877e-05                                       
+## mod4f 15.97      4.084e-05                                       
+## mod4b 17.64                     0.1800                           
+## mod4d 18.90                                                      
+## mod4h 18.94                                                      
+##       div.smm$are div.smm$are:div.smm$ftc.jc div.smm$sit df   logLik
+## mod4g                                                  + 10 4292.799
+## mod4c                                                     5 -377.310
+## mod4a                                                     3 -385.478
+## mod4f     0.17150                 -1.827e-06              5 -385.284
+## mod4b                                                     3 -402.634
+## mod4d                                                     2 -405.084
+## mod4h    -0.01925                                         3 -405.065
+##          AICc   delta weight
+## mod4g -8564.0    0.00      1
+## mod4c   765.1 9329.01      0
+## mod4a   777.1 9341.08      0
+## mod4f   781.0 9344.95      0
+## mod4b   811.4 9375.39      0
+## mod4d   814.3 9378.21      0
+## mod4h   816.3 9380.26      0
+## Models ranked by AICc(x)
+\end{verbatim}
+
+
+\end{document}

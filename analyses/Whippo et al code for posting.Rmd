@@ -1,13 +1,16 @@
 ---
-title: "Whippo et al Code for Posting"
+title: "Epifaunal diversity patterns within and among seagrass meadows suggest metacommunity structure, by Whippo et al"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 ```
+
+#Methods
+### Data and package loading and organizing
 
 Libraries
 ```{r, echo = TRUE}
@@ -16,24 +19,23 @@ library(vegan)
 #library(BiodiversityR)
 library(plyr)
 library(reshape2)
-library(dplyr)
 library(MuMIn)
 library(lubridate)
-library(ggplot2)
-library(purrr)
 library(knitr)
+library(tidyverse)
 ```
 
-Load data
+#####Load data
 ```{r, echo = TRUE}
 data.tr <- read.csv("../data/Whippodata.csv")
 data.tr <- data.tr[,-1]
 sites <- read.csv("../data/site.info.csv")
+tempsal <- read_csv("../data/TempSalData.csv")
 ```
 
-From full datasets of all sites, species and sampling dates, subset data:
+####From full datasets of all sites, species and sampling dates, subset data:
 
-1. Remove all taxa that are not epifauna: 
+#####1. Remove all taxa that are not epifauna: 
 ```{r}
 # levels(data.tr$eelgrss.epifauna)
 data.e <- data.tr %>% filter(eelgrss.epifauna == "yes" | eelgrss.epifauna == "sometimes")
@@ -41,7 +43,7 @@ data.n <- data.tr %>% filter(eelgrss.epifauna == "no")
 data.tr <- data.e #reset to data.e
 ```
 
-2. Create data subsets for different sampling times
+#####2. Create data subsets for different sampling times
 ```{r, echo = TRUE}
 # 5 sites were sampled in May, June and July
 dataMAY <- data.tr[(data.tr$Time.Code2=="A"),]
@@ -55,16 +57,47 @@ data3times <- data.tr[(data.tr$site!="BE" & data.tr$site!="EI" & data.tr$site!="
 dataJULY9 <- data.tr[(data.tr$Time.Code2=="C"),]
 ```
 
-3. Create site-level data by collapsing across plots. Change the data used in start data to consider other temporal subsets.
+#####3. Create site-level data by collapsing across plots. Change the data used in start data to consider other temporal subsets.
 ```{r, ech = TRUE}
 start.data <- dataJULY9 # dataMAY, dataAUG, dataJULY, data3times
 data.ms <- ddply(start.data, .(TimeID, area, species), summarise, sum(abundance)) #order
 data2 <- dcast(data.ms, TimeID ~ species, mean) #order
 ```
 
-Table 1: Site-level results for July
+#####4. Create the data file we will use for univariate diversity indices and ranks:
+```{r}
+div.data <- dcast(start.data[,c(1:4,12)], site + Date + Sample ~ species, sum)
+```
 
-1. Diversity (Gamma) Observed number of species per site for month identified in start.data: 
+#####5. Process temperature and salinity data
+```{r}
+# filter out unused sites and make data long
+tempsal_used <- tempsal %>%
+  filter(Site %in% c("DC", "WI", "BC", "EI", "RP", "NB", "CB", "BI", "CC")) %>%
+  select(Date, Time, Site, Station, Temp.s, Temp.2, Temp.b, Sal.s, Sal.2, Sal.b) %>%
+  arrange(Site, Date, Station) %>%
+  gather(Measurement, Value, -Date, -Time, -Site, -Station) 
+
+# create site_id to extract mean of measurements
+tempsal_used <- tempsal_used %>%
+  unite(site.id, Date, Time, Site, remove = FALSE)
+
+# remove rows with no data
+tempsal_used <- tempsal_used %>%
+  subset(Value != "-")
+```
+
+#Results
+
+### Site abiotic attributes
+```{r}
+View(sites)
+
+```
+
+
+### Table 1
+##### 1. Diversity (Gamma) Observed number of species per site for month identified in start.data: 
 ```{r}
 # dim(data2)
 data.alpha <- data2
@@ -75,13 +108,8 @@ site.alpha$site <- c("BE", "BI", "CB", "CC", "DC", "EI", "NB", "RP", "WI") # c("
 kable(site.alpha, caption = "Observed Number of Species at each site on sample date indicated in column site.time. This information is in the 'Diversity' column in Table 1.")
 ```
 
-Create the data file we will use for univariate diversity indices and ranks:
-```{r}
-div.data <- dcast(start.data[,c(1:4,12)], site + Date + Sample ~ species, sum)
-```
 
-
-2. Morisita's index (aggregation)
+#####2. Morisita's index (aggregation)
 ```{r}
 ### Morisita's I within meadows for column Im
 I.BE <- dispindmorisita(div.data[(div.data$site=='BE'),-(c(1:3,38:39))], unique.rm = TRUE, na.rm = TRUE)
@@ -113,10 +141,9 @@ names(I.means) <- c("Aggregation (I.m)", "CI.lower", "CI.upper","Proportion spec
 #information for Table 1:
 kable(I.means, caption = "")
 
-
 ```
 
-3. Rarified richness estimates for estimated species richess at the meadow scale, extrapolated to 2x the observed abundance for one sample within each meadow.
+#####3. Rarified richness estimates for estimated species richess at the meadow scale, extrapolated to 2x the observed abundance for one sample within each meadow.
 ```{r}
 library(iNEXT)
 
@@ -249,9 +276,9 @@ kable(results, col.names = c("Extrapolated Richness", "CI.Lower", "CI.Upper", "s
 
 ```
 
-TABLE 2. Table 2 presents each species rank within each site and time. It allows us to see whether similar species were abundant across sites and times.
+###TABLE 2. Rank abundance and aggregation of species observed in each meadow at each time. 
 
-First for July:
+#####July:
 
 ```{r}
 ## create datafile with ranks:
@@ -265,14 +292,14 @@ RanksJuly <- rankDC %>%
   full_join(rankBI, by = "species", suffix = c("", ".BI")) %>%
   full_join(rankCC, by = "species", suffix = c("", ".CC")) %>%
   select(., -starts_with("N"))
-View(RanksJuly)
+#View(RanksJuly)
 
-kable(RanksJuly, col.names = c("Species", "DC", "WI", "BE", "EI", "RP",  "NB", "CB","BI", "CC"), caption = "Ranks for July species abundances (N)")
+kable(RanksJuly, col.names = c("Species", "DC", "WI", "BE", "EI", "RP",  "NB", "CB","BI", "CC"), caption = "Table 2 - July: Rank abundance and aggregation of species observed in each meadow at each time. Aggregated column indicates signficant (P < 0.05) spatial aggregation within species across plots within each meadow, based on chi-squared tests on Morisita's index I")
 
 ```
 
 
-Then for May:
+##### May:
 ```{r}
 ## need to redefine div.data for May: 
 start.data <- dataMAY
@@ -370,12 +397,12 @@ RanksMay <- rankDC %>%
   full_join(rankCB, by = "species", suffix = c("", ".CB")) %>%
   select(., -starts_with("N"))
 
-kable(RanksMay, col.names = c("Species", "DC.rank", "DC.aggregated", "WI.rank","WI.aggregated", "RP.rank", "RP.aggregated", "NB.rank", "NB.aggregated", "CB.rank","CB.aggregated"), caption = "Ranks for May species abundances (N). Aggregated column indicates signficant (P < 0.05) spatial aggregation within species across plots within each meadow, based on chi-squared tests on Morisita's index I")
+kable(RanksMay, col.names = c("Species", "DC.rank", "DC.aggregated", "WI.rank","WI.aggregated", "RP.rank", "RP.aggregated", "NB.rank", "NB.aggregated", "CB.rank","CB.aggregated"), caption = "Table 2 - May: Rank abundance and aggregation of species observed in each meadow at each time. Aggregated column indicates signficant (P < 0.05) spatial aggregation within species across plots within each meadow, based on chi-squared tests on Morisita's index I")
 
 
 ```
 
-Then for August:
+##### August:
 ```{r}
 ## need to redefine div.data for Aug: 
 start.data <- dataAUG
@@ -476,12 +503,12 @@ RanksAug <- rankDC %>%
   full_join(rankCB, by = "species", suffix = c("", ".CB")) %>%
   select(., -starts_with("N"))
 
-kable(RanksAug, col.names = c("Species", "DC.rank", "DC.aggregated", "WI.rank","WI.aggregated", "RP.rank", "RP.aggregated", "NB.rank", "NB.aggregated", "CB.rank","CB.aggregated"), caption = "Ranks for May species abundances (N). Aggregated column indicates signficant (P < 0.05) spatial aggregation within species across plots within each meadow, based on chi-squared tests on Morisita's index I")
+kable(RanksAug, col.names = c("Species", "DC.rank", "DC.aggregated", "WI.rank","WI.aggregated", "RP.rank", "RP.aggregated", "NB.rank", "NB.aggregated", "CB.rank","CB.aggregated"), caption = "Ranks for August species abundances (N). Aggregated column indicates signficant (P < 0.05) spatial aggregation within species across plots within each meadow, based on chi-squared tests on Morisita's index I")
 ```
 
 
-Estimation of univariate diversity indices and rank abundance distributions
-Results for main text
+###Estimation of univariate diversity indices and rank abundance distributions
+#####Results for main text
 ```{r}
 start.data <- dataJULY9
 div.data <- dcast(start.data[,c(1:4,12)], site + Date + Sample ~ species, sum) 
@@ -500,20 +527,33 @@ div.summary <- div.data[c(1:3, 38:39)] %>%
 
 ```
 
-Statistical analysis: Spatial diversity patterns
-Does plot level alpha diversity differ among meadows?
+###Statistical analysis: Spatial diversity patterns
+#####Does plot level alpha diversity differ among meadows? [stats in text]
 ```{r}
 # does plot level alpha diversity differ among meadows?
-mods4 <- lm(div.summary$alpha.p ~ div.summary$site)
+mods4 <- lm(div.summary$alpha.p ~ 1 + div.summary$site)
 mods0 <-  lm(div.summary$alpha.p ~ 1)
 anova(mods4, mods0)
 model.sel(mods4, mods0)
 summary(mods4)
+
+confint(mods4)
+coef(mods4)
 ```
 
-Does plot level Shannon diversity differ among meadows?
+#####Does plot level Shannon diversity differ among meadows? [results in text]
 ```{r}
-# does plot level alpha diversity differ among meadows?
+# does plot level H differ among meadows?
+mods3 <- lm(div.summary$H ~ div.summary$site)
+mods0 <-  lm(div.summary$H ~ 1)
+anova(mods3, mods0)
+model.sel(mods3, mods0)
+summary(mods3)
+```
+
+#####Does plot level ENS differ among meadows? [results in text]
+```{r}
+# does plot level ENS differ among meadows?
 mods3 <- lm(div.summary$H ~ div.summary$site)
 mods0 <-  lm(div.summary$H ~ 1)
 anova(mods3, mods0)
@@ -522,7 +562,7 @@ summary(mods3)
 ```
 
 
-#Model selection - presented in Table S5
+###Model selection: Table S5
 ```{r}
 #candidate models
 mod1a <- lm(div.summary$H ~ div.summary$fetch.jc)
@@ -554,25 +594,30 @@ mod1g <- lm(div.summary$H ~ div.summary$site)
 mod2g <- lm(div.summary$S ~ div.summary$site)
 mod3g <- lm(div.summary$alpha.p ~ div.summary$site)
 mod4g <- lm(div.summary$qD ~ div.summary$site)
+
+mod1h <- lm(div.summary$H ~ div.summary$area)
+mod2h <- lm(div.summary$S ~ div.summary$area)
+mod3h <- lm(div.summary$alpha.p ~ div.summary$area)
+mod4h <- lm(div.summary$qD ~ div.summary$area)
 ```
 
-Model comparison results for Shannon Diversity in Table S5
+Model comparison results for Shannon Diversity in Table S6
 ```{r}
-model.sel(mod1a, mod1b, mod1c, mod1d, mod1f, mod1g)
+model.sel(mod1a, mod1b, mod1c, mod1d, mod1f, mod1g, mod1h)
 ```
 
-Model comparison results for Simpson Diversity in Table S5
+Model comparison results for ENS? in Table S6
 ```{r}
-model.sel(mod2a, mod2b, mod2c, mod2d, mod2f, mod2g)
+model.sel(mod2a, mod2b, mod2c, mod2d, mod2f, mod2g, mod2h)
 ```
 
-Model comparison results for Alpha Diversity in Table S5
+Model comparison results for Alpha Diversity in Table S6
 ```{r}
-model.sel(mod3a, mod3b, mod3c, mod3d, mod3f, mod3g)
+model.sel(mod3a, mod3b, mod3c, mod3d, mod3f, mod3g, mod3h)
 ```
 
 Model comparison results for rarefied Diversity in Table S5
 ```{r}
-model.sel(mod4a, mod4b, mod4c, mod4d, mod4f, mod4g)
+model.sel(mod4a, mod4b, mod4c, mod4d, mod4f, mod4g, mod4h)
 ```
 
