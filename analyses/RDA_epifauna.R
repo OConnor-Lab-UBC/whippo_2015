@@ -152,6 +152,15 @@ epicomm_site <- epicomm_site %>%
 # full environmental data
 environ_full <- read.csv("./data/site.info_201801.csv")
 
+# add mean midsummer temps calculated from Temp-Sal_summaries.R
+new_temp <- c(12.81186, 15.58542, 19.22333, 16.87692, 13.70645, 16.17576, 18.48387, 18.4, 15.78421)
+
+environ_full$new_temp <- new_temp
+
+# add mean midsummer sals calculated from Temp-Sal_summaries.R
+new_sal <- c(25.3678, 16.79375, 15.50333, 15.01923, 22.04194, 20.46364, 14.32903, 17.51212, 19.49649)
+
+environ_full$new_sal <- new_sal
 
 ###################################################################################
 # TRANSFORM COMMUNITY & ENVIRONMENTAL VARIABLES                                   #
@@ -172,6 +181,14 @@ environ <- environ_full %>%
 environ_scaled <- transform(environ, area.ha = scale(area.ha), salinity = scale(salinity), shoot.density = scale(shoot.density), epiphytes = scale(epiphytes), fetch.meters = scale(fetch.meters))
 row.names(environ_scaled) <- epicomm_site$site
 
+
+### TEST, would replace previous chunck of code
+# reduce variable list to ecologically relevant factors
+environ <- environ_full %>%
+  select(-site, -dfAI, -area, -dfw, -salinity)
+# center and scale environmental variables
+environ_scaled <- transform(environ, area.ha = scale(area.ha), new_sal = scale(new_sal), shoot.density = scale(shoot.density), epiphytes = scale(epiphytes), fetch.meters = scale(fetch.meters), new_temp = scale(new_temp))
+row.names(environ_scaled) <- epicomm_site$site
 
 
 ###################################################################################

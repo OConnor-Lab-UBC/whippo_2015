@@ -56,6 +56,7 @@ library(lubridate) # manipulate data
 library(car) # normality tests
 library(lme4)
 library(multcomp) #tukey post hoc
+library(MuMIn) # lm analyses
 library(tidyverse) # manipulate data
 
 # function to scale hellinger matrix between 0 and 1
@@ -238,6 +239,12 @@ prim_sites <- c("DC", "WI", "RP", "NB", "CB")
 rich_prim <- obsrich %>%
   filter(site %in% prim_sites)
 rich_prim$site <- factor(rich_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"))
+rich_prim <- rich_prim %>%
+  group_by(site, Time.Code2) %>%
+  summarise(mean(obsrich))
+colnames(rich_prim)[which(names(rich_prim) == "mean(obsrich)")] <- "obsrich"
+
+
   
 ############### Richness lm across all sites in midsummer, model selection and post hoc test
 
@@ -365,6 +372,23 @@ rare_C <- rare_C %>%
   filter(!is.na(value))
 
 
+############### ABUNDANCE
+
+abund_all <- epicomm_s
+abund_all$abundance <- rowSums(epicomm_s[4:37])  
+abund_all <- abund_all[c(1:3, 38)]
+
+abund_C <- abund_all %>%
+  filter(Time.Code2 == "C")
+abund_C$site <- factor(abund_C$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
+
+# abundance through time
+
+abund_prim <- abund_all %>%
+  filter(site %in% prim_sites) %>%
+  group_by(site, Time.Code2) %>%
+  summarise(mean(abundance))
+colnames(abund_prim)[which(names(abund_prim) == "mean(abundance)")] <- "abundance"
 
 ############### SHANNON DIVERSITY & ENS
 
@@ -391,6 +415,28 @@ div.summaryC$site <- factor(div.summaryC$site, levels = c("DC", "WI", "BE", "EI"
 shan_prim <- div.summary %>%
   filter(site %in% prim_sites)
 shan_prim$site <- factor(shan_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"))
+ens_prim <- shan_prim %>%
+  group_by(site, Time.Code2) %>%
+  summarise(mean(ENS))
+colnames(ens_prim)[which(names(ens_prim) == "mean(ENS)")] <- "ENS"
+shan_time <- shan_prim %>%
+  group_by(site, Time.Code2) %>%
+  summarise(mean(Shannon))
+colnames(shan_time)[which(names(shan_time) == "mean(Shannon)")] <- "Shannon"
+
+
+
+############### abundance lm across all sites in midsummer, model selection and post hoc test
+
+abunlm <- lm(abund_C$abundance ~ abund_C$site)
+abun0 <- lm(abund_C$abundance ~ 1)
+anova(abunlm, abun0)
+model.sel(abunlm, abun0)
+summary(abunlm)
+abunaov <- aov(abundance ~ site, data = abund_C)
+abuntuk <- glht(abunaov, linfct = mcp(site = "Tukey"))
+abuntuk.cld <- cld(abuntuk)
+abuntuk.cld <- print(abuntuk.cld)
 
 
 ############### ENS lm across all sites in midsummer, model selection and post hoc test
@@ -667,6 +713,58 @@ jacc_prim <- all_jaccard %>%
   filter(site %in% prim_sites)
 jacc_prime$site <- factor(jacc_prime$site, levels = c("DC", "WI", "RP", "NB", "CB"))
 
+### MIDSUMMER ONLY JACCARD
+
+length(DCC_jaccard) <- 137
+length(WIC_jaccard) <- 137  
+length(RPC_jaccard) <- 137  
+length(NBC_jaccard) <- 137  
+length(CBC_jaccard) <- 137  
+length(CCC_jaccard) <- 137
+length(BEC_jaccard) <- 137
+length(EIC_jaccard) <- 137
+length(BIC_jaccard) <- 137
+DCC_jaccard <- as.data.frame(DCC_jaccard)
+WIC_jaccard <- as.data.frame(WIC_jaccard)
+RPC_jaccard <- as.data.frame(RPC_jaccard)
+NBC_jaccard <- as.data.frame(NBC_jaccard)
+CBC_jaccard <- as.data.frame(CBC_jaccard)
+BEC_jaccard <- as.data.frame(BEC_jaccard)
+EIC_jaccard <- as.data.frame(EIC_jaccard)
+BIC_jaccard <- as.data.frame(BIC_jaccard)
+CCC_jaccard <- as.data.frame(CCC_jaccard)
+
+
+# combine time C jaccard
+jaccard_C <- melt(data.frame(BEC_jaccard, DCC_jaccard, EIC_jaccard, BIC_jaccard, WIC_jaccard, CCC_jaccard, RPC_jaccard, NBC_jaccard, CBC_jaccard))
+# rename columns, reduce sitetime values, and split into site and time C
+colnames(jaccard_C) <- c('sitetime', 'value') 
+jaccard_C$sitetime <- as.character(jaccard_C$sitetime)
+jaccard_C$sitetime <- substr(jaccard_C$sitetime,1,3)
+jaccard_C <- transform(jaccard_C, site = substr(sitetime, 1, 2))
+jaccard_C <- jaccard_C %>%
+  select(-sitetime) %>%
+  filter(!is.na(value))
+jaccard_C$site <- factor(jaccard_C$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
+
+############### JACCARD lm across all sites in midsummer, model selection and post hoc test
+
+jaccardlm <- lm(jaccard_C$value ~ jaccard_C$site)
+jaccard0 <- lm(jaccard_C$value ~ 1)
+anova(jaccardlm, jaccard0)
+model.sel(jaccardlm, jaccard0)
+summary(jaccardlm)
+jaccardaov <- aov(value ~ site, data = jaccard_C)
+jaccardtuk <- glht(jaccardaov, linfct = mcp(site = "Tukey"))
+jaccardtuk.cld <- cld(jaccardtuk)
+jaccardtuk.cld <- print(jaccardtuk.cld)
+
+
+
+
+
+
+
 
 ############### BRAY DIVERSITY
 
@@ -758,8 +856,63 @@ all_bray <- all_bray %>%
   filter(site %in% target)
 
 
+### MIDSUMMER ONLY BRAY
+
+length(DCC_bray) <- 137
+length(WIC_bray) <- 137  
+length(RPC_bray) <- 137  
+length(NBC_bray) <- 137  
+length(CBC_bray) <- 137  
+length(CCC_bray) <- 137
+length(BEC_bray) <- 137
+length(EIC_bray) <- 137
+length(BIC_bray) <- 137
+DCC_bray <- as.data.frame(DCC_bray)
+WIC_bray <- as.data.frame(WIC_bray)
+RPC_bray <- as.data.frame(RPC_bray)
+NBC_bray <- as.data.frame(NBC_bray)
+CBC_bray <- as.data.frame(CBC_bray)
+BEC_bray <- as.data.frame(BEC_bray)
+EIC_bray <- as.data.frame(EIC_bray)
+BIC_bray <- as.data.frame(BIC_bray)
+CCC_bray <- as.data.frame(CCC_bray)
 
 
+# combine time C bray
+bray_C <- melt(data.frame(BEC_bray, DCC_bray, EIC_bray, BIC_bray, WIC_bray, CCC_bray, RPC_bray, NBC_bray, CBC_bray))
+# rename columns, reduce sitetime values, and split into site and time C
+colnames(bray_C) <- c('sitetime', 'value') 
+bray_C$sitetime <- as.character(bray_C$sitetime)
+bray_C$sitetime <- substr(bray_C$sitetime,1,3)
+bray_C <- transform(bray_C, site = substr(sitetime, 1, 2))
+bray_C <- bray_C %>%
+  select(-sitetime) %>%
+  filter(!is.na(value))
+bray_C$site <- factor(bray_C$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
+
+############### Bray lm across all sites in midsummer, model selection and post hoc test
+
+braylm <- lm(bray_C$value ~ bray_C$site)
+bray0 <- lm(bray_C$value ~ 1)
+anova(braylm, bray0)
+model.sel(braylm, bray0)
+summary(braylm)
+brayaov <- aov(value ~ site, data = bray_C)
+braytuk <- glht(brayaov, linfct = mcp(site = "Tukey"))
+braytuk.cld <- cld(braytuk)
+braytuk.cld <- print(braytuk.cld)
+
+
+
+
+
+
+
+
+
+
+
+list(DCC_bray)
 # Beta as raw alpha/gamma
 
 DCA_rawbeta <- ncol(DCA[,4:37])/mean(specnumber(DCA[,4:37])) - 1
@@ -918,19 +1071,45 @@ shannon_midsum_plot <- ggplot(div.summaryC, aes(x = site, y = Shannon, fill = si
   labs(x ="", y="Shannon Diversity")  +
   annotate("text", x = 1:9, y = 2.2, label = shantuk.cld)
 
+# ABUNDANCE (ANOVA and TUKEY stats are above)
 
-# HELLINGER DISTANCE (ANOVA and TUKEY stats are above)
-
-hell_midsum_plot <- ggplot(hell_C, aes(x = site, y = value, fill = site)) + 
-  geom_boxplot() + 
+abund_midsum_plot <- ggplot(abund_C, aes(x = site, y = log10(abundance + 1), fill = site)) +
+  geom_boxplot() +
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x ="", y="Hellinger Distance") +
-  annotate("text", x = 1:9, y = 1.1, label = helltuk.cld)
+  labs(x ="", y="Abundance")  +
+  annotate("text", x = 1:9, y = 3.3, label = abuntuk.cld)
 
+# HELLINGER DISTANCE (ANOVA and TUKEY stats are above)
 
-# CHECKERBOARD PLOT
+#hell_midsum_plot <- ggplot(hell_C, aes(x = site, y = value, fill = site)) + 
+#  geom_boxplot() + 
+#  fill_palette(viridis(9, option = "viridis")) +
+#  theme_minimal() +
+#  theme(axis.text.x=element_blank()) +
+#  labs(x ="", y="Hellinger Distance") +
+#  annotate("text", x = 1:9, y = 1.1, label = helltuk.cld)
+
+# BRAY DISTANCE (ANOVA and TUKEY stats are above)
+
+bray_midsum_plot <- ggplot(bray_C, aes(x = site, y = value, fill = site)) + 
+  geom_boxplot() + 
+  fill_palette(viridis(9, option = "viridis")) +
+  theme_minimal() +
+  #theme(axis.text.x=element_blank()) +
+  labs(x ="", y="Bray-Curtis Distance") +
+  annotate("text", x = 1:9, y = 1.05, label = braytuk.cld)
+
+# JACCARD DISTANCE (ANOVA and TUKEY stats are above)
+
+jaccard_midsum_plot <- ggplot(jaccard_C, aes(x = site, y = value, fill = site)) + 
+  geom_boxplot() + 
+  fill_palette(viridis(9, option = "viridis")) +
+  theme_minimal() +
+  #theme(axis.text.x=element_blank()) +
+  labs(x ="", y="Jaccard Distance") +
+  annotate("text", x = 1:9, y = 1.1, label = jaccardtuk.cld)
 
 checkerboard_plot <- ggplot(checkerboard_epicomm, aes(site, species, fill = abun)) +
   geom_tile(colour = "gray30", stat = "identity") +
@@ -938,20 +1117,22 @@ checkerboard_plot <- ggplot(checkerboard_epicomm, aes(site, species, fill = abun
   theme_minimal() +
   guides(fill = guide_colorbar(label = TRUE, ticks = FALSE, title = "abundance", fill = c("high", "low")))
 
+
 # FULL FIGURE 2
 
-Figure2 <- ggarrange(ggarrange(Rich_midsum_plot, ens_midsum_plot, shannon_midsum_plot, hell_midsum_plot,
-                     labels = c("A", "B", "C", "D"),
-                     ncol = 2, nrow = 2,
+Figure2 <- ggarrange(ggarrange(Rich_midsum_plot, ens_midsum_plot, shannon_midsum_plot, abund_midsum_plot, bray_midsum_plot, jaccard_midsum_plot,
+                     labels = c("A", "B", "C", "D", "E", "F"),
+                     ncol = 2, nrow = 3,
                      common.legend = TRUE, legend = "right"),
-                     ggarrange(checkerboard_plot,
-                               labels = "E",
-                               ncol = 1, nrow = 1,
-                               legend = "right"),
-                     ncol = 1, nrow = 2)
+                     ggarrange(checkerboard_plot, 
+                               labels = "G",
+                               ncol = 1, nrow = 1),                        
+                     ncol = 1, nrow = 2,
+                     common.legend = TRUE, legend = "right",
+                     heights = c(2.1,1.5))
 # annotate_figure(Figure2, bottom = text_grob("Figure 2: Measures of A) observed richness, B) shannon diversity, C) effective number of species (ENS), and  \n D) Hellinger distance across nine seagrass habitats types sampled in midsummer.", size = 10))
 
-# best size: ~700x1020
+# best size: ~700x800
 
 
 
@@ -962,41 +1143,44 @@ Figure2 <- ggarrange(ggarrange(Rich_midsum_plot, ens_midsum_plot, shannon_midsum
 ########### JACCARD DISTANCE THROUGH TIME
 
 jacc_plot <- ggplot(jacc_prim, aes(x = time, y = value, group = site)) + 
-  geom_point(size=4, aes(colour = site)) +
+  geom_point(size=4, aes(colour = site, pch = time)) +
   geom_line(aes(color = site)) +
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="Jaccard Distance")
+  labs(x=" May                  June/July                 August", y="Jaccard Distance")
 
 # best size: ~600x400
 
 ########### BRAY DISTANCE THROUGH TIME
 
 bray_plot <- ggplot(all_bray, aes(x = time, y = value, group = site)) + 
-  geom_point(size=4, aes(colour = site)) +
+  geom_point(size=4, aes(colour = site, pch = time)) +
   geom_line(aes(color = site)) +
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="B-C Distance")
+  labs(x=" May                  June/July                 August", y="Bray-Curtis Distance")
+
+
 
 # best size: ~600x400
 
 # raw beta plot
-rawbeta_plot <- ggplot(na.omit(Raw_beta), aes(x = Times, y = rawbeta, group = Sites)) +
-  geom_point(size=4, aes(color = Sites)) + 
-  geom_line(aes(color = Sites)) +
-  scale_color_viridis(discrete = TRUE, begin = 0.3) +
-  theme_minimal() +
-  theme(axis.text.x=element_blank()) +
-  labs(x="", y="Gamma/Mean(Alpha)") 
+#rawbeta_plot <- ggplot(na.omit(Raw_beta), aes(x = Times, y = rawbeta, group = Sites#)) +
+#  geom_point(size=4, aes(color = Sites)) + 
+#  geom_line(aes(color = Sites)) +
+#  scale_color_viridis(discrete = TRUE, begin = 0.3) +
+#  theme_minimal() +
+#  theme(axis.text.x=element_blank()) +
+#  labs(x="", y="Gamma/Mean(Alpha)") 
 
 # OBSERVED RICHNESS
 
-rich_plot <- ggplot(rich_prim, aes(x = Time.Code2, y = obsrich, fill = site)) + 
-  geom_boxplot() + 
-  fill_palette(viridis(5, begin = 0.3)) +
+rich_plot <- ggplot(rich_prim, aes(x = Time.Code2, y = obsrich, group = site)) + 
+  geom_point(size=4, aes(colour = site, pch = Time.Code2)) +
+  geom_line(aes(color = site)) +
+  scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
   labs(x="", y="Observed Richness")
@@ -1012,58 +1196,67 @@ rich_plot <- ggplot(rich_prim, aes(x = Time.Code2, y = obsrich, fill = site)) +
 
 # ENS
 
-ens_plot <- ggplot(shan_prim, aes(x = Time.Code2, y = ENS, fill = site)) + 
-  geom_boxplot() + 
-  fill_palette(viridis(5, begin = 0.3)) +
+ens_plot <- ggplot(ens_prim, aes(x = Time.Code2, y = ENS, group = site)) + 
+  geom_point(size=4, aes(colour = site, pch = Time.Code2)) +
+  geom_line(aes(color = site)) +
+  scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
   labs(x="", y="ENS")
 
 # SHANNON DIVERSITY
 
-shannon_plot <- ggplot(shan_prim, aes(x = Time.Code2, y = Shannon, fill = site)) + 
-  geom_boxplot() + 
-  fill_palette(viridis(5, begin = 0.3)) +
+shannon_plot <- ggplot(shan_time, aes(x = Time.Code2, y = Shannon, group = site)) + 
+  geom_point(size=4, aes(colour = site, pch = Time.Code2)) +
+  geom_line(aes(color = site)) +
+  scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x=" May                  June/July                 August", y="Shannon Diversity")
+  labs(x="", y="Shannon Diversity")
+
+# ABUNDANCE
+
+abun_plot <- ggplot(abund_prim, aes(x = Time.Code2, y = log10(abundance+1), group = site)) + 
+  geom_point(size=4, aes(colour = site, pch = Time.Code2)) +
+  geom_line(aes(color = site)) +
+  scale_color_viridis(discrete=TRUE) +
+  theme_minimal() +
+  theme(axis.text.x=element_blank()) +
+  labs(x="", y="Abundance")
 
 # Hellinger distance
 
-hell_plot <- ggplot(hell_prim, aes(x = time, y = value, fill = site)) + 
-  geom_boxplot() + 
-  fill_palette(viridis(5, begin = 0.3)) +
-  theme_minimal() +
-  theme(axis.text.x=element_blank()) +
-  labs(x=" May                 June/July                 August", y="Hellinger Distance")
+#hell_plot <- ggplot(hell_prim, aes(x = time, y = value, fill = site)) + 
+#  geom_boxplot() + 
+#  fill_palette(viridis(5, begin = 0.3)) +
+#  theme_minimal() +
+#  theme(axis.text.x=element_blank()) +
+#  labs(x=" May                 June/July                 August", y="Hellinger Distance")
 
 # nMDS
 mds_plot <- ggplot(plot_data_tax, aes(x=MDS1, y=MDS2, pch = month, color = site)) +
   scale_color_viridis(discrete = TRUE, begin = 0.3) +
   theme_minimal() +
-  geom_point(size = 4) + 
-  geom_polygon(data=chulls_tax, aes(x=MDS1, y=MDS2, group=month), fill=NA, color = "grey") 
+  geom_polygon(data=chulls_tax, aes(x=MDS1, y=MDS2, group=month), fill=NA, color = "grey") +
+  geom_point(size = 4)  
+  
 
 
 # FULL FIGURE 4
 
 
-Figure4 <- ggarrange(ggarrange(rawbeta_plot, jacc_plot,
-                               labels = c("A", "B"),
-                               ncol = 2, nrow = 1,
-                               legend = FALSE), 
-                     ggarrange(rich_plot, ens_plot, shannon_plot, hell_plot, 
-                               labels = c("C", "D", "E", "F"), 
-                               ncol = 2, nrow = 2,
+Figure4 <- ggarrange(ggarrange(rich_plot, ens_plot, shannon_plot, abun_plot, bray_plot, jacc_plot, 
+                               labels = c("A", "B", "C", "D", "E", "F"), 
+                               ncol = 2, nrow = 3,
                                legend = FALSE),
                      ggarrange(mds_plot, 
                                labels = "G",
                                ncol = 1, nrow = 1),                        
-                     ncol = 1, nrow = 3,
+                     ncol = 1, nrow = 2,
                      common.legend = TRUE, legend = "right",
-                     heights = c(1,2,2))
+                     heights = c(2,1.5))
                   
-annotate_figure(Figure3, bottom = text_grob("Figure 4: Measures of A) observed richness, B) shannon diversity, and C) effective number of species (ENS) across five seagrass habitats types \n sampled in May, June/July, and August", size = 10))
+annotate_figure(Figure4, bottom = text_grob("Figure 5: Measures of A) observed richness, B) shannon diversity, and C) effective number of species (ENS) across five seagrass habitats types \n sampled in May, June/July, and August", size = 10))
 
 # best size: ~800x1100
 
