@@ -409,6 +409,27 @@ RanksMay <- rankDC %>%
 
 kable(RanksMay, col.names = c("Species", "DC.rank", "DC.aggregated", "WI.rank","WI.aggregated", "RP.rank", "RP.aggregated", "NB.rank", "NB.aggregated", "CB.rank","CB.aggregated"), caption = "Table 2 - May: Rank abundance and aggregation of species observed in each meadow at each time. Aggregated column indicates signficant (P < 0.05) spatial aggregation within species across plots within each meadow, based on chi-squared tests on Morisita's index I")
 
+## esimate extrapolated richness for later
+#create data input for rarified richness estimates: 
+
+RRP <- rankRP[,2]
+RDC <- rankDC[,2]
+RWI <- rankWI[,2]
+RCB <- rankCB[,2]
+RNB <- rankNB[,2]
+
+Rd <- cbind(RRP, RDC, RWI, RCB, RNB)
+
+
+## Set m based on maximum observed abundance: 32164.
+#m <- seq(1,32164,32164/100)
+m <- seq(1,(2*7587),(2*7587)/100)
+
+iNEXT(Rd, q= c(0), datatype="abundance", size=NULL, endpoint=NULL, knots=40, se=TRUE, conf=0.95, nboot=50) -> test
+
+results.May <- rbind(test$iNextEst$RRP[40,4:6], test$iNextEst$RDC[40,4:6], test$iNextEst$RWI[40,4:6], test$iNextEst$RCB[40,4:6], test$iNextEst$RNB[40,4:6])
+rownames(results.May) <- test$DataInfo[,1]
+results.May$site <- c("RP", "DC", "WI", "CB", "NB")
 
 ```
 
@@ -675,6 +696,34 @@ Model comparison results for rarefied Diversity in Table S5
 model.sel(mod4a, mod4b, mod4c, mod4d, mod4f, mod4g, mod4h)
 ```
 
+
+###Variation in univariate diversity with site and time: Table 3
+```{r}
+start.data <- data3times
+div.data <- dcast(start.data[,c(1:5,12)], site + Date + Sample + Time.Code2 ~ species, sum) 
+div.data$alpha.p <- specnumber(div.data[,5:38])
+div.data$N <- rowSums(div.data[,(5:38)])
+
+## estimate univariate diversity for each sample
+div.summary <- div.data[c(1:4, 39:40)] %>%
+  mutate(., H = diversity(div.data[,-(c(1:4))], index ="shannon")) %>%
+  mutate(., S = diversity(div.data[,-(c(1:4))], index ="simpson")) %>%
+  full_join(sites, by = "site") 
+  
+
+#models
+modS <- lm(div.summary$alpha.p ~ div.summary$site*div.summary$Time.Code2)
+anova(modS)
+
+modN <- lm(log(div.summary$N+1) ~ div.summary$site*div.summary$Time.Code2)
+anova(modN)
+
+modH <- lm(div.summary$H ~ div.summary$site*div.summary$Time.Code2)
+anova(modH)
+
+
+```
+
 ### Elements of Metacommunity Structure
 
 ```{r}
@@ -701,8 +750,8 @@ data5 <- data4[,-ncol(data4)]
 
 ### run metacommunity analysis 
 ```{r}
-Metacommunity(data4, verbose = TRUE, order = FALSE, method = "r1") -> meta
-meta[2:4]
+Metacommunity(data4, verbose = FALSE, order = FALSE, method = "r1") -> meta
+meta[2]
 
 a <- as.data.frame(meta[1])
 ```
