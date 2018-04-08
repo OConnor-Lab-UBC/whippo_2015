@@ -190,6 +190,8 @@ WIC_tempsal %>%
 #####
 #<<<<<<<<<<<<<<<<<<<<<<<<<<END OF SCRIPT>>>>>>>>>>>>>>>>>>>>>>>>#
 
+### SCRATCH PAD
+
 
 # overall salinity means
 
@@ -197,5 +199,43 @@ overallsal <- tempsal_used %>%
   group_by(Site, Unit) %>%
   summarise(mean(Value))
 
+meadowmetrics <- read.csv("./data/MeadowMetrics.csv")
+str(meadowmetrics)
+meadowmetrics$site <- factor(meadowmetrics$site, levels = c("DC", "WI", "RP", "NB", "CB"))
+meadowmetrics$LAI <- as.numeric(meadowmetrics$LAI)
 
+meanshoots <- meadowmetrics %>%
+  group_by(site, time.period) %>%
+  summarise(Shoots = mean(Shoots))
 
+ggplot(meanshoots, aes(x = time.period, y = Shoots, group = site)) + 
+  geom_point(size=4, aes(colour = site, pch = time.period)) +
+  geom_line(aes(color = site)) +
+  scale_color_viridis(discrete=TRUE) +
+  theme_minimal() +
+  theme(axis.text.x=element_blank()) +
+  labs(x="", y="shoot density")
+
+meanlai <- meadowmetrics %>%
+  group_by(site, time.period) %>%
+  summarise(LAI = mean(LAI))
+
+ggplot(meanlai, aes(x = time.period, y = LAI, group = site)) + 
+  geom_point(size=4, aes(colour = site, pch = time.period)) +
+  geom_line(aes(color = site)) +
+  scale_color_viridis(discrete=TRUE) +
+  theme_minimal() +
+  theme(axis.text.x=element_blank()) +
+  labs(x="", y="LAI")
+
+mod1 <- lm(meadowmetrics$Shoots ~ meadowmetrics$time.period*meadowmetrics$site)
+mod0 <- lm(meadowmetrics$Shoots ~ 1)
+anova(mod1, mod0)
+model.sel(mod1, mod0)
+summary(mod1)
+
+mod2 <- lm(meadowmetrics$LAI ~ meadowmetrics$time.period*meadowmetrics$site)
+mod02 <- lm(meadowmetrics$LAI ~ 1)
+anova(mod2, mod02)
+model.sel(mod2, mod02)
+summary(mod2)
