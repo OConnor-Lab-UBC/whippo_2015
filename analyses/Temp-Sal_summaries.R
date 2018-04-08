@@ -121,6 +121,18 @@ CCC_tempsal <- tempsal_used %>%
   filter(Site == "CC") %>%
   filter(Date > "2012-07-10" & Date < "2012-08-10")
 
+# one big datafile:
+temps <- rbind(DCC_tempsal, WIC_tempsal, BEC_tempsal, EIC_tempsal, RPC_tempsal, NBC_tempsal, CBC_tempsal, BIC_tempsal, CCC_tempsal)
+
+#summarize
+temps1 <- temps %>%
+  group_by(Site) %>%
+  filter(Unit == "Tem") %>%
+  summarise(., mean(Value))
+
+## are temps and salinities correlated?
+mod1 <- lm(temps[(temps$Unit == "Tem"),]$Value ~ temps[(temps$Unit == "Sal"),]$Value)
+mod2 <- lm(temps[(temps$Unit == "Tem"),]$Value ~ temps[(temps$Unit == "Sal"),]$Value*temps[(temps$Unit == "Sal"),]$Site)
 
 # TEMP MEANS
 BEC_tempsal %>%
@@ -150,6 +162,8 @@ RPC_tempsal %>%
 WIC_tempsal %>%
   filter(Unit == "Tem") %>%
   summarise(mean(Value))
+
+
 
 
 # SAL MEANS

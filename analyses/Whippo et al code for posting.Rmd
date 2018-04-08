@@ -73,9 +73,9 @@ div.data <- dcast(start.data[,c(1:4,12)], site + Date + Sample ~ species, sum)
 
 #####5. Process temperature and salinity data
 ```{r}
-# filter out unused sites and make data long
+# # filter out unused sites and make data long
 tempsal_used <- tempsal %>%
-  filter(Site %in% c("DC", "WI", "BC", "EI", "RP", "NB", "CB", "BI", "CC")) %>%
+  filter(Site %in% c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC")) %>%
   select(Date, Time, Site, Station, Temp.s, Temp.2, Temp.b, Sal.s, Sal.2, Sal.b) %>%
   arrange(Site, Date, Station) %>%
   gather(Measurement, Value, -Date, -Time, -Site, -Station) 
@@ -87,21 +87,121 @@ tempsal_used <- tempsal_used %>%
 # remove rows with no data
 tempsal_used <- tempsal_used %>%
   subset(Value != "-")
+
+# make dates into date format
+tempsal_used$Date <- as.Date(tempsal_used$Date, "%m/%d/%y")
+
+# relabel temp/sal
+tempsal_used <- transform(tempsal_used, Unit = substr(Measurement, 1, 3))
+
+# make measurements numeric 
+tempsal_used$Value <- as.numeric(tempsal_used$Value)
+
+# separate into appx 30 day sample periods for each site
+
+# DCC = 2012-06-27
+DCC_tempsal <- tempsal_used %>%
+  filter(Site == "DC") %>%
+  filter(Date > "2012-06-12" & Date < "2012-07-12")
+
+# WIC = 2012-06-30
+WIC_tempsal <- tempsal_used %>%
+  filter(Site == "WI") %>%
+  filter(Date > "2012-06-15" & Date < "2012-07-15")
+
+# BEC = 2012-06-15
+BEC_tempsal <- tempsal_used %>%
+  filter(Site == "BE") %>%
+  filter(Date > "2012-05-31" & Date < "2012-06-30")
+
+# EIC = 2012-06-23
+EIC_tempsal <- tempsal_used %>%
+  filter(Site == "EI") %>%
+  filter(Date > "2012-06-08" & Date < "2012-07-08")
+
+# RPC = 2012-07-03
+RPC_tempsal <- tempsal_used %>%
+  filter(Site == "RP") %>%
+  filter(Date > "2012-06-18" & Date < "2012-07-18")
+
+# NB = 2012-07-10
+NBC_tempsal <- tempsal_used %>%
+  filter(Site == "NB") %>%
+  filter(Date > "2012-06-25" & Date < "2012-07-25")
+
+# CBC = 2012-07-05
+CBC_tempsal <- tempsal_used %>%
+  filter(Site == "CB") %>%
+  filter(Date > "2012-06-20" & Date < "2012-07-20")
+
+# BIC = 2012-06-20
+BIC_tempsal <- tempsal_used %>%
+  filter(Site == "BI") %>%
+  filter(Date > "2012-06-05" & Date < "2012-07-05")
+
+# CCC = 2012-07-25
+CCC_tempsal <- tempsal_used %>%
+  filter(Site == "CC") %>%
+  filter(Date > "2012-07-10" & Date < "2012-08-10")
+
+# one big datafile:
+temps <- rbind(DCC_tempsal, WIC_tempsal, BEC_tempsal, EIC_tempsal, RPC_tempsal, NBC_tempsal, CBC_tempsal, BIC_tempsal, CCC_tempsal)
+
+#summarize
+temps1 <- temps %>%
+  group_by(Site) %>%
+  filter(Unit == "Tem") %>%
+  summarise(., temp = mean(Value))
 ```
+
+#### are temps and salinities correlated?
+```{r}
+mod1 <- lm(temps[(temps$Unit == "Tem"),]$Value ~ temps[(temps$Unit == "Sal"),]$Value)
+summary(mod1)
+
+# add temps to sites file
+sites <- sites %>%
+  full_join(temps1, by = c("site" = "Site"))
+```
+
 
 #Results
 
 ### Site biotic attributes: Table S2 and main text
-### [note to ross: this requires the raw data for shoots and density that i don't have]
-##### 1. Shoot density
+
+#### Correlations between site-level abiotic factors
+##### 1. DFW and temperature, salinity
 ```{r}
-View(sites)
+modDFW.T <- lm(temp ~ dfw, data = sites)
+summary(modDFW.T)
+
+modDFW.S <- lm(salinity ~ dfw, data = sites)
+summary(modDFW.S)
+
+modT.S <- lm(salinity ~ temp, data = sites)
+summary(modT.S)
+```
+
+
+##### 2. Shoot density
+```{r}
 mod.shoots <- lm(sites$shoot.density ~ sites$dfw)
+mod.shoots2 <- lm(sites$shoot.density ~ sites$fetch.meters)
+summary(mod.shoots2)
 summary(mod.shoots)
 ```
-##### 2. Epiphytes
+
+##### 2. LAI
 ```{r}
 
+```
+
+##### 2. Epiphytes
+```{r}
+mod.epi <- lm(sites$epiphytes ~ sites$dfw)
+mod.epi2 <- lm(sites$epiphytes ~ sites$fetch.meters)
+summary(mod.epi2)
+summary(mod.epi)
 ```
 
 ### Epifauna species for in text results are below after Table 2 

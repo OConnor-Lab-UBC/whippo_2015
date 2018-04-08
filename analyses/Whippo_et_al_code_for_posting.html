@@ -173,17 +173,116 @@ dataJULY9 &lt;- data.tr[(data.tr$Time.Code2==&quot;C&quot;),]</code></pre>
 <h5>5. Process temperature and salinity data</h5>
 </div>
 </div>
+<div id="are-temps-and-salinities-correlated" class="section level4">
+<h4>are temps and salinities correlated?</h4>
+<pre><code>## 
+## Call:
+## lm(formula = temps[(temps$Unit == &quot;Tem&quot;), ]$Value ~ temps[(temps$Unit == 
+##     &quot;Sal&quot;), ]$Value)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -6.240 -1.751 -0.688  1.622  8.724 
+## 
+## Coefficients:
+##                                      Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept)                          20.58833    0.44642   46.12   &lt;2e-16
+## temps[(temps$Unit == &quot;Sal&quot;), ]$Value -0.24159    0.02222  -10.87   &lt;2e-16
+##                                         
+## (Intercept)                          ***
+## temps[(temps$Unit == &quot;Sal&quot;), ]$Value ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 2.57 on 346 degrees of freedom
+## Multiple R-squared:  0.2546, Adjusted R-squared:  0.2525 
+## F-statistic: 118.2 on 1 and 346 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
 </div>
 </div>
 <div id="results" class="section level1">
 <h1>Results</h1>
 <div id="site-biotic-attributes-table-s2-and-main-text" class="section level3">
 <h3>Site biotic attributes: Table S2 and main text</h3>
+<div id="correlations-between-site-level-abiotic-factors" class="section level4">
+<h4>Correlations between site-level abiotic factors</h4>
+<div id="dfw-and-temperature-salinity" class="section level5">
+<h5>1. DFW and temperature, salinity</h5>
+<pre><code>## 
+## Call:
+## lm(formula = temp ~ dfw, data = sites)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -2.67243 -1.14691  0.03678  0.72317  2.46927 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  18.7998     1.1244  16.721 6.69e-07 ***
+## dfw          -0.3527     0.1397  -2.524   0.0396 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 1.68 on 7 degrees of freedom
+## Multiple R-squared:  0.4765, Adjusted R-squared:  0.4017 
+## F-statistic: 6.372 on 1 and 7 DF,  p-value: 0.03957</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = salinity ~ dfw, data = sites)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -2.3162 -1.2404 -0.1207  0.6440  2.7845 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  14.2743     1.2704   11.24 9.87e-06 ***
+## dfw           0.7484     0.1579    4.74  0.00211 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 1.898 on 7 degrees of freedom
+## Multiple R-squared:  0.7625, Adjusted R-squared:  0.7285 
+## F-statistic: 22.47 on 1 and 7 DF,  p-value: 0.002107</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = salinity ~ temp, data = sites)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -4.6441 -1.4152  0.1171  1.8204  3.9238 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)   
+## (Intercept)  37.8855     7.7404   4.895  0.00176 **
+## temp         -1.1255     0.4701  -2.394  0.04786 * 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 2.887 on 7 degrees of freedom
+## Multiple R-squared:  0.4502, Adjusted R-squared:  0.3717 
+## F-statistic: 5.733 on 1 and 7 DF,  p-value: 0.04786</code></pre>
 </div>
-<div id="note-to-ross-this-requires-the-raw-data-for-shoots-and-density-that-i-dont-have" class="section level3">
-<h3>[note to ross: this requires the raw data for shoots and density that i don’t have]</h3>
 <div id="shoot-density" class="section level5">
-<h5>1. Shoot density</h5>
+<h5>2. Shoot density</h5>
+<pre><code>## 
+## Call:
+## lm(formula = sites$shoot.density ~ sites$fetch.meters)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -3.195 -2.292 -1.190  1.551  5.984 
+## 
+## Coefficients:
+##                      Estimate Std. Error t value Pr(&gt;|t|)   
+## (Intercept)         8.882e+00  1.937e+00   4.586  0.00253 **
+## sites$fetch.meters -3.617e-06  2.333e-05  -0.155  0.88119   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 3.412 on 7 degrees of freedom
+## Multiple R-squared:  0.003421,   Adjusted R-squared:  -0.1389 
+## F-statistic: 0.02403 on 1 and 7 DF,  p-value: 0.8812</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = sites$shoot.density ~ sites$dfw)
@@ -203,8 +302,48 @@ dataJULY9 &lt;- data.tr[(data.tr$Time.Code2==&quot;C&quot;),]</code></pre>
 ## Multiple R-squared:  0.3507, Adjusted R-squared:  0.258 
 ## F-statistic: 3.782 on 1 and 7 DF,  p-value: 0.0929</code></pre>
 </div>
+<div id="lai" class="section level5">
+<h5>2. LAI</h5>
+</div>
 <div id="epiphytes" class="section level5">
 <h5>2. Epiphytes</h5>
+<pre><code>## 
+## Call:
+## lm(formula = sites$epiphytes ~ sites$fetch.meters)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.16423 -0.10246 -0.07243  0.03475  0.41717 
+## 
+## Coefficients:
+##                     Estimate Std. Error t value Pr(&gt;|t|)  
+## (Intercept)        2.328e-01  1.075e-01   2.166    0.067 .
+## sites$fetch.meters 3.880e-07  1.295e-06   0.300    0.773  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.1893 on 7 degrees of freedom
+## Multiple R-squared:  0.01266,    Adjusted R-squared:  -0.1284 
+## F-statistic: 0.08979 on 1 and 7 DF,  p-value: 0.7731</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = sites$epiphytes ~ sites$dfw)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.19291 -0.11295 -0.07178  0.05174  0.40531 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)  
+## (Intercept)  0.279372   0.127212   2.196   0.0641 .
+## sites$dfw   -0.002935   0.015810  -0.186   0.8580  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.1901 on 7 degrees of freedom
+## Multiple R-squared:  0.004901,   Adjusted R-squared:  -0.1373 
+## F-statistic: 0.03448 on 1 and 7 DF,  p-value: 0.858</code></pre>
+</div>
 </div>
 </div>
 <div id="epifauna-species-for-in-text-results-are-below-after-table-2" class="section level3">
@@ -367,64 +506,64 @@ dataJULY9 &lt;- data.tr[(data.tr$Time.Code2==&quot;C&quot;),]</code></pre>
 <tr class="odd">
 <td>RBE</td>
 <td align="right">18.656</td>
-<td align="right">14.058</td>
-<td align="right">23.254</td>
+<td align="right">14.944</td>
+<td align="right">22.368</td>
 <td align="left">BE</td>
 </tr>
 <tr class="even">
 <td>RRP</td>
 <td align="right">26.189</td>
-<td align="right">20.594</td>
-<td align="right">31.785</td>
+<td align="right">21.819</td>
+<td align="right">30.560</td>
 <td align="left">RP</td>
 </tr>
 <tr class="odd">
 <td>RDC</td>
 <td align="right">16.432</td>
-<td align="right">13.701</td>
-<td align="right">19.164</td>
+<td align="right">14.193</td>
+<td align="right">18.671</td>
 <td align="left">DC</td>
 </tr>
 <tr class="even">
 <td>RWI</td>
 <td align="right">22.864</td>
-<td align="right">19.994</td>
-<td align="right">25.734</td>
+<td align="right">19.947</td>
+<td align="right">25.781</td>
 <td align="left">WI</td>
 </tr>
 <tr class="odd">
 <td>RCC</td>
 <td align="right">11.000</td>
-<td align="right">9.805</td>
-<td align="right">12.195</td>
+<td align="right">9.714</td>
+<td align="right">12.286</td>
 <td align="left">CC</td>
 </tr>
 <tr class="even">
 <td>RCB</td>
 <td align="right">17.245</td>
-<td align="right">14.601</td>
-<td align="right">19.890</td>
+<td align="right">14.592</td>
+<td align="right">19.899</td>
 <td align="left">CB</td>
 </tr>
 <tr class="odd">
 <td>RNB</td>
 <td align="right">18.633</td>
-<td align="right">14.894</td>
-<td align="right">22.373</td>
+<td align="right">14.809</td>
+<td align="right">22.457</td>
 <td align="left">NB</td>
 </tr>
 <tr class="even">
 <td>REI</td>
 <td align="right">19.397</td>
-<td align="right">14.919</td>
-<td align="right">23.876</td>
+<td align="right">14.430</td>
+<td align="right">24.364</td>
 <td align="left">EI</td>
 </tr>
 <tr class="odd">
 <td>RBI</td>
 <td align="right">19.397</td>
-<td align="right">14.919</td>
-<td align="right">23.876</td>
+<td align="right">14.430</td>
+<td align="right">24.364</td>
 <td align="left">BI</td>
 </tr>
 </tbody>
@@ -2160,10 +2299,10 @@ dataJULY9 &lt;- data.tr[(data.tr$Time.Code2==&quot;C&quot;),]</code></pre>
 <pre><code>## $Coherence
 ##          name        stat
 ## 1      embAbs 104.0000000
-## 2           z   0.2151239
-## 3           p   0.8296707
-## 4     simMean 104.9080000
-## 5 simVariance   4.2208235
+## 2           z   0.2116056
+## 3           p   0.8324148
+## 4     simMean 104.8760000
+## 5 simVariance   4.1397780
 ## 6 method = r1          NA</code></pre>
 </div>
 </div>
