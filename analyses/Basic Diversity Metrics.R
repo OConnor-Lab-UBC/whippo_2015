@@ -244,7 +244,6 @@ rich_prim <- rich_prim %>%
   summarise(mean(obsrich))
 colnames(rich_prim)[which(names(rich_prim) == "mean(obsrich)")] <- "obsrich"
 
-
   
 ############### Richness lm across all sites in midsummer, model selection and post hoc test
 
@@ -389,6 +388,7 @@ abund_prim <- abund_all %>%
   group_by(site, Time.Code2) %>%
   summarise(mean(abundance))
 colnames(abund_prim)[which(names(abund_prim) == "mean(abundance)")] <- "abundance"
+abund_prim$site <- factor(abund_prim$site, levels = c("DC", "WI", "RP", "NB", "CB"))
 
 ############### SHANNON DIVERSITY & ENS
 
@@ -423,7 +423,7 @@ shan_time <- shan_prim %>%
   group_by(site, Time.Code2) %>%
   summarise(mean(Shannon))
 colnames(shan_time)[which(names(shan_time) == "mean(Shannon)")] <- "Shannon"
-
+shan_time$site <- factor(shan_time$site, levels = c("DC", "WI", "RP", "NB", "CB"))
 
 
 ############### abundance lm across all sites in midsummer, model selection and post hoc test
@@ -494,6 +494,7 @@ new_rare_prim <- new_rare_prim %>%
   group_by(site, Time.Code2) %>%
   summarise(mean(R2))
 colnames(new_rare_prim)[which(names(new_rare_prim) == "mean(R2)")] <- "R2"
+
 
 ############### RAREFIED lm across all sites in midsummer, model selection and post hoc test
 
@@ -1283,7 +1284,7 @@ abun_plot <- ggplot(abund_prim, aes(x = Time.Code2, y = log10(abundance+1), grou
 
 # nMDS
 mds_plot <- ggplot(plot_data_tax, aes(x=MDS1, y=MDS2, pch = month, color = site)) +
-  scale_color_viridis(discrete = TRUE, begin = 0.3) +
+  scale_color_viridis(discrete = TRUE) +
   theme_minimal() +
   geom_polygon(data=chulls_tax, aes(x=MDS1, y=MDS2, group=month), fill=NA, color = "grey") +
   geom_point(size = 4) +
