@@ -1,8 +1,8 @@
 ---
 title: "Epifaunal diversity patterns within and among seagrass meadows suggest metacommunity structure, by Whippo et al"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
