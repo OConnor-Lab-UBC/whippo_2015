@@ -150,8 +150,80 @@ epicomm <- epicomm %>%
 # PREPARE DATA FOR ANALYSES                                                       #
 ###################################################################################
 
-beta_sim_data <- epicomm
+# Pairwise adonis function
 
+##pairwise.adonis()
+pairwise.adonis <- function(x,factors, sim.method = 'bray', p.adjust.m ='bonferroni')
+{
+  library(vegan)
+  co = combn(unique(factors),2)
+  pairs = c()
+  F.Model =c()
+  R2 = c()
+  p.value = c()
+  for(elem in 1:ncol(co)){
+    ad = adonis(x[factors %in% c(co[1,elem],co[2,elem]),] ~ factors[factors %in% c(co[1,elem],co[2,elem])] , method =sim.method);
+    pairs = c(pairs,paste(co[1,elem],'vs',co[2,elem]));
+    F.Model =c(F.Model,ad$aov.tab[1,4]);
+    R2 = c(R2,ad$aov.tab[1,5]);
+    p.value = c(p.value,ad$aov.tab[1,6])
+  }
+  p.adjusted = p.adjust(p.value,method=p.adjust.m)
+  pairw.res = data.frame(pairs,F.Model,R2,p.value,p.adjusted)
+  return(pairw.res)
+}
+
+# x = the community table
+# factors = a column or vector with all factors to be tested pairwise
+# sim.method = similarity function, one of the functions available in vegdist(); default is 'bray' for bray-curtis
+# p.adjust.m = the p.value correction method, one of the methods supported by p.adjust(); default is 'bonferroni'
+
+##end copy here
+
+permepi <- epicomm
+
+permepi <- permepi %>%
+  separate(sitetime, c("site", "time"), sep = -1)
+
+permepi <- permepi %>%
+  filter(site != 'EI') %>%
+  filter(site != 'BE') %>%
+  filter(site != 'BI') %>%
+  filter(site != 'CC')
+
+permdata <- permepi[,3:36]
+permenv <- permepi[,1:2]
+adonis(permdata ~ site*time, data = permenv)
+
+#> adonis(permdata ~ site*time, data = permenv)
+
+#Call:
+#  adonis(formula = permdata ~ site * time, data = permenv) 
+
+#Permutation: free
+#Number of permutations: 999
+
+#Terms added sequentially (first to last)
+
+#           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
+#site       4    1.8393       0       0 0.40325      1
+#time       2    1.0804       1       0 0.23687      1
+#site:time  8    1.6415       0       0 0.35988      1
+#Residuals  0    0.0000     Inf         0.00000       
+#Total     14    4.5611                 1.00000       
+
+pairwise.adonis(permepi[,3:36], factors = permepi$time)
+
+# > pairwise.adonis(permepi[,3:36], factors = permepi$time)
+#pairs   F.Model         R2 p.value p.adjusted
+#1 A vs C 2.5146899 0.23915968   0.034      0.102
+#2 A vs E 2.5297162 0.24024543   0.014      0.042
+#3 C vs E 0.4824285 0.05687387   0.809      1.000
+
+
+data(dune)
+data(dune.env)
+adonis2(dune ~ Management*A1, data = dune.env)
 ###################################################################################
 # RAUP-CRICK METRICS                                                              #
 ###################################################################################
@@ -223,7 +295,13 @@ ggplot(t1, aes(time, distance, fill = time)) +
   theme(legend.position = "none")
 
 
-############### SUBSECTION HERE
+###################################################################################
+# PERMANOVA ANALYSIS                                                              #
+###################################################################################
+
+
+
+
 
 
 ###################################################################################

@@ -102,47 +102,47 @@ tempsal_used$Value <- as.numeric(tempsal_used$Value)
 # DCC = 2012-06-27
 DCC_tempsal <- tempsal_used %>%
   filter(Site == "DC") %>%
-  filter(Date > "2012-06-12" & Date < "2012-07-12")
+  filter(Date > "2012-05-27" & Date < "2012-06-27")
 
 # WIC = 2012-06-30
 WIC_tempsal <- tempsal_used %>%
   filter(Site == "WI") %>%
-  filter(Date > "2012-06-15" & Date < "2012-07-15")
+  filter(Date > "2012-05-30" & Date < "2012-06-30")
 
 # BEC = 2012-06-15
 BEC_tempsal <- tempsal_used %>%
   filter(Site == "BE") %>%
-  filter(Date > "2012-05-31" & Date < "2012-06-30")
+  filter(Date > "2012-05-15" & Date < "2012-06-15")
 
 # EIC = 2012-06-23
 EIC_tempsal <- tempsal_used %>%
   filter(Site == "EI") %>%
-  filter(Date > "2012-06-08" & Date < "2012-07-08")
+  filter(Date > "2012-06-23" & Date < "2012-07-23")
 
 # RPC = 2012-07-03
 RPC_tempsal <- tempsal_used %>%
   filter(Site == "RP") %>%
-  filter(Date > "2012-06-18" & Date < "2012-07-18")
+  filter(Date > "2012-06-03" & Date < "2012-07-03")
 
 # NB = 2012-07-10
 NBC_tempsal <- tempsal_used %>%
   filter(Site == "NB") %>%
-  filter(Date > "2012-06-25" & Date < "2012-07-25")
+  filter(Date > "2012-06-10" & Date < "2012-07-10")
 
 # CBC = 2012-07-05
 CBC_tempsal <- tempsal_used %>%
   filter(Site == "CB") %>%
-  filter(Date > "2012-06-20" & Date < "2012-07-20")
+  filter(Date > "2012-06-05" & Date < "2012-07-05")
 
 # BIC = 2012-06-20
 BIC_tempsal <- tempsal_used %>%
   filter(Site == "BI") %>%
-  filter(Date > "2012-06-05" & Date < "2012-07-05")
+  filter(Date > "2012-05-20" & Date < "2012-06-20")
 
 # CCC = 2012-07-25
 CCC_tempsal <- tempsal_used %>%
   filter(Site == "CC") %>%
-  filter(Date > "2012-07-10" & Date < "2012-08-10")
+  filter(Date > "2012-06-25" & Date < "2012-07-25")
 
 # one big datafile:
 temps <- rbind(DCC_tempsal, WIC_tempsal, BEC_tempsal, EIC_tempsal, RPC_tempsal, NBC_tempsal, CBC_tempsal, BIC_tempsal, CCC_tempsal)
