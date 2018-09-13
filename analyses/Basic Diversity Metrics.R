@@ -756,7 +756,7 @@ all_jaccard <- all_jaccard %>%
 all_jaccard$site <- factor(all_jaccard$site, levels = c("DC", "WI", "BE", "EI", "RP", "NB", "CB", "BI", "CC"))
 
 # Primary sites only
-jacc_prim <- all_jaccard %>%
+jacc_prime <- all_jaccard %>%
   filter(site %in% prim_sites)
 jacc_prime$site <- factor(jacc_prime$site, levels = c("DC", "WI", "RP", "NB", "CB"))
 
@@ -1180,7 +1180,10 @@ Figure2 <- ggarrange(ggarrange(Rich_midsum_plot, R2_midsum_plot, shannon_midsum_
                      heights = c(2.1,1.5))
 # annotate_figure(Figure2, bottom = text_grob("Figure 2: Measures of A) observed richness, B) shannon diversity, C) effective number of species (ENS), and  \n D) Hellinger distance across nine seagrass habitats types sampled in midsummer.", size = 10))
 
-# best size: ~800x1100
+# ggsave to increase dpi to 300 for pub. 
+ggsave("Figure2hires", device = "png", width = 15.6, height = 30, units = 'cm', dpi = 300)
+
+# best size: ~800x1100 pix
 
 
 
@@ -1307,6 +1310,9 @@ Figure4 <- ggarrange(ggarrange(rich_plot, rare_plot, shannon_plot, abun_plot, br
                      heights = c(2,1.5))
                   
 annotate_figure(Figure4, bottom = text_grob("Figure 5: Measures of A) observed richness, B) shannon diversity, and C) effective number of species (ENS) across five seagrass habitats types \n sampled in May, June/July, and August", size = 10))
+
+# ggsave to increase dpi to 300 for pub. 
+ggsave("Figure4hires", device = "png", width = 24, height = 30, units = 'cm', dpi = 300)
 
 # best size: ~800x1100
 
