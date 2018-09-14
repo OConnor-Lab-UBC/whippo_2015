@@ -230,6 +230,8 @@ adonis2(dune ~ Management*A1, data = dune.env)
 
 # Divided into three time periods, all sites
 
+beta_sim_data <- epicomm
+
 # Time A 
 beta_A <- beta_sim_data[c(3, 7, 11, 14, 17),]
 # Time A raup_crick analysis
@@ -937,6 +939,9 @@ ggplot(x1, aes(site, distance)) +
   theme_classic() +
   theme(axis.text=element_text(size=14), axis.title=element_text(size=14))
 
+# ggsave to increase dpi to 300 for pub. 
+ggsave("FigureS1hires", device = "png", width = 15.6, height = 12, units = 'cm', dpi = 300)
+
 #1100 x 500 best size
 
 # Compare within meadow variation to between meadow variation through time:
@@ -998,6 +1003,9 @@ ggplot(y1, aes(loc, distance)) +
   theme(legend.position = "none") + 
   theme_classic() +
   theme(axis.text=element_text(size=14), axis.title=element_text(size=14))
+
+# ggsave to increase dpi to 300 for pub. 
+ggsave("Figure5hires", device = "png", width = 15.6, height = 22, units = 'cm', dpi = 300)
 
 # 500 x 600
 
