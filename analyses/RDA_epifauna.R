@@ -156,13 +156,13 @@ environ_full <- read.csv("./data/site.info_201801.csv")
 temp <- c(12.39200, 13.79310, 14.92222, 17.32174, 12.93462, 17.25200, 16.27826
 , 14.65000, 13.43284)
 
-environ_full$temp <- new_temp
+environ_full$new_temp <- temp
 
 # add mean midsummer sals calculated from Whippo et al code for posting.Rmd
 sal <- c(26.02000, 18.78448, 18.16111, 13.09565, 26.93654, 18.34800, 15.04783
 , 22.04348, 23.05224)
 
-environ_full$sal <- new_sal
+environ_full$sal <- sal
 
 ###################################################################################
 # TRANSFORM COMMUNITY & ENVIRONMENTAL VARIABLES                                   #
@@ -177,11 +177,11 @@ comm_hell <- as.data.frame(comm_hell)
 row.names(comm_hell) <- epicomm_site$site
 
 # reduce variable list to ecologically relevant factors
-environ <- environ_full %>%
-  select(-site, -dfAI, -area, -dfw, -temp, -salinity)
+#environ <- environ_full %>%
+#  select(-site, -dfAI, -area, -dfw, -salinity)
 # center and scale environmental variables
-environ_scaled <- transform(environ, area.ha = scale(area.ha), sal = scale(sal), shoot.density = scale(shoot.density), epiphytes = scale(epiphytes), fetch.meters = scale(fetch.meters))
-row.names(environ_scaled) <- epicomm_site$site
+#environ_scaled <- transform(environ, area.ha = scale(area.ha), shoot.density = scale(shoot.density), epiphytes = scale(epiphytes), fetch.meters = scale(fetch.meters))
+#row.names(environ_scaled) <- epicomm_site$site
 
 
 ### TEST, would replace previous chunck of code
@@ -189,7 +189,7 @@ row.names(environ_scaled) <- epicomm_site$site
 environ <- environ_full %>%
   select(-site, -dfAI, -area, -dfw, -salinity, -new_temp)
 # center and scale environmental variables
-environ_scaled <- transform(environ, area.ha = scale(area.ha), new_sal = scale(new_sal), shoot.density = scale(shoot.density), epiphytes = scale(epiphytes), fetch.meters = scale(fetch.meters))
+environ_scaled <- transform(environ, area.ha = scale(area.ha), new_sal = scale(sal), shoot.density = scale(shoot.density), epiphytes = scale(epiphytes), fetch.meters = scale(fetch.meters))
 row.names(environ_scaled) <- epicomm_site$site
 
 
@@ -248,6 +248,10 @@ ggplot(data = gg_rda_min, aes(RDA1, RDA2)) +
   ylim(-1, 1) +
   geom_segment(x = 0, y = 0, xend = gg_rda_min$RDA1, yend = gg_rda_min$RDA2, aes(color = Score))
 # 600x520 resolution
+
+# ggsave to increase dpi to 300 for pub. 
+ggsave("Figure3hires", device = "png", width = 15.6, height = 15.6, units = 'cm', dpi = 300)
+
 
 ###################################################################################
 # PERMUTATION TESTS OF RDA                                                        #
