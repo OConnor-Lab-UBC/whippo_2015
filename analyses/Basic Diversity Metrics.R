@@ -1087,18 +1087,18 @@ Rich_midsum_plot <- ggplot(data = rich.C, aes(x=site, y = obsrich, fill = site))
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  theme(axis.text=element_text(size=18)) +
-  labs(x="", y = "Observed Richness") +
-  annotate("text", x = 1:9, y = 18.7, label = richtuk.cld)
+  labs(x="", y = "Obs. Rich.") +
+  ylim(0,23) +
+  annotate("text", x = 1:9, y = 21, label = richtuk.cld)
 
 R2_midsum_plot <- ggplot(data = rareC, aes(x=site, y = R2, fill = site)) +
   geom_boxplot() +
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  theme(axis.text=element_text(size=18)) +
-  labs(x="", y = "Rarefied Richness") +
-  annotate("text", x = 1:9, y = 4.1, label = raretuk.cld)
+  labs(x="", y = "Rare. Rich.") +
+  ylim(1,4.5) +
+  annotate("text", x = 1:9, y = 4.3, label = raretuk.cld)
 
 
 # ENS (ANOVA and TUKEY stats are above)
@@ -1118,9 +1118,9 @@ shannon_midsum_plot <- ggplot(div.summaryC, aes(x = site, y = Shannon, fill = si
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  theme(axis.text=element_text(size=18)) +
-  labs(x ="", y="Shannon Diversity")  +
-  annotate("text", x = 1:9, y = 2.2, label = shantuk.cld)
+  labs(x ="", y="Shan. Div.")  +
+  ylim(0,2.5) +
+  annotate("text", x = 1:9, y = 2.35, label = shantuk.cld)
 
 # ABUNDANCE (ANOVA and TUKEY stats are above)
 
@@ -1129,9 +1129,9 @@ abund_midsum_plot <- ggplot(abund_C, aes(x = site, y = log10(abundance + 1), fil
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  theme(axis.text=element_text(size=18)) +
-  labs(x ="", y="Log Abundance")  +
-  annotate("text", x = 1:9, y = 3.3, label = abuntuk.cld)
+  labs(x ="", y="Log Abun.")  +
+  ylim(0,4) +
+  annotate("text", x = 1:9, y = 3.5, label = abuntuk.cld)
 
 # HELLINGER DISTANCE (ANOVA and TUKEY stats are above)
 
@@ -1149,10 +1149,10 @@ bray_midsum_plot <- ggplot(bray_C, aes(x = site, y = value, fill = site)) +
   geom_boxplot() + 
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
-  #theme(axis.text.x=element_blank()) +
-  theme(axis.text=element_text(size=18)) +
-  labs(x ="", y="Bray-Curtis Distance") +
-  annotate("text", x = 1:9, y = 1.05, label = braytuk.cld)
+  theme(axis.text.x=element_blank()) +
+  labs(x ="", y="B-C Dist.") +
+  ylim(0,1.25) +
+  annotate("text", x = 1:9, y = 1.15, label = braytuk.cld)
 
 # JACCARD DISTANCE (ANOVA and TUKEY stats are above)
 
@@ -1160,15 +1160,16 @@ jaccard_midsum_plot <- ggplot(jaccard_C, aes(x = site, y = value, fill = site)) 
   geom_boxplot() + 
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
-  #theme(axis.text.x=element_blank()) +
-  theme(axis.text=element_text(size=18)) +
-  labs(x ="", y="Jaccard Distance") +
+  theme(axis.text.x=element_blank()) +
+  labs(x ="", y="Jacc. Dist.") +
+  ylim(0,1.16) +
   annotate("text", x = 1:9, y = 1.1, label = jaccardtuk.cld)
 
 checkerboard_plot <- ggplot(checkerboard_epicomm, aes(site, species, fill = abun)) +
   geom_tile(colour = "gray30", stat = "identity") +
   scale_fill_viridis(option = "B") +
   theme_minimal() +
+  theme(axis.text.y=element_text(size=7)) +
   guides(fill = guide_colorbar(label = TRUE, ticks = FALSE, title = "abundance", fill = c("high", "low")))
 
 
@@ -1187,7 +1188,7 @@ Figure2 <- ggarrange(ggarrange(Rich_midsum_plot, R2_midsum_plot, shannon_midsum_
 # annotate_figure(Figure2, bottom = text_grob("Figure 2: Measures of A) observed richness, B) shannon diversity, C) effective number of species (ENS), and  \n D) Hellinger distance across nine seagrass habitats types sampled in midsummer.", size = 10))
 
 # ggsave to increase dpi to 300 for pub. 
-ggsave("Figure2hires_v2", device = "png", width = 6, height = 7, units = 'in', dpi = 500)
+ggsave("Figure2hiresv2", device = "png", width = 5, height = 7, units = 'in', dpi = 500)
 
 # best size: ~800x1100 pix
 
