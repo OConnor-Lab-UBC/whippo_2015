@@ -1078,6 +1078,7 @@ checkerboard_epicomm$species <- fct_rev(checkerboard_epicomm$species)
 
 
 ########### FIGURE 2 - Diversity metrics for 9 sites in midsummer
+# now figures 3 & 4 (final copyedit)
 
 
 # Observed Richness (ANOVA and TUKEY stats are above)
@@ -1087,18 +1088,16 @@ Rich_midsum_plot <- ggplot(data = rich.C, aes(x=site, y = obsrich, fill = site))
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y = "Obs. Rich.") +
-  ylim(0,23) +
-  annotate("text", x = 1:9, y = 21, label = richtuk.cld)
+  labs(x="", y = "Observed Richness") +
+  annotate("text", x = 1:9, y = 19, label = richtuk.cld)
 
 R2_midsum_plot <- ggplot(data = rareC, aes(x=site, y = R2, fill = site)) +
   geom_boxplot() +
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y = "Rare. Rich.") +
-  ylim(1,4.5) +
-  annotate("text", x = 1:9, y = 4.3, label = raretuk.cld)
+  labs(x="", y = "Rarefied Richness") +
+  annotate("text", x = 1:9, y = 4.1, label = raretuk.cld)
 
 
 # ENS (ANOVA and TUKEY stats are above)
@@ -1118,9 +1117,8 @@ shannon_midsum_plot <- ggplot(div.summaryC, aes(x = site, y = Shannon, fill = si
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x ="", y="Shan. Div.")  +
-  ylim(0,2.5) +
-  annotate("text", x = 1:9, y = 2.35, label = shantuk.cld)
+  labs(x ="", y="Shannon Diversity")  +
+  annotate("text", x = 1:9, y = 2.2, label = shantuk.cld)
 
 # ABUNDANCE (ANOVA and TUKEY stats are above)
 
@@ -1129,9 +1127,8 @@ abund_midsum_plot <- ggplot(abund_C, aes(x = site, y = log10(abundance + 1), fil
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x ="", y="Log Abun.")  +
-  ylim(0,4) +
-  annotate("text", x = 1:9, y = 3.5, label = abuntuk.cld)
+  labs(x ="", y="Log Abundance")  +
+  annotate("text", x = 1:9, y = 3.35, label = abuntuk.cld)
 
 # HELLINGER DISTANCE (ANOVA and TUKEY stats are above)
 
@@ -1150,9 +1147,9 @@ bray_midsum_plot <- ggplot(bray_C, aes(x = site, y = value, fill = site)) +
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x ="", y="B-C Dist.") +
-  ylim(0,1.25) +
-  annotate("text", x = 1:9, y = 1.15, label = braytuk.cld)
+  ylim(0,1.05) +
+  labs(x ="", y="Bray-Curtis Distance") +
+  annotate("text", x = 1:9, y = 1.05, label = braytuk.cld)
 
 # JACCARD DISTANCE (ANOVA and TUKEY stats are above)
 
@@ -1161,34 +1158,33 @@ jaccard_midsum_plot <- ggplot(jaccard_C, aes(x = site, y = value, fill = site)) 
   fill_palette(viridis(9, option = "viridis")) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x ="", y="Jacc. Dist.") +
-  ylim(0,1.16) +
-  annotate("text", x = 1:9, y = 1.1, label = jaccardtuk.cld)
+  ylim(0,1.05) +
+  labs(x ="", y="Jaccard Distance") +
+  annotate("text", x = 1:9, y = 1.05, label = jaccardtuk.cld)
 
+# NOW FIGURE 3
 checkerboard_plot <- ggplot(checkerboard_epicomm, aes(site, species, fill = abun)) +
   geom_tile(colour = "gray30", stat = "identity") +
   scale_fill_viridis(option = "B") +
   theme_minimal() +
-  theme(axis.text.y=element_text(size=7)) +
+  ylab("Species") +
+  xlab("Site") +
+  theme(axis.text.y=element_text(size=12)) +
+  theme(axis.title = element_text(size=14)) +
   guides(fill = guide_colorbar(label = TRUE, ticks = FALSE, title = "abundance", fill = c("high", "low")))
 
+ggsave("Figure3hiresv2", device = "png", width = 6, height = 7, units = 'in', dpi = 500)
 
 # FULL FIGURE 2
 
-Figure2 <- ggarrange(ggarrange(Rich_midsum_plot, R2_midsum_plot, shannon_midsum_plot, abund_midsum_plot, bray_midsum_plot, jaccard_midsum_plot,
+Figure2 <- ggarrange(Rich_midsum_plot, R2_midsum_plot, shannon_midsum_plot, abund_midsum_plot, bray_midsum_plot, jaccard_midsum_plot,
                      labels = c("A", "B", "C", "D", "E", "F"),
                      ncol = 2, nrow = 3,
-                     common.legend = TRUE, legend = "right"),
-                     ggarrange(checkerboard_plot, 
-                               labels = "G",
-                               ncol = 1, nrow = 1),                        
-                     ncol = 1, nrow = 2,
-                     common.legend = TRUE, legend = "right",
-                     heights = c(2.1,1.5))
+                     common.legend = TRUE, legend = "right")
 # annotate_figure(Figure2, bottom = text_grob("Figure 2: Measures of A) observed richness, B) shannon diversity, C) effective number of species (ENS), and  \n D) Hellinger distance across nine seagrass habitats types sampled in midsummer.", size = 10))
 
 # ggsave to increase dpi to 300 for pub. 
-ggsave("Figure2hiresv2", device = "png", width = 5, height = 7, units = 'in', dpi = 500)
+ggsave("Figure2hiresv2", device = "png", width = 6, height = 7, units = 'in', dpi = 500)
 
 # best size: ~800x1100 pix
 
@@ -1198,16 +1194,17 @@ ggsave("Figure2hiresv2", device = "png", width = 5, height = 7, units = 'in', dp
 
 ########### FIGURE 4
 
+# now figures 6 & 7 (final copyedit)
+
 ########### JACCARD DISTANCE THROUGH TIME
 
 jacc_plot <- ggplot(jacc_prime, aes(x = time, y = value, group = site)) + 
-  geom_point(size=3, aes(colour = site, pch = time)) +
+  geom_point(size=3, aes(colour = site)) +
   geom_line(aes(color = site)) +
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
-  ylim(0.35, 0.9) +
   theme(axis.text.x=element_blank()) +
-  labs(x=" May        June/July        August", y="Jacc. Dist.") 
+  labs(x=" May    June/July    August", y="Jaccard Distance") 
 
 
 # best size: ~600x400
@@ -1215,13 +1212,12 @@ jacc_plot <- ggplot(jacc_prime, aes(x = time, y = value, group = site)) +
 ########### BRAY DISTANCE THROUGH TIME
 
 bray_plot <- ggplot(all_bray, aes(x = time, y = value, group = site)) + 
-  geom_point(size=3, aes(colour = site, pch = time)) +
+  geom_point(size=3, aes(colour = site)) +
   geom_line(aes(color = site)) +
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
-  ylim(0.2, 0.8) +
   theme(axis.text.x=element_blank()) +
-  labs(x=" May         June/July        August", y="B-C Dist.") 
+  labs(x=" May      June/July     August", y="Bray-Curtis Distance") 
 
 
 
@@ -1240,60 +1236,55 @@ bray_plot <- ggplot(all_bray, aes(x = time, y = value, group = site)) +
 # OBSERVED RICHNESS
 
 rich_plot <- ggplot(rich_prim, aes(x = Time.Code2, y = obsrich, group = site)) + 
-  geom_point(size=3, aes(colour = site, pch = Time.Code2)) +
+  geom_point(size=3, aes(colour = site)) +
   geom_line(aes(color = site)) +
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
-  ylim(3.5, 15.5) +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="Obs. Rich.") 
+  labs(x="", y="Observed Richness") 
 
 
 # RAREFIED RICHNESS
 
 rare_plot <- ggplot(new_rare_prim, aes(x = Time.Code2, y = R2, group = site)) + 
-  geom_point(size=3, aes(colour = site, pch = Time.Code2)) +
+  geom_point(size=3, aes(colour = site)) +
   geom_line(aes(color = site)) +
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
-  ylim(1.75, 2.35) +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="Rare. Rich.") 
+  labs(x="", y="Rarefied Richness") 
 
 
 # ENS
 
 ens_plot <- ggplot(ens_prim, aes(x = Time.Code2, y = ENS, group = site)) + 
-  geom_point(size=3, aes(colour = site, pch = Time.Code2)) +
+  geom_point(size=3, aes(colour = site)) +
   geom_line(aes(color = site)) +
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
-  ylim(1.25, 6.5) +
   theme(axis.text.x=element_blank()) +
   labs(x="", y="ENS") 
 
 # SHANNON DIVERSITY
 
 shannon_plot <- ggplot(shan_time, aes(x = Time.Code2, y = Shannon, group = site)) + 
-  geom_point(size=3, aes(colour = site, pch = Time.Code2)) +
+  geom_point(size=3, aes(colour = site)) +
   geom_line(aes(color = site)) +
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
-  ylim(0.35, 1.8) +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="Shan. Div.")
+  labs(x="", y="Shannon Diversity")
 
 
 # ABUNDANCE
 
 abun_plot <- ggplot(abund_prim, aes(x = Time.Code2, y = log10(abundance+1), group = site)) + 
-  geom_point(size=3, aes(colour = site, pch = Time.Code2)) +
+  geom_point(size=3, aes(colour = site)) +
   geom_line(aes(color = site)) +
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
-  ylim(1.35, 3.3) +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="Abund.") 
+  labs(x="", y="Abundance") 
 
 
 # Hellinger distance
@@ -1305,6 +1296,7 @@ abun_plot <- ggplot(abund_prim, aes(x = Time.Code2, y = log10(abundance+1), grou
 #  theme(axis.text.x=element_blank()) +
 #  labs(x=" May                 June/July                 August", y="Hellinger Distance")
 
+# NOW FIGURE 6
 # nMDS
 mds_plot <- ggplot(plot_data_tax, aes(x=MDS1, y=MDS2, pch = month, color = site)) +
   scale_color_viridis(discrete = TRUE) +
@@ -1313,6 +1305,7 @@ mds_plot <- ggplot(plot_data_tax, aes(x=MDS1, y=MDS2, pch = month, color = site)
   geom_point(size = 3) +
   geom_vline(xintercept= -0.15, lty = 2, color = "light blue") 
   
+ggsave("Figure7hiresv2.png", device = "png", width = 6, height = 6, units = 'in', dpi = 500)
 
 
 # FULL FIGURE 4
@@ -1322,25 +1315,18 @@ mds_plot <- ggplot(plot_data_tax, aes(x=MDS1, y=MDS2, pch = month, color = site)
 
 #legend4 <- get_legend(mds_plot + theme(legend.position="right"))
 
-Figure4 <- ggarrange(ggarrange(rich_plot, rare_plot, shannon_plot, abun_plot, bray_plot, jacc_plot, 
+Figure6 <- ggarrange(rich_plot, rare_plot, shannon_plot, abun_plot, bray_plot, jacc_plot, 
                                labels = c("A", "B", "C", "D", "E", "F"), 
                                font.label = list(size = 12),
                                ncol = 2, nrow = 3,
-                               widths = .75,
-                               legend = FALSE),
-                     ggarrange(mds_plot,
-                               labels = "G",
-                               font.label = list(size = 12),
-                               ncol = 1, nrow = 1),                        
-                     ncol = 1, nrow = 2,
-                     common.legend = TRUE, legend = "right",  
-                     heights = c(2,1.5)) 
+                               common.legend = TRUE, 
+                               legend = "right")
 
                   
 #annotate_figure(Figure4, bottom = text_grob("Figure 5: Measures of A) observed richness, B) shannon diversity, and C) effective number of species (ENS) across five seagrass habitats types \n sampled in May, June/July, and August", size = 10))
 
 # ggsave to increase dpi to 300 for pub. 
-ggsave("Figure4hiresv2.png", device = "png", width = 6, height = 7, units = 'in', dpi = 500)
+ggsave("Figure6hiresv2.png", device = "png", width = 6, height = 7, units = 'in', dpi = 500)
 
 # best size: ~800x1100
 

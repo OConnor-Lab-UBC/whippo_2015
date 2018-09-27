@@ -1002,10 +1002,11 @@ ggplot(y1, aes(loc, distance)) +
   xlab("Scale of Comparison") +
   theme(legend.position = "none") + 
   theme_classic() +
-  theme(axis.text=element_text(size=14), axis.title=element_text(size=14))
+  theme(axis.text=element_text(size=14), axis.title=element_text(size=14)) +
+  theme(strip.text.y = element_text(size=14)) 
 
 # ggsave to increase dpi to 300 for pub. 
-ggsave("Figure5hires", device = "png", width = 15.6, height = 22, units = 'cm', dpi = 300)
+ggsave("Figure8hires", device = "png", width = 6, height = 7, units = 'in', dpi = 500)
 
 # 500 x 600
 
