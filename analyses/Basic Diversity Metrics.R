@@ -1181,7 +1181,7 @@ Figure2 <- ggarrange(ggarrange(Rich_midsum_plot, R2_midsum_plot, shannon_midsum_
 # annotate_figure(Figure2, bottom = text_grob("Figure 2: Measures of A) observed richness, B) shannon diversity, C) effective number of species (ENS), and  \n D) Hellinger distance across nine seagrass habitats types sampled in midsummer.", size = 10))
 
 # ggsave to increase dpi to 300 for pub. 
-ggsave("Figure2hires", device = "png", width = 15.6, height = 30, units = 'cm', dpi = 300)
+ggsave("Figure2hires_v2", device = "png", width = 6, height = 7, units = 'in', dpi = 500)
 
 # best size: ~800x1100 pix
 
@@ -1193,13 +1193,16 @@ ggsave("Figure2hires", device = "png", width = 15.6, height = 30, units = 'cm', 
 
 ########### JACCARD DISTANCE THROUGH TIME
 
-jacc_plot <- ggplot(jacc_prim, aes(x = time, y = value, group = site)) + 
+jacc_plot <- ggplot(jacc_prime, aes(x = time, y = value, group = site)) + 
   geom_point(size=4, aes(colour = site, pch = time)) +
   geom_line(aes(color = site)) +
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x=" May                  June/July                 August", y="Jaccard Distance")
+  theme(axis.text.y=element_text(size=18)) +
+  labs(x=" May        June/July        August", y="Jacc. Dist.") +
+  theme(axis.title.y = element_text(size = 18)) +
+  theme(axis.title.x = element_text(size = 16))
 
 # best size: ~600x400
 
@@ -1211,7 +1214,10 @@ bray_plot <- ggplot(all_bray, aes(x = time, y = value, group = site)) +
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x=" May                  June/July                 August", y="Bray-Curtis Distance")
+  theme(axis.text.y=element_text(size=18)) +
+  labs(x=" May         June/July        August", y="B-C Dist.") +
+  theme(axis.title.y = element_text(size = 18)) +
+  theme(axis.title.x = element_text(size = 16))
 
 
 
@@ -1234,7 +1240,9 @@ rich_plot <- ggplot(rich_prim, aes(x = Time.Code2, y = obsrich, group = site)) +
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="Observed Richness")
+  theme(axis.text=element_text(size=18)) +
+  labs(x="", y="Obs. Rich.") +
+  theme(axis.title.y = element_text(size = 18))
 
 # RAREFIED RICHNESS
 
@@ -1244,7 +1252,9 @@ rare_plot <- ggplot(new_rare_prim, aes(x = Time.Code2, y = R2, group = site)) +
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="Rarefied Richness")
+  theme(axis.text=element_text(size=18)) +
+  labs(x="", y="Rare. Rich.") +
+  theme(axis.title.y = element_text(size = 18))
 
 # ENS
 
@@ -1254,7 +1264,9 @@ ens_plot <- ggplot(ens_prim, aes(x = Time.Code2, y = ENS, group = site)) +
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="ENS")
+  theme(axis.text=element_text(size=18)) +
+  labs(x="", y="ENS") +
+  theme(axis.title.y = element_text(size = 18))
 
 # SHANNON DIVERSITY
 
@@ -1264,7 +1276,9 @@ shannon_plot <- ggplot(shan_time, aes(x = Time.Code2, y = Shannon, group = site)
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="Shannon Diversity")
+  theme(axis.text=element_text(size=18)) +
+  labs(x="", y="Shan. Div.") +
+  theme(axis.title.y = element_text(size = 18))
 
 # ABUNDANCE
 
@@ -1274,7 +1288,9 @@ abun_plot <- ggplot(abund_prim, aes(x = Time.Code2, y = log10(abundance+1), grou
   scale_color_viridis(discrete=TRUE) +
   theme_minimal() +
   theme(axis.text.x=element_blank()) +
-  labs(x="", y="Abundance")
+  theme(axis.text=element_text(size=18)) +
+  labs(x="", y="Abund.") +
+  theme(axis.title.y = element_text(size = 18))
 
 # Hellinger distance
 
@@ -1291,28 +1307,39 @@ mds_plot <- ggplot(plot_data_tax, aes(x=MDS1, y=MDS2, pch = month, color = site)
   theme_minimal() +
   geom_polygon(data=chulls_tax, aes(x=MDS1, y=MDS2, group=month), fill=NA, color = "grey") +
   geom_point(size = 4) +
-  geom_vline(xintercept= -0.15, lty = 2, color = "light blue")
+  geom_vline(xintercept= -0.15, lty = 2, color = "light blue") +
+  theme(axis.text=element_text(size=18)) +
+  theme(axis.title = element_text(size = 18))
   
 
 
 # FULL FIGURE 4
 
+# Tried to extract legend separately here to resize, but it didn't work,
+# so I left it there as a blank space and inserted legend using GIMP.
+
+legend4 <- get_legend(mds_plot + theme(legend.position="right"))
 
 Figure4 <- ggarrange(ggarrange(rich_plot, rare_plot, shannon_plot, abun_plot, bray_plot, jacc_plot, 
                                labels = c("A", "B", "C", "D", "E", "F"), 
+                               font.label = list(size = 20),
                                ncol = 2, nrow = 3,
                                legend = FALSE),
-                     ggarrange(mds_plot, 
+                     ggarrange(mds_plot, legend4,
                                labels = "G",
-                               ncol = 1, nrow = 1),                        
+                               legend = FALSE,
+                               font.label = list(size = 20),
+                               ncol = 2, nrow = 1, widths = c(3,1.5)),                        
                      ncol = 1, nrow = 2,
-                     common.legend = TRUE, legend = "right",
-                     heights = c(2,1.5))
+                     legend = FALSE,
+                   #  common.legend = TRUE, legend = "right",  
+                     heights = c(3,2)) 
+
                   
-annotate_figure(Figure4, bottom = text_grob("Figure 5: Measures of A) observed richness, B) shannon diversity, and C) effective number of species (ENS) across five seagrass habitats types \n sampled in May, June/July, and August", size = 10))
+#annotate_figure(Figure4, bottom = text_grob("Figure 5: Measures of A) observed richness, B) shannon diversity, and C) effective number of species (ENS) across five seagrass habitats types \n sampled in May, June/July, and August", size = 10))
 
 # ggsave to increase dpi to 300 for pub. 
-ggsave("Figure4hires", device = "png", width = 24, height = 30, units = 'cm', dpi = 300)
+ggsave("Figure4hiresv2.png", device = "png", width = 24, height = 27, units = 'cm', dpi = 500)
 
 # best size: ~800x1100
 
